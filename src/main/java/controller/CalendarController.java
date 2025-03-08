@@ -97,7 +97,17 @@ class CalendarController implements ICalendarController {
       } else {
         System.out.println("Error: Expected 'event' after 'create'.");
       }
-    } else {
+    }
+    else if (parts.hasNext("edit")) {
+      //todo write code for edit command
+    } else if (parts.hasNext("print")) {
+      //todo write code for edit command
+    } else if (parts.hasNext("export")) {
+      //todo write code for edit command
+    } else if (parts.hasNext("show")) {
+      //todo write code for edit command
+    }
+    else {
       System.out.println("Error: Unsupported command.");
     }
     parts.close();
