@@ -1,6 +1,7 @@
 package model;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface ICalendarModel {
@@ -12,7 +13,11 @@ public interface ICalendarModel {
     }
   }
 
-  boolean addEvent(CalendarEventDTO event, boolean autoDecline);
+  boolean addEvent(CalendarEventDTO event);
+  boolean editEvent(String property, String eventName, LocalDateTime fromDateTime, LocalDateTime toDateTime, String newValue);
+  boolean editEvents(String property, String eventName, LocalDateTime fromDateTime, LocalDateTime toDateTime, String newValue);
+  String printEvents(LocalDate fromDate, LocalDate toDate);
+  String exportEvents(String filename);
+  String showStatus(LocalDateTime dateTime);
 
-  List<CalendarEvent> getEventsOnDate(LocalDate date);
 }

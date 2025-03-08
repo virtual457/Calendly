@@ -92,7 +92,7 @@ class CalendarController implements ICalendarController {
         }
 
         CalendarEventDTO event = eventBuilder.build();
-        model.addEvent(event, autoDecline);
+        model.addEvent(event);
         System.out.println("Event created: " + event.getEventName());
       } else {
         System.out.println("Error: Expected 'event' after 'create'.");
