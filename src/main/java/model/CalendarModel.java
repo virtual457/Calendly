@@ -12,7 +12,7 @@ class CalendarModel implements ICalendarModel {
   }
 
   @Override
-  public boolean addEvent(CalendarEvent event, boolean autoDecline) {
+  public boolean addEvent(CalendarEventDTO event, boolean autoDecline) {
     for (CalendarEvent existingEvent: events) {
       if (event.getStartDateTime().isBefore(existingEvent.getEndDateTime()) &&
               event.getEndDateTime().isAfter(existingEvent.getStartDateTime())) {
@@ -22,7 +22,7 @@ class CalendarModel implements ICalendarModel {
         }
       }
     }
-    events.add(event);
+    events.add(null);
     return true;
   }
 

@@ -12,7 +12,7 @@ public interface ICalendarModel {
     }
   }
 
-  boolean addEvent(CalendarEvent event, boolean autoDecline);
+  boolean addEvent(CalendarEventDTO event, boolean autoDecline);
 
   List<CalendarEvent> getEventsOnDate(LocalDate date);
 }
