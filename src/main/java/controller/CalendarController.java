@@ -98,13 +98,52 @@ class CalendarController implements ICalendarController {
       }
     }
     else if (parts.hasNext("edit")) {
-      //todo write code for edit command
-    } else if (parts.hasNext("print")) {
-      //todo write code for edit command
-    } else if (parts.hasNext("export")) {
-      //todo write code for edit command
-    } else if (parts.hasNext("show")) {
-      //todo write code for edit command
+      parts.next();
+      String property = parts.next();
+      String eventName = parts.next();
+      if (parts.hasNext("from")) {
+        parts.next();
+        String startDateTimeStr = parts.next();
+        LocalDateTime startDateTime = LocalDateTime.parse(startDateTimeStr);
+        String newValue = parts.next();
+        model.editEvent(property, eventName, startDateTime, newValue);
+      } else {
+        String newValue = parts.next();
+        model.editEvents(property, eventName,null, newValue);
+      }
+    }
+    else if (parts.hasNext("print")) {
+      parts.next();
+      if (parts.hasNext("events")) {
+        parts.next();
+        if (parts.hasNext("on")) {
+          parts.next();
+          String dateStr = parts.next();
+          LocalDate date = LocalDate.parse(dateStr);
+          model.printEventsOnSpecificDate(date);
+        } else if (parts.hasNext("from")) {
+          parts.next();
+          String startDateTimeStr = parts.next();
+          parts.next();
+          String endDateTimeStr = parts.next();
+          LocalDateTime startDateTime = LocalDateTime.parse(startDateTimeStr);
+          LocalDateTime endDateTime = LocalDateTime.parse(endDateTimeStr);
+          model.printEventsInSpecificRange(startDateTime, endDateTime);
+        }
+      }
+    }
+    else if (parts.hasNext("export")) {
+      parts.next();
+      parts.next();
+      String fileName = parts.next();
+      model.exportEvents(fileName);
+    }
+    else if (parts.hasNext("show")) {
+      parts.next();
+      parts.next();
+      String dateTimeStr = parts.next();
+      LocalDateTime dateTime = LocalDateTime.parse(dateTimeStr);
+      model.showStatus(dateTime);
     }
     else {
       System.out.println("Error: Unsupported command.");

@@ -103,7 +103,7 @@ class CalendarModel implements ICalendarModel {
   }
 
   @Override
-  public boolean editEvent(String property, String eventName, LocalDateTime fromDateTime, LocalDateTime toDateTime, String newValue) {
+  public boolean editEvent(String property, String eventName, LocalDateTime fromDateTime, String newValue) {
     // Locate the specific event by name and exact time interval.
     for (CalendarEvent event : events) {
       if (event.getEventName().equals(eventName) &&
@@ -132,7 +132,7 @@ class CalendarModel implements ICalendarModel {
   }
 
   @Override
-  public boolean editEvents(String property, String eventName, LocalDateTime fromDateTime, LocalDateTime toDateTime, String newValue) {
+  public boolean editEvents(String property, String eventName, LocalDateTime fromDateTime, String newValue) {
     // Edit all events that have the same name and whose start time is within the given interval.
     boolean found = false;
     for (CalendarEvent event : events) {
