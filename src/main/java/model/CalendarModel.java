@@ -104,7 +104,30 @@ class CalendarModel implements ICalendarModel {
 
   @Override
   public boolean editEvent(String property, String eventName, LocalDateTime fromDateTime, LocalDateTime toDateTime, String newValue) {
-    //TODO write logic to find and edit the event
+    // Locate the specific event by name and exact time interval.
+    for (CalendarEvent event : events) {
+      if (event.getEventName().equals(eventName) &&
+          event.getStartDateTime().equals(fromDateTime) &&
+          event.getEndDateTime().equals(toDateTime)) {
+        switch(property.toLowerCase()) {
+          case "name":
+            event.setEventName(newValue);
+            return true;
+          case "start":
+            LocalDateTime newStart = LocalDateTime.parse(newValue);
+            event.setStartDateTime(newStart);
+            return true;
+          case "end":
+            LocalDateTime newEnd = LocalDateTime.parse(newValue);
+            event.setEndDateTime(newEnd);
+            return true;
+          default:
+            System.out.println("Unsupported property for edit.");
+            return false;
+        }
+      }
+    }
+    System.out.println("Event not found for editing.");
     return false;
   }
 
