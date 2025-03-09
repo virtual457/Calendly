@@ -102,10 +102,6 @@ class CalendarModel implements ICalendarModel {
     }
   }
 
-    events.add(null);
-    return true;
-  }
-
   @Override
   public boolean editEvent(String property, String eventName, LocalDateTime fromDateTime, LocalDateTime toDateTime, String newValue) {
     //TODO write logic to find and edit the event
