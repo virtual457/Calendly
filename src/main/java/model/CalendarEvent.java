@@ -13,12 +13,11 @@ class CalendarEvent {
   private String seriesId;
 
   public CalendarEvent(String eventName, LocalDateTime startDateTime, LocalDateTime endDateTime,
-                       String description, String location, boolean isPublic, boolean isRecurring,
-                       List<DayOfWeek> recurrenceDays) {
+                       boolean autoDecline) {
     this.eventName = eventName;
     this.startDateTime = startDateTime;
     this.endDateTime = endDateTime;
-
+    this.isAutoDecline = autoDecline;
   }
 
   public String getEventName() {

@@ -3,7 +3,6 @@ package controller;
 import java.time.*;
 import java.util.*;
 
-import controller.ICalendarController;
 import model.CalendarEventDTO;
 import model.ICalendarModel;
 
@@ -53,7 +52,7 @@ class CalendarController implements ICalendarController {
             return;
           }
         } else if (parts.hasNext("on")) {
-          parts.next(); // consume "on"
+          parts.next();
           String dateString = parts.next();
           LocalDate date = LocalDate.parse(dateString);
           LocalDateTime startDateTime = date.atStartOfDay();
@@ -62,7 +61,7 @@ class CalendarController implements ICalendarController {
         }
 
         if (parts.hasNext("repeats")) {
-          parts.next(); // consume "repeats"
+          parts.next();
           String weekdays = parts.next();
           List<DayOfWeek> recurrenceDays = new ArrayList<>();
           for (char day : weekdays.toCharArray()) {
