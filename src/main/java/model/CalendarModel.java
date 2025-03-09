@@ -168,8 +168,21 @@ class CalendarModel implements ICalendarModel {
 
   @Override
   public String printEvents(LocalDate fromDate, LocalDate toDate) {
-    //Todo to wrrite logic to create print events
-    return "";
+    StringBuilder sb = new StringBuilder();
+    for (CalendarEvent event : events) {
+      LocalDate eventDate = event.getStartDateTime().toLocalDate();
+      if ((eventDate.equals(fromDate) || eventDate.isAfter(fromDate)) &&
+          (eventDate.equals(toDate) || eventDate.isBefore(toDate))) {
+        sb.append("- " + event.getEventName() + ": " +
+                  event.getStartDateTime() + " to " +
+                  event.getEndDateTime());
+        if (event.getLocation() != null) {
+          sb.append(" at " + event.getLocation());
+        }
+        sb.append("\n");
+      }
+    }
+    return sb.toString();
   }
 
   @Override
@@ -180,17 +193,40 @@ class CalendarModel implements ICalendarModel {
 
   @Override
   public String showStatus(LocalDateTime dateTime) {
-    //Todo write logic to show status on that datetime free or not
-    return "";
+    StringBuilder sb = new StringBuilder();
+    for (CalendarEvent event : events) {
+      LocalDate eventDate = event.getStartDateTime().toLocalDate();
+      if ((eventDate.equals(fromDate) || eventDate.isAfter(fromDate)) &&
+          (eventDate.equals(toDate) || eventDate.isBefore(toDate))) {
+        sb.append("- " + event.getEventName() + ": " +
+                  event.getStartDateTime() + " to " +
+                  event.getEndDateTime());
+        if (event.getLocation() != null) {
+          sb.append(" at " + event.getLocation());
+        }
+        sb.append("\n");
+      }
+    }
+    return sb.toString();
   }
 
   private Boolean doesEventConflict(CalendarEventDTO eventDTO){
-    //TODO check existing events with the given DTO
+    LocalDateTime newStart = eventDTO.getStartDateTime();
+    LocalDateTime newEnd = eventDTO.getEndDateTime();
+    for (CalendarEvent event : events) {
+      if (newStart.isBefore(event.getEndDateTime()) && newEnd.isAfter(event.getStartDateTime())) {
+        return true;
+      }
+    }
     return false;
   }
 
   private Boolean checkStatus(LocalDateTime dateTime){
-    //Todo check if there are events for that datetime
+        for (CalendarEvent event : events) {
+      if (!dateTime.isBefore(event.getStartDateTime()) && !dateTime.isAfter(event.getEndDateTime())) {
+        return true;
+      }
+    }
     return false;
   }
 }
