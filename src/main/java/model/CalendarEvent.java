@@ -10,7 +10,6 @@ class CalendarEvent {
   private LocalDateTime startDateTime;
   private LocalDateTime endDateTime;
   private boolean isAutoDecline;
-  private String seriesId;
 
   public CalendarEvent(String eventName, LocalDateTime startDateTime, LocalDateTime endDateTime,
                        boolean autoDecline) {
