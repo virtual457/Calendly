@@ -4,7 +4,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public class CalendarEvent {
+class CalendarEvent {
   private String eventName;
   private LocalDateTime startDateTime;
   private LocalDateTime endDateTime;
