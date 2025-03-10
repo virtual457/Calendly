@@ -8,11 +8,7 @@ public class CalendarEvent {
   private String eventName;
   private LocalDateTime startDateTime;
   private LocalDateTime endDateTime;
-  private String description;
-  private String location;
-  private boolean isPublic;
   private boolean isRecurring;
-  private List<DayOfWeek> recurrenceDays;
   private boolean autoDecline;
 
   public CalendarEvent(String eventName, LocalDateTime startDateTime, LocalDateTime endDateTime,
@@ -21,11 +17,7 @@ public class CalendarEvent {
     this.eventName = eventName;
     this.startDateTime = startDateTime;
     this.endDateTime = endDateTime;
-    this.description = description;
-    this.location = location;
-    this.isPublic = isPublic;
     this.isRecurring = isRecurring;
-    this.recurrenceDays = recurrenceDays;
     this.autoDecline = autoDecline;
   }
 
@@ -41,25 +33,10 @@ public class CalendarEvent {
     return endDateTime;
   }
 
-  public String getDescription() {
-    return description;
-  }
-
-  public String getLocation() {
-    return location;
-  }
-
-  public boolean isPublic() {
-    return isPublic;
-  }
-
   public boolean isRecurring() {
     return isRecurring;
   }
 
-  public List<DayOfWeek> getRecurrenceDays() {
-    return recurrenceDays;
-  }
 
   public boolean isAutoDecline() {
     return autoDecline;
@@ -78,11 +55,4 @@ public class CalendarEvent {
     this.endDateTime = endDateTime;
   }
 
-  public void setDescription(String description) {
-    this.description = description;
-  }
-
-  public void setLocation(String location) {
-    this.location = location;
-  }
 }

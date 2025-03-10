@@ -204,9 +204,6 @@ public class CalendarModel implements ICalendarModel {
         sb.append("- ").append(event.getEventName()).append(": ")
                 .append(event.getStartDateTime()).append(" to ")
                 .append(event.getEndDateTime());
-        if (event.getLocation() != null) {
-          sb.append(" at ").append(event.getLocation());
-        }
         sb.append("\n");
       }
     }
@@ -222,9 +219,6 @@ public class CalendarModel implements ICalendarModel {
         sb.append("- ").append(event.getEventName()).append(": ")
                 .append(event.getStartDateTime()).append(" to ")
                 .append(event.getEndDateTime());
-        if (event.getLocation() != null) {
-          sb.append(" at ").append(event.getLocation());
-        }
         sb.append("\n");
       }
     }
@@ -236,17 +230,11 @@ public class CalendarModel implements ICalendarModel {
     try (PrintWriter writer = new PrintWriter(new FileWriter(filename))) {
       writer.println("Event Name,Start DateTime,End DateTime,Recurring,Recurrence Days,AutoDecline");
       for (CalendarEvent event : events) {
-        String recurrence = event.isRecurring() ? "Yes" : "No";
-        String days = "";
-        if (event.isRecurring() && event.getRecurrenceDays() != null) {
-          days = event.getRecurrenceDays().toString();
-        }
-        writer.println(String.format("%s,%s,%s,%s,%s,%s",
+
+        writer.println(String.format("%s,%s,%s,%s",
                 event.getEventName(),
                 event.getStartDateTime(),
                 event.getEndDateTime(),
-                recurrence,
-                days,
                 event.isAutoDecline() ? "Yes" : "No"));
       }
       writer.flush();
