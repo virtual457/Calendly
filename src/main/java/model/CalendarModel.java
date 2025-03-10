@@ -26,86 +26,74 @@ public class CalendarModel implements ICalendarModel {
       throw new IllegalArgumentException("End date and time must be after start date and time.");
     }
 
-    // If the event is recurring, then additional conditions apply.
     if (eventDTO.isRecurring()) {
       // For recurring events, start and end must be on the same day.
       if (!eventDTO.getStartDateTime().toLocalDate().equals(eventDTO.getEndDateTime().toLocalDate())) {
         throw new IllegalArgumentException("Recurring events must have start and end on the same day.");
       }
-
+      
+      // Both recurrence count and recurrence end date cannot be provided together.
+      if (eventDTO.getRecurrenceCount() > 0 && eventDTO.getRecurrenceEndDate() != null) {
+        throw new IllegalArgumentException("Cannot define both recurrence count and recurrence end date for a recurring event.");
+      }
+      
+      // At least one must be provided.
+      if (eventDTO.getRecurrenceCount() <= 0 && eventDTO.getRecurrenceEndDate() == null) {
+        throw new IllegalArgumentException("Either recurrence count or recurrence end date must be defined for a recurring event.");
+      }
+      
       List<CalendarEvent> occurrences = new ArrayList<>();
       LocalDate startDate = eventDTO.getStartDateTime().toLocalDate();
       LocalTime startTime = eventDTO.getStartDateTime().toLocalTime();
       LocalTime endTime   = eventDTO.getEndDateTime().toLocalTime();
-
-      // If recurrence is defined by a fixed count (e.g., "for 5 Wednesdays")
-      if (eventDTO.getRecurrenceCount() > 0) {
-        int count = 0;
-        LocalDate currentDate = startDate;
-        // Loop day-by-day until the required number of occurrences is generated.
-        while (count < eventDTO.getRecurrenceCount()) {
-          // Only generate an occurrence if the current day is one of the specified recurrence days.
-          if (eventDTO.getRecurrenceDays().contains(currentDate.getDayOfWeek())) {
-            LocalDateTime occurrenceStart = LocalDateTime.of(currentDate, startTime);
-            LocalDateTime occurrenceEnd   = LocalDateTime.of(currentDate, endTime);
-            // Create a temporary DTO for conflict checking.
-            CalendarEventDTO occurrenceDTO = new CalendarEventDTO.CalendarEventDTOBuilder()
-                .eventName(eventDTO.getEventName())
-                .startDateTime(occurrenceStart)
-                .endDateTime(occurrenceEnd)
-                .autoDecline(eventDTO.isAutoDecline())
-                .build();
-            if (eventDTO.isAutoDecline() && doesEventConflict(occurrenceDTO)) {
-              throw new IllegalStateException("Conflict detected on " + occurrenceStart + ", event not created");
-            }
-            occurrences.add(new CalendarEvent(
-                eventDTO.getEventName(),
-                occurrenceStart,
-                occurrenceEnd,
-                null,     // description
-                null,     // location
-                false,    // isPublic (default)
-                true,     // isRecurring
-                eventDTO.getRecurrenceDays(),
-                eventDTO.isAutoDecline()
-            ));
-            count++;
+      
+      int count = 0;
+      LocalDate currentDate = startDate;
+      LocalDate recurrenceEnd = (eventDTO.getRecurrenceEndDate() != null)
+              ? eventDTO.getRecurrenceEndDate().toLocalDate()
+              : null;
+      
+      // Single loop handling both termination conditions.
+      while (true) {
+        if (eventDTO.getRecurrenceCount() > 0) { // termination by fixed count
+          if (count >= eventDTO.getRecurrenceCount()) {
+            break;
           }
-          currentDate = currentDate.plusDays(1);
-        }
-      }
-      // Or, if recurrence is defined by an end date (e.g., "until 2025-03-31")
-      else if (eventDTO.getRecurrenceEndDate() != null) {
-        LocalDate endRecurrence = eventDTO.getRecurrenceEndDate().toLocalDate();
-        LocalDate currentDate = startDate;
-        while (!currentDate.isAfter(endRecurrence)) {
-          if (eventDTO.getRecurrenceDays().contains(currentDate.getDayOfWeek())) {
-            LocalDateTime occurrenceStart = LocalDateTime.of(currentDate, startTime);
-            LocalDateTime occurrenceEnd   = LocalDateTime.of(currentDate, endTime);
-            CalendarEventDTO occurrenceDTO = new CalendarEventDTO.CalendarEventDTOBuilder()
-                .eventName(eventDTO.getEventName())
-                .startDateTime(occurrenceStart)
-                .endDateTime(occurrenceEnd)
-                .autoDecline(eventDTO.isAutoDecline())
-                .build();
-            if (eventDTO.isAutoDecline() && doesEventConflict(occurrenceDTO)) {
-              throw new IllegalStateException("Conflict detected on " + occurrenceStart + ", event not created");
-            }
-            occurrences.add(new CalendarEvent(
-                eventDTO.getEventName(),
-                occurrenceStart,
-                occurrenceEnd,
-                null,
-                null,
-                false,
-                true,
-                eventDTO.getRecurrenceDays(),
-                eventDTO.isAutoDecline()
-            ));
+        } else if (recurrenceEnd != null) { // termination by end date
+          if (currentDate.isAfter(recurrenceEnd)) {
+            break;
           }
-          currentDate = currentDate.plusDays(1);
         }
+        
+        if (eventDTO.getRecurrenceDays().contains(currentDate.getDayOfWeek())) {
+          LocalDateTime occurrenceStart = LocalDateTime.of(currentDate, startTime);
+          LocalDateTime occurrenceEnd   = LocalDateTime.of(currentDate, endTime);
+          // Create a temporary DTO for conflict checking.
+          CalendarEventDTO occurrenceDTO = new CalendarEventDTO.CalendarEventDTOBuilder()
+              .eventName(eventDTO.getEventName())
+              .startDateTime(occurrenceStart)
+              .endDateTime(occurrenceEnd)
+              .autoDecline(eventDTO.isAutoDecline())
+              .build();
+          if (eventDTO.isAutoDecline() && doesEventConflict(occurrenceDTO)) {
+            throw new IllegalStateException("Conflict detected on " + occurrenceStart + ", event not created");
+          }
+          occurrences.add(new CalendarEvent(
+              eventDTO.getEventName(),
+              occurrenceStart,
+              occurrenceEnd,
+              null,     // description
+              null,     // location
+              false,    // isPublic (default)
+              true,     // isRecurring
+              eventDTO.getRecurrenceDays(),
+              eventDTO.isAutoDecline()
+          ));
+          count++;
+        }
+        currentDate = currentDate.plusDays(1);
       }
+      
       events.addAll(occurrences);
       return true;
     } else {
@@ -243,10 +231,10 @@ public class CalendarModel implements ICalendarModel {
                 && event.getEndDateTime().equals(event.getStartDateTime().toLocalDate().atTime(23, 59, 59));
         String allDay = isAllDay ? "True" : "False";
         
-        String description = event.getDescription() == null ? "" : event.getDescription();
-        String location = event.getLocation() == null ? "" : event.getLocation();
+        String description = (event.getDescription() == null) ? "" : event.getDescription();
+        String location = (event.getLocation() == null) ? "" : event.getLocation();
         
-        // For this example, we assume events are public by default.
+        // Assume events are public by default.
         String isPrivate = "False";
         
         writer.println(String.format("\"%s\",%s,%s,%s,%s,%s,\"%s\",\"%s\",%s",
