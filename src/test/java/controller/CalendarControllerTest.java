@@ -1,19 +1,23 @@
 package controller;
 
-import org.junit.*;
-import static org.junit.Assert.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.isNull;
 import static org.mockito.Mockito.verifyNoInteractions;
-import java.io.*;
-import java.time.*;
-import java.util.*;
-import model.*;
-import controller.*;
+
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+import model.ICalendarModel;
+
 
 public class CalendarControllerTest {
   private CalendarController controller;
@@ -47,8 +51,8 @@ public class CalendarControllerTest {
 
   @Test
   public void testEditEventCallsModelWithCorrectParams() {
-    controller.processCommand("edit event name TeamMeeting from 2024-03-20T10:00 with UpdatedMeeting");
-    verify(model, times(1)).editEvents(eq("name"), eq("TeamMeeting"), isNull(), eq("UpdatedMeeting"));
+    controller.processCommand("edit event name TeamMeeting from 2024-03-20T10:00 to 2024-03-20T10:30 with UpdatedMeeting");
+    verify(model, times(1)).editEvent(eq("name"), eq("TeamMeeting"), eq(LocalDateTime.parse("2024-03-20T10:00")), eq(LocalDateTime.parse("2024-03-20T10:30")), eq("UpdatedMeeting"));
   }
 
   @Test

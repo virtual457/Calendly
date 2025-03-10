@@ -158,6 +158,7 @@ class CalendarController implements ICalendarController {
     else if (parts.hasNext("show")) {
       parts.next();
       parts.next();
+      parts.next();
       String dateTimeStr = parts.next();
       LocalDateTime dateTime = LocalDateTime.parse(dateTimeStr);
       model.showStatus(dateTime);
