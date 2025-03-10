@@ -99,17 +99,34 @@ class CalendarController implements ICalendarController {
     }
     else if (parts.hasNext("edit")) {
       parts.next();
+      String eventType = parts.next(); // Consume 'event' or 'events'
       String property = parts.next();
       String eventName = parts.next();
+
       if (parts.hasNext("from")) {
         parts.next();
         String startDateTimeStr = parts.next();
         LocalDateTime startDateTime = LocalDateTime.parse(startDateTimeStr);
+
+        if (parts.hasNext("to")) {
+          parts.next();
+          String endDateTimeStr = parts.next();
+          LocalDateTime endDateTime = LocalDateTime.parse(endDateTimeStr);
+
+          if (parts.hasNext("with")) {
+            parts.next();
+            String newValue = parts.next();
+            model.editEvent(property, eventName, startDateTime, endDateTime, newValue);
+          }
+        } else if (parts.hasNext("with")) {
+          parts.next();
+          String newValue = parts.next();
+          model.editEvents(property, eventName, startDateTime, newValue);
+        }
+      } else if (parts.hasNext("with")) {
+        parts.next();
         String newValue = parts.next();
-        model.editEvent(property, eventName, startDateTime, newValue);
-      } else {
-        String newValue = parts.next();
-        model.editEvents(property, eventName,null, newValue);
+        model.editEvents(property, eventName, null, newValue);
       }
     }
     else if (parts.hasNext("print")) {
