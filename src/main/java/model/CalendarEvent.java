@@ -12,8 +12,7 @@ class CalendarEvent {
   private boolean autoDecline;
 
   public CalendarEvent(String eventName, LocalDateTime startDateTime, LocalDateTime endDateTime,
-                       String description, String location, boolean isPublic, boolean isRecurring,
-                       List<DayOfWeek> recurrenceDays, boolean autoDecline) {
+                       boolean isRecurring, boolean autoDecline) {
     this.eventName = eventName;
     this.startDateTime = startDateTime;
     this.endDateTime = endDateTime;
