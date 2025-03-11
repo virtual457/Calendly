@@ -6,5 +6,5 @@ public interface ICalendarController {
   static ICalendarController createInstance(ICalendarModel model) {
     return new CalendarController(model);
   }
-  void processCommand(String command);
+  String processCommand(String command);
 }
