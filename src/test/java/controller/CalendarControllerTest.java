@@ -6,11 +6,15 @@ import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import model.CalendarEventDTO;
 import model.ICalendarModel;
+import view.IView;
 
 import static org.junit.Assert.*;
 
@@ -19,11 +23,13 @@ public class CalendarControllerTest {
   private TestCalendarModel model;
   private ByteArrayOutputStream outputStream;
   private PrintStream originalOut;
+  private IView view;
 
   @Before
   public void setUp() {
     model = new TestCalendarModel();
-    controller = new CalendarController(model);
+    view = new MockView();
+    controller = new CalendarController(model,view);
     outputStream = new ByteArrayOutputStream();
     originalOut = System.out;
     System.setOut(new PrintStream(outputStream));
@@ -35,12 +41,153 @@ public class CalendarControllerTest {
   }
 
   @Test
-  public void testCreateEventCallsModelWithCorrectParams() {
+  public void testCreateEventWithLocationDescriptionPrivate() {
+    controller.processCommand("create event TeamMeeting from 2024-03-20T10:00 to 2024-03-20T11:00 -location Office -description Quarterly -private");
+    assertNotNull(model.lastAddedEvent);
+    assertEquals("TeamMeeting", model.lastAddedEvent.getEventName());
+    assertEquals(LocalDateTime.parse("2024-03-20T10:00"), model.lastAddedEvent.getStartDateTime());
+    assertEquals(LocalDateTime.parse("2024-03-20T11:00"), model.lastAddedEvent.getEndDateTime());
+    assertEquals("Office", model.lastAddedEvent.getEventLocation());
+    assertEquals("Quarterly", model.lastAddedEvent.getEventDescription());
+    assertTrue(model.lastAddedEvent.isPrivate());
+  }
+
+  @Test
+  public void testCreateEventWithMultiLocationDescriptionPrivate() {
+    controller.processCommand("create event TeamMeeting from 2024-03-20T10:00 to 2024-03-20T11:00 -location 'Office 227' -description Quarterly -private");
+    assertNotNull(model.lastAddedEvent);
+    assertEquals("TeamMeeting", model.lastAddedEvent.getEventName());
+    assertEquals(LocalDateTime.parse("2024-03-20T10:00"), model.lastAddedEvent.getStartDateTime());
+    assertEquals(LocalDateTime.parse("2024-03-20T11:00"), model.lastAddedEvent.getEndDateTime());
+    assertEquals("Office 227", model.lastAddedEvent.getEventLocation());
+    assertEquals("Quarterly", model.lastAddedEvent.getEventDescription());
+    assertTrue(model.lastAddedEvent.isPrivate());
+  }
+
+  @Test
+  public void testCreateEventWithLocationMultiDescriptionPrivate() {
+    controller.processCommand("create event TeamMeeting from 2024-03-20T10:00 to 2024-03-20T11:00 -location Office -description 'Quarterly meeting' -private");
+    assertNotNull(model.lastAddedEvent);
+    assertEquals("TeamMeeting", model.lastAddedEvent.getEventName());
+    assertEquals(LocalDateTime.parse("2024-03-20T10:00"), model.lastAddedEvent.getStartDateTime());
+    assertEquals(LocalDateTime.parse("2024-03-20T11:00"), model.lastAddedEvent.getEndDateTime());
+    assertEquals("Office", model.lastAddedEvent.getEventLocation());
+    assertEquals("Quarterly meeting", model.lastAddedEvent.getEventDescription());
+    assertTrue(model.lastAddedEvent.isPrivate());
+  }
+
+  @Test
+  public void testCreateEventWithLocationDescriptionPrivateWithMultiEventName() {
+    controller.processCommand("create event 'Team Meeting' from 2024-03-20T10:00 to 2024-03-20T11:00 -location Office -description 'Quarterly meeting' -private");
+    assertNotNull(model.lastAddedEvent);
+    assertEquals("Team Meeting", model.lastAddedEvent.getEventName());
+    assertEquals(LocalDateTime.parse("2024-03-20T10:00"), model.lastAddedEvent.getStartDateTime());
+    assertEquals(LocalDateTime.parse("2024-03-20T11:00"), model.lastAddedEvent.getEndDateTime());
+    assertEquals("Office", model.lastAddedEvent.getEventLocation());
+    assertEquals("Quarterly meeting", model.lastAddedEvent.getEventDescription());
+    assertTrue(model.lastAddedEvent.isPrivate());
+  }
+
+  @Test
+  public void testCreateEventWithoutLocationDescriptionPrivate() {
+    controller.processCommand("create event 'Team Meeting' from 2024-03-20T10:00 to 2024-03-20T11:00");
+    assertNotNull(model.lastAddedEvent);
+    assertEquals("Team Meeting", model.lastAddedEvent.getEventName());
+    assertEquals(LocalDateTime.parse("2024-03-20T10:00"), model.lastAddedEvent.getStartDateTime());
+    assertEquals(LocalDateTime.parse("2024-03-20T11:00"), model.lastAddedEvent.getEndDateTime());
+    assertEquals("", model.lastAddedEvent.getEventLocation());
+    assertEquals("", model.lastAddedEvent.getEventDescription());
+    assertNull(model.lastAddedEvent.isPrivate());
+  }
+
+  @Test
+  public void testCreateSingleEvent() {
     controller.processCommand("create event TeamMeeting from 2024-03-20T10:00 to 2024-03-20T11:00");
     assertNotNull(model.lastAddedEvent);
     assertEquals("TeamMeeting", model.lastAddedEvent.getEventName());
     assertEquals(LocalDateTime.parse("2024-03-20T10:00"), model.lastAddedEvent.getStartDateTime());
     assertEquals(LocalDateTime.parse("2024-03-20T11:00"), model.lastAddedEvent.getEndDateTime());
+  }
+
+  @Test
+  public void testCreateRecurringEventForNTimes() {
+    controller.processCommand("create event TeamMeeting from 2024-03-20T10:00 to 2024-03-20T11:00 repeats MRU for 5 times");
+    assertNotNull(model.lastAddedEvent);
+    assertTrue(model.lastAddedEvent.isRecurring());
+    assertEquals(List.of(DayOfWeek.MONDAY, DayOfWeek.THURSDAY, DayOfWeek.SUNDAY), model.lastAddedEvent.getRecurrenceDays());
+    assertEquals(5, model.lastAddedEvent.getRecurrenceCount());
+  }
+
+  @Test
+  public void testCreateRecurringEventUntilDate() {
+    controller.processCommand("create event TeamMeeting from 2024-03-20T10:00 to 2024-03-20T11:00 repeats MRU until 2024-04-20T10:00");
+    assertNotNull(model.lastAddedEvent);
+    assertTrue(model.lastAddedEvent.isRecurring());
+    assertEquals(LocalDateTime.parse("2024-04-20T10:00"), model.lastAddedEvent.getRecurrenceEndDate());
+  }
+
+  @Test
+  public void testCreateAllDayEvent() {
+    controller.processCommand("create event TeamMeeting on 2024-03-20");
+    assertNotNull(model.lastAddedEvent);
+    assertEquals(LocalDateTime.parse("2024-03-20T00:00"), model.lastAddedEvent.getStartDateTime());
+    assertEquals(LocalDateTime.parse("2024-03-20T23:59:59"), model.lastAddedEvent.getEndDateTime());
+  }
+
+  @Test
+  public void testCreateRecurringAllDayEventForNTimes() {
+    var result = controller.processCommand("create event TeamMeeting on 2024-03-20 repeats MRU for 5 times");
+    assertNotNull(model.lastAddedEvent);
+    assertTrue(model.lastAddedEvent.isRecurring());
+    assertEquals(5, model.lastAddedEvent.getRecurrenceCount());
+  }
+
+  @Test
+  public void testCreateRecurringAllDayEventUntilDate() {
+    var result = controller.processCommand("create event TeamMeeting on 2024-03-20 repeats MRU until 2024-04-20");
+    assertNotNull(model.lastAddedEvent);
+    assertTrue(model.lastAddedEvent.isRecurring());
+    assertEquals(LocalDateTime.parse("2024-04-20T00:00"), model.lastAddedEvent.getRecurrenceEndDate());
+  }
+
+  @Test
+  public void testCreateEventVariations() {
+    String baseCommand = "create event TeamMeeting from 2024-03-20T10:00 to 2024-03-20T11:00";
+    String[] options = {"-location Office", "-description 'Quarterly meeting'", "-private"};
+
+    List<String> commands = generateCommandCombinations(baseCommand, options);
+
+    for (String command : commands) {
+      model.lastAddedEvent = null;
+      controller.processCommand(command);
+      assertNotNull(model.lastAddedEvent);
+      assertEquals("TeamMeeting", model.lastAddedEvent.getEventName());
+
+      if (command.contains("-location")) {
+        assertEquals("Office", model.lastAddedEvent.getEventLocation());
+      }
+      if (command.contains("-description")) {
+        assertEquals("Quarterly meeting", model.lastAddedEvent.getEventDescription());
+      }
+      if (command.contains("-private")) {
+        assertTrue(model.lastAddedEvent.isPrivate());
+      }
+    }
+  }
+
+  private List<String> generateCommandCombinations(String baseCommand, String[] options) {
+    List<String> commands = new ArrayList<>();
+    int n = options.length;
+    for (int i = 0; i < (1 << n); i++) {
+      StringBuilder command = new StringBuilder(baseCommand);
+      for (int j = 0; j < n; j++) {
+        if ((i & (1 << j)) != 0) {
+          command.append(" ").append(options[j]);
+        }
+      }
+      commands.add(command.toString().trim());
+    }
+    return commands;
   }
 
   @Test
@@ -95,7 +242,7 @@ public class CalendarControllerTest {
     assertNull(model.lastEditEventsName);
   }
 
-  private static class TestCalendarModel implements ICalendarModel {
+  private class TestCalendarModel implements ICalendarModel {
     CalendarEventDTO lastAddedEvent;
     // Fields for edit event
     String lastEditEventProperty;
@@ -167,4 +314,22 @@ public class CalendarControllerTest {
       return "Status checked.";
     }
   }
+  private class MockView implements IView {
+    private final List<String> displayedMessages = new ArrayList<>();
+
+    @Override
+    public void display(String message) {
+      displayedMessages.add(message);
+    }
+
+    public List<String> getDisplayedMessages() {
+      return displayedMessages;
+    }
+
+    public void clearMessages() {
+      displayedMessages.clear();
+    }
+  }
 }
+
+

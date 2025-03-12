@@ -1,10 +1,12 @@
 package controller;
 
 import model.ICalendarModel;
+import view.IView;
 
 public interface ICalendarController {
-  static ICalendarController createInstance(ICalendarModel model) {
-    return new CalendarController(model);
+  static ICalendarController createInstance(ICalendarModel model, IView view) {
+    return new CalendarController(model, view);
   }
-  String processCommand(String command);
+
+  void run(String mode, String fileName);
 }

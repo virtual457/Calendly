@@ -1,16 +1,23 @@
 package controller;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.time.*;
 import java.util.*;
 
 import model.CalendarEventDTO;
 import model.ICalendarModel;
+import view.IView;
 
 class CalendarController implements ICalendarController {
   private final ICalendarModel model;
+  private final IView view;
 
-  public CalendarController(ICalendarModel model) {
+  public CalendarController(ICalendarModel model, IView view) {
     this.model = model;
+    this.view = view;
   }
 
   public String processCommand(String command) {
@@ -37,6 +44,46 @@ class CalendarController implements ICalendarController {
       return "Error processing command: " + e.getMessage();
     } finally {
       parts.close();
+    }
+  }
+
+  @Override
+  public void run(String mode, String filePath) {
+    if (!mode.equalsIgnoreCase("interactive") && !mode.equalsIgnoreCase("headless")) {
+      view.display("Invalid mode. Use --mode interactive OR --mode headless <filePath>");
+      return;
+    }
+    runMode(mode.equalsIgnoreCase("interactive"), filePath);
+  }
+
+  private void runMode(boolean isInteractive, String filePath) {
+    BufferedReader reader = null;
+
+    try {
+      reader = isInteractive
+              ? new BufferedReader(new InputStreamReader(System.in))
+              : new BufferedReader(new FileReader(filePath));
+
+      view.display("Welcome to the Calendar App!");
+
+      String command;
+      while ((command = reader.readLine()) != null) {
+        if (command.equalsIgnoreCase("exit")) {
+          break;
+        }
+        String response = processCommand(command);
+        view.display(response);
+      }
+    } catch (IOException e) {
+      view.display("Error reading input: " + e.getMessage());
+    } finally {
+      try {
+        if (reader != null) {
+          reader.close();
+        }
+      } catch (IOException e) {
+        view.display("Error Closing reading Stream" + e.getMessage());
+      }
     }
   }
 
@@ -81,8 +128,7 @@ class CalendarController implements ICalendarController {
       String newValue = parts.next();
       model.editEvent(property, eventName, startDateTime, endDateTime, newValue);
       return "Event edited successfully.";
-    }
-    else if (eventType.equals("events")) {
+    } else if (eventType.equals("events")) {
       if (parts.hasNext("from")) {
         parts.next();
         if (!parts.hasNext()) {
@@ -124,6 +170,7 @@ class CalendarController implements ICalendarController {
       LocalDate date = LocalDate.parse(parts.next());
       return model.printEventsOnSpecificDate(date);
     } else if (parts.hasNext("from")) {
+      //todo extract to a common method
       parts.next();
       if (!parts.hasNext()) {
         return "Error: Missing start date and time.";
@@ -182,7 +229,7 @@ class CalendarController implements ICalendarController {
     if (!parts.hasNext()) {
       return "Error: Missing event name.";
     }
-    String eventName = parts.next();
+    String eventName = readQuotedValue(parts);
 
     if (!parts.hasNext("from") && !parts.hasNext("on")) {
       return "Error: Missing 'from' or 'on' keyword.";
@@ -190,16 +237,16 @@ class CalendarController implements ICalendarController {
 
     LocalDateTime startDateTime;
     LocalDateTime endDateTime;
-    boolean isRecurring = false;
+    Boolean isRecurring = Boolean.FALSE;
     List<DayOfWeek> recurrenceDays = new ArrayList<>();
-    int recurrenceCount = 0;
+    Integer recurrenceCount = 0;
     LocalDateTime recurrenceEndDate = null;
     String location = "";
     String description = "";
-    boolean isPrivate = false;
-    boolean locationSet = false;
-    boolean descriptionSet = false;
-    boolean privateSet = false;
+    Boolean isPrivate = null;
+    Boolean locationSet = Boolean.FALSE;
+    Boolean descriptionSet = Boolean.FALSE;
+    Boolean privateSet = Boolean.FALSE;
 
     if (parts.hasNext("from")) {
       parts.next();
@@ -230,50 +277,110 @@ class CalendarController implements ICalendarController {
       String weekdays = parts.next();
       for (char day : weekdays.toCharArray()) {
         switch (day) {
-          case 'M': recurrenceDays.add(DayOfWeek.MONDAY); break;
-          case 'T': recurrenceDays.add(DayOfWeek.TUESDAY); break;
-          case 'W': recurrenceDays.add(DayOfWeek.WEDNESDAY); break;
-          case 'R': recurrenceDays.add(DayOfWeek.THURSDAY); break;
-          case 'F': recurrenceDays.add(DayOfWeek.FRIDAY); break;
-          case 'S': recurrenceDays.add(DayOfWeek.SATURDAY); break;
-          case 'U': recurrenceDays.add(DayOfWeek.SUNDAY); break;
-          default: return "Error: Invalid recurrence day.";
+          case 'M':
+            recurrenceDays.add(DayOfWeek.MONDAY);
+            break;
+          case 'T':
+            recurrenceDays.add(DayOfWeek.TUESDAY);
+            break;
+          case 'W':
+            recurrenceDays.add(DayOfWeek.WEDNESDAY);
+            break;
+          case 'R':
+            recurrenceDays.add(DayOfWeek.THURSDAY);
+            break;
+          case 'F':
+            recurrenceDays.add(DayOfWeek.FRIDAY);
+            break;
+          case 'S':
+            recurrenceDays.add(DayOfWeek.SATURDAY);
+            break;
+          case 'U':
+            recurrenceDays.add(DayOfWeek.SUNDAY);
+            break;
+          default:
+            return "Error: Invalid recurrence day.";
         }
       }
       isRecurring = true;
       if (parts.hasNext("for")) {
         parts.next();
         recurrenceCount = Integer.parseInt(parts.next());
+        parts.next();
       } else if (parts.hasNext("until")) {
         parts.next();
-        recurrenceEndDate = LocalDateTime.parse(parts.next());
+        recurrenceEndDate = LocalDate.parse(parts.next()).atStartOfDay();
       }
     }
 
     while (parts.hasNext()) {
       String option = parts.next();
-      if (option.equals("-location")) {
-        if (locationSet) return "Error: Location specified multiple times.";
-        if (!parts.hasNext()) return "Error: Missing location value.";
-        location = parts.next();
-        locationSet = true;
-      } else if (option.equals("-description")) {
-        if (descriptionSet) return "Error: Description specified multiple times.";
-        if (!parts.hasNext()) return "Error: Missing description value.";
-        description = parts.next();
-        descriptionSet = true;
-      } else if (option.equals("-private")) {
-        if (privateSet) return "Error: Private flag specified multiple times.";
-        isPrivate = true;
-        privateSet = true;
-      } else {
-        return "Error: Unknown option: " + option;
+      switch (option) {
+        case "-location":
+          if (locationSet) return "Error: Location specified multiple times.";
+          if (!parts.hasNext()) return "Error: Missing location value.";
+          location = readQuotedValue(parts);
+          locationSet = Boolean.TRUE;
+          break;
+        case "-description":
+          if (descriptionSet) return "Error: Description specified multiple times.";
+          if (!parts.hasNext()) return "Error: Missing description value.";
+          description = readQuotedValue(parts);
+          descriptionSet = Boolean.TRUE;
+          break;
+        case "-private":
+          if (privateSet) return "Error: Private flag specified multiple times.";
+          isPrivate = Boolean.TRUE;
+          privateSet = Boolean.TRUE;
+          break;
+        default:
+          return "Error: Unknown option: " + option;
       }
     }
 
-    CalendarEventDTO event = new CalendarEventDTO(eventName, startDateTime, endDateTime,
-            isRecurring, recurrenceDays, recurrenceCount, recurrenceEndDate, autoDecline,description,location,isPrivate);
+    CalendarEventDTO event = CalendarEventDTO.builder()
+            .setAutoDecline(autoDecline)
+            .setEventDescription(description)
+            .setEventName(eventName)
+            .setStartDateTime(startDateTime)
+            .setEndDateTime(endDateTime)
+            .setEventLocation(location)
+            .setPrivate(isPrivate)
+            .setRecurrenceCount(recurrenceCount)
+            .setRecurrenceEndDate(recurrenceEndDate)
+            .setRecurring(isRecurring)
+            .setRecurrenceDays(recurrenceDays)
+            .build();
+
     model.addEvent(event);
     return "Event created successfully.";
+  }
+
+  private String readQuotedValue(Scanner parts) {
+    if (!parts.hasNext()) {
+      return "";
+    }
+    StringBuilder value = new StringBuilder();
+    String token = parts.next();
+
+    // Check if the value starts with a quote
+    if (token.startsWith("'") || token.startsWith("\"")) {
+      char quoteType = token.charAt(0); // Get the type of quote (single or double)
+      value.append(token.substring(1)); // Append without starting quote
+
+      while (parts.hasNext()) {
+        token = parts.next();
+        // If we find a closing quote, remove it and break
+        if (token.endsWith(String.valueOf(quoteType))) {
+          value.append(" ").append(token, 0, token.length() - 1);
+          break;
+        } else {
+          value.append(" ").append(token);
+        }
+      }
+    } else {
+      value.append(token);
+    }
+    return value.toString();
   }
 }

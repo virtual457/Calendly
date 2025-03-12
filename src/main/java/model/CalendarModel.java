@@ -69,11 +69,7 @@ public class CalendarModel implements ICalendarModel {
           LocalDateTime occurrenceStart = LocalDateTime.of(currentDate, startTime);
           LocalDateTime occurrenceEnd   = LocalDateTime.of(currentDate, endTime);
           // Create a temporary DTO for conflict checking.
-          CalendarEventDTO occurrenceDTO = new CalendarEventDTO(eventDTO.getEventName()
-                  ,eventDTO.getStartDateTime(), eventDTO.getEndDateTime(),false,
-                  eventDTO.getRecurrenceDays(),eventDTO.getRecurrenceCount(),
-                  eventDTO.getRecurrenceEndDate(), eventDTO.isAutoDecline(),
-                  eventDTO.getEventDescription(),eventDTO.getEventLocation(),eventDTO.isPrivate());
+          CalendarEventDTO occurrenceDTO = CalendarEventDTO.builder().build();
           if (eventDTO.isAutoDecline() && doesEventConflict(occurrenceDTO)) {
             throw new IllegalStateException("Conflict detected on " + occurrenceStart +
                     ", event not created");
