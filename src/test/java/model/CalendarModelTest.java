@@ -1,9 +1,9 @@
 package model;
 
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+        import static org.mockito.Mockito.*;
 
-import java.io.File;
+        import java.io.File;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -45,9 +45,7 @@ public class CalendarModelTest {
     boolean result = calendarModel.addEvent(eventDTO);
     assertTrue(result);
     String output = calendarModel.printEventsOnSpecificDate(LocalDate.of(2025, 3, 13));
-    assertTrue(output.contains("Meeting"));
-    assertTrue(output.contains("Conference Room"));
-    assertTrue(output.contains("Team meeting"));
+    assertEquals("- Meeting: 2025-03-13T14:00 to 2025-03-13T15:00 at Conference Room\n", output);
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -197,6 +195,7 @@ public class CalendarModelTest {
     when(mockDTO.getEventDescription()).thenReturn("Test Description");
     when(mockDTO.getEventLocation()).thenReturn("Test Location");
     when(mockDTO.isPrivate()).thenReturn(false);
+
 
     boolean result = calendarModel.addEvent(mockDTO);
     assertTrue(result);

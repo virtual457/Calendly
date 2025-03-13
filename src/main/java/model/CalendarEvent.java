@@ -11,6 +11,7 @@ public class CalendarEvent {
   private String description;
   private String location;
   private boolean isPublic;
+  //TODO remove these
   private boolean isRecurring;
   private List<DayOfWeek> recurrenceDays;
   private boolean autoDecline;
