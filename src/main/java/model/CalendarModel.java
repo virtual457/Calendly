@@ -48,7 +48,7 @@ public class CalendarModel implements ICalendarModel {
         throw new IllegalArgumentException("Cannot define both recurrence count and recurrence end date for a recurring event.");
       }
 
-      // At least one must be provided.
+      // At least one must be provided (recurrenceCount > 0 OR recurrenceEndDate not null).
       if (eventDTO.getRecurrenceCount() <= 0 && eventDTO.getRecurrenceEndDate() == null) {
         throw new IllegalArgumentException("Either recurrence count or recurrence end date must be defined for a recurring event.");
       }
@@ -113,6 +113,10 @@ public class CalendarModel implements ICalendarModel {
       events.addAll(occurrences);
       return true;
     } else {
+      // For non-recurring events, ensure no recurrence info is provided.
+      if (eventDTO.getRecurrenceCount() > 0 || eventDTO.getRecurrenceEndDate() != null) {
+        throw new IllegalArgumentException("Non-recurring event should not have recurrence count or recurrence end date.");
+      }
       // Single event: check conflict if auto-decline is set.
       if (eventDTO.isAutoDecline() && doesEventConflict(eventDTO)) {
         throw new IllegalStateException("Conflict detected, event not created");
@@ -145,7 +149,6 @@ public class CalendarModel implements ICalendarModel {
             return true;
           case "start":
             LocalDateTime newStart = LocalDateTime.parse(newValue);
-            // Validate new start is before current end.
             if (!event.getEndDateTime().isAfter(newStart)) {
               throw new IllegalArgumentException("New start must be before current end time.");
             }
@@ -153,7 +156,6 @@ public class CalendarModel implements ICalendarModel {
             return true;
           case "end":
             LocalDateTime newEnd = LocalDateTime.parse(newValue);
-            // Validate new end is after current start.
             if (!newEnd.isAfter(event.getStartDateTime())) {
               throw new IllegalArgumentException("New end must be after current start time.");
             }
@@ -179,8 +181,6 @@ public class CalendarModel implements ICalendarModel {
   @Override
   public boolean editEvents(String property, String eventName, LocalDateTime fromDateTime, String newValue) {
     boolean found = false;
-    // Edit all events with the given event name.
-    // If fromDateTime is provided (non-null), only update events whose start equals fromDateTime.
     for (CalendarEvent event : events) {
       if (event.getEventName().equals(eventName) &&
               (fromDateTime == null || event.getStartDateTime().equals(fromDateTime))) {
