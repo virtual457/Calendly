@@ -2,6 +2,7 @@ package view;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayOutputStream;
@@ -47,4 +48,25 @@ public class ConsoleViewTest {
     assertNotNull(outContent.toString()); // Ensures output is not null
     assertTrue(outContent.toString().trim().isEmpty()); // Ensures null doesn't print unexpected text
   }
+
+  @Test
+  public void testCreateInstance_ValidType() {
+    IView view = IView.createInstance("consoleView");
+
+    assertNotNull(view);
+
+    assertEquals("class view.ConsoleView",view.getClass().toString());
+  }
+
+  @Test
+  public void testCreateInstance_InvalidType() {
+    Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+      IView.createInstance("invalidView");
+    });
+
+    String expectedMessage = "Unknown view type: invalidView";
+    assertEquals(expectedMessage, exception.getMessage());
+  }
+
+
 }

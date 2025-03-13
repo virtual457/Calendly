@@ -16,7 +16,7 @@ class CalendarEventDTO implements ICalendarEventDTO{
   private String eventLocation;
   private Boolean isPrivate;
 
-  public static CalendarEventDTOBuilder builder() {
+  static CalendarEventDTOBuilder builder() {
     return new CalendarEventDTOBuilder();
   }
 

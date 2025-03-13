@@ -24,6 +24,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import model.CalendarModel;
 import model.ICalendarEventDTO;
 import model.ICalendarModel;
 import view.IView;
@@ -88,6 +89,7 @@ public class CalendarControllerTest {
         InputStream inputStream = new ByteArrayInputStream((command + "\nexit\n").getBytes());
         System.setIn(inputStream);
         controller.run("interactive", null);
+        assertTrue(view.getDisplayedMessages().contains("Welcome to the Calendar App!"));
       } else if (mode.equalsIgnoreCase("headless")) {
       resetModels();
         File tempFile = File.createTempFile("commands", ".txt");
@@ -95,12 +97,14 @@ public class CalendarControllerTest {
           writer.write(command + "\nexit\n");
         }
         controller.run("headless", tempFile.getAbsolutePath());
+        assertTrue(view.getDisplayedMessages().contains("Welcome to the Calendar App!"));
       }
     }
     catch (IOException e) {
       fail("IOException thrown: "+e.getMessage());
     }
   }
+
 
   @Test
   public void testCreateEventVariations() {
@@ -1911,6 +1915,17 @@ public class CalendarControllerTest {
     String command = "create event TeamMeeting from 2024-03-20T10:00 to 2024-03-20T10:30";
     testCommandInBothModes(mode, command);
     assertEquals("Event created successfully.", view.getLastDisplayedMessage());
+  }
+
+  @Test
+  public void testCreateInstance_ValidInputs() {
+    ICalendarModel model = ICalendarModel.createInstance("listbased");
+    IView view = IView.createInstance("consoleView");
+
+    ICalendarController controller = ICalendarController.createInstance(model, view);
+
+    assertNotNull(controller);
+    assertEquals("class controller.CalendarController", controller.getClass().toString());
   }
 
   private class TestCalendarModel implements ICalendarModel {

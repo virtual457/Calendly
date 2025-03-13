@@ -22,15 +22,15 @@ public class CalendarApp {
     controller.run(mode, filePath);
   }
 
-  protected static ICalendarModel createModel() {
+  private static ICalendarModel createModel() {
     return ICalendarModel.createInstance("listBased");
   }
 
-  protected static IView createView() {
+  private static IView createView() {
     return IView.createInstance("consoleView");
   }
 
-  protected static ICalendarController createController(ICalendarModel model, IView view) {
+  private static ICalendarController createController(ICalendarModel model, IView view) {
     return ICalendarController.createInstance(model, view);
   }
 }

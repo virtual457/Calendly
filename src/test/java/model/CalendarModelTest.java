@@ -412,4 +412,23 @@ public class CalendarModelTest {
   public void testShowStatus_NullDateTime() {
     calendarModel.showStatus(null);
   }
+
+  @Test
+  public void testCreateInstance_ValidType() {
+    ICalendarModel model = ICalendarModel.createInstance("listBased");
+    assertNotNull(model);
+    assertEquals("class model.CalendarModel",model.getClass().toString());
+  }
+
+  @Test
+  public void testCreateInstance_InvalidType() {
+
+    Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+      ICalendarModel.createInstance("invalidType");
+    });
+
+    String expectedMessage = "Invalid CalendarModel type.";
+    String actualMessage = exception.getMessage();
+    assertEquals(expectedMessage, actualMessage);
+  }
 }
