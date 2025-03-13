@@ -21,6 +21,17 @@ public class CalendarModel implements ICalendarModel {
 
   @Override
   public boolean addEvent(CalendarEventDTO eventDTO) {
+    // Check required fields.
+    if (eventDTO.getEventName() == null || eventDTO.getEventName().trim().isEmpty()) {
+      throw new IllegalArgumentException("Event name is required.");
+    }
+    if (eventDTO.getStartDateTime() == null) {
+      throw new IllegalArgumentException("Start date and time are required.");
+    }
+    if (eventDTO.getEndDateTime() == null) {
+      throw new IllegalArgumentException("End date and time are required.");
+    }
+
     // Check that the event's end time is after its start time.
     if (!eventDTO.getEndDateTime().isAfter(eventDTO.getStartDateTime())) {
       throw new IllegalArgumentException("End date and time must be after start date and time.");
@@ -40,6 +51,11 @@ public class CalendarModel implements ICalendarModel {
       // At least one must be provided.
       if (eventDTO.getRecurrenceCount() <= 0 && eventDTO.getRecurrenceEndDate() == null) {
         throw new IllegalArgumentException("Either recurrence count or recurrence end date must be defined for a recurring event.");
+      }
+
+      // Also, recurrenceDays must not be null.
+      if (eventDTO.getRecurrenceDays() == null) {
+        throw new NullPointerException("Recurrence days must be provided for recurring events.");
       }
 
       List<CalendarEvent> occurrences = new ArrayList<>();
@@ -129,11 +145,28 @@ public class CalendarModel implements ICalendarModel {
             return true;
           case "start":
             LocalDateTime newStart = LocalDateTime.parse(newValue);
+            // Validate new start is before current end.
+            if (!event.getEndDateTime().isAfter(newStart)) {
+              throw new IllegalArgumentException("New start must be before current end time.");
+            }
             event.setStartDateTime(newStart);
             return true;
           case "end":
             LocalDateTime newEnd = LocalDateTime.parse(newValue);
+            // Validate new end is after current start.
+            if (!newEnd.isAfter(event.getStartDateTime())) {
+              throw new IllegalArgumentException("New end must be after current start time.");
+            }
             event.setEndDateTime(newEnd);
+            return true;
+          case "description":
+            event.setDescription(newValue);
+            return true;
+          case "location":
+            event.setLocation(newValue);
+            return true;
+          case "ispublic":
+            event.setPublic(Boolean.parseBoolean(newValue));
             return true;
           default:
             throw new IllegalArgumentException("Unsupported property for edit: " + property);
@@ -158,12 +191,30 @@ public class CalendarModel implements ICalendarModel {
             break;
           case "start":
             LocalDateTime newStart = LocalDateTime.parse(newValue);
+            if (!event.getEndDateTime().isAfter(newStart)) {
+              throw new IllegalArgumentException("New start must be before current end time.");
+            }
             event.setStartDateTime(newStart);
             found = true;
             break;
           case "end":
             LocalDateTime newEnd = LocalDateTime.parse(newValue);
+            if (!newEnd.isAfter(event.getStartDateTime())) {
+              throw new IllegalArgumentException("New end must be after current start time.");
+            }
             event.setEndDateTime(newEnd);
+            found = true;
+            break;
+          case "description":
+            event.setDescription(newValue);
+            found = true;
+            break;
+          case "location":
+            event.setLocation(newValue);
+            found = true;
+            break;
+          case "ispublic":
+            event.setPublic(Boolean.parseBoolean(newValue));
             found = true;
             break;
           default:
@@ -179,13 +230,16 @@ public class CalendarModel implements ICalendarModel {
 
   @Override
   public String printEventsOnSpecificDate(LocalDate date) {
+    if (date == null) {
+      throw new IllegalArgumentException("Date cannot be null.");
+    }
     StringBuilder sb = new StringBuilder();
     for (CalendarEvent event : events) {
       if (event.getStartDateTime().toLocalDate().equals(date)) {
         sb.append("- ").append(event.getEventName()).append(": ")
                 .append(event.getStartDateTime()).append(" to ")
                 .append(event.getEndDateTime());
-        if (event.getLocation() != null) {
+        if (event.getLocation() != null && !event.getLocation().isEmpty()) {
           sb.append(" at ").append(event.getLocation());
         }
         sb.append("\n");
@@ -196,6 +250,12 @@ public class CalendarModel implements ICalendarModel {
 
   @Override
   public String printEventsInSpecificRange(LocalDateTime fromDateTime, LocalDateTime toDateTime) {
+    if (fromDateTime == null || toDateTime == null) {
+      throw new IllegalArgumentException("Both start and end datetimes must be provided.");
+    }
+    if (toDateTime.isBefore(fromDateTime)) {
+      throw new IllegalArgumentException("Start datetime must not be after end datetime.");
+    }
     StringBuilder sb = new StringBuilder();
     for (CalendarEvent event : events) {
       if ((event.getStartDateTime().equals(fromDateTime) || event.getStartDateTime().isAfter(fromDateTime)) &&
@@ -203,7 +263,7 @@ public class CalendarModel implements ICalendarModel {
         sb.append("- ").append(event.getEventName()).append(": ")
                 .append(event.getStartDateTime()).append(" to ")
                 .append(event.getEndDateTime());
-        if (event.getLocation() != null) {
+        if (event.getLocation() != null && !event.getLocation().isEmpty()) {
           sb.append(" at ").append(event.getLocation());
         }
         sb.append("\n");
@@ -251,6 +311,9 @@ public class CalendarModel implements ICalendarModel {
 
   @Override
   public String showStatus(LocalDateTime dateTime) {
+    if (dateTime == null) {
+      throw new IllegalArgumentException("Datetime cannot be null.");
+    }
     if (checkStatus(dateTime)) {
       return "Busy";
     }
