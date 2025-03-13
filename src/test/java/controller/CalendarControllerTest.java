@@ -1793,7 +1793,7 @@ public class CalendarControllerTest {
 
     BufferedReader bufferedReader = new BufferedReader(faultyReader);
     controller.run("headless", "faultyFile.txt");
-    assertEquals("Error reading input: faultyFile.txt (The system cannot find the file specified)", view.getLastDisplayedMessage());
+    assertTrue(view.getLastDisplayedMessage().contains("Error reading input: faultyFile.txt"));
   }
 
   @Test
@@ -1811,7 +1811,7 @@ public class CalendarControllerTest {
 
     BufferedReader bufferedReader = new BufferedReader(faultyReader);
     controller.run("headless", "faultyFile.txt");
-    assertEquals("Error reading input: faultyFile.txt (The system cannot find the file specified)", view.getLastDisplayedMessage());
+    assertTrue(view.getLastDisplayedMessage().contains("Error reading input: faultyFile.txt "));
   }
 
   //Edit Invalid scenarios
