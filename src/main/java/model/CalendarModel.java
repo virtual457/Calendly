@@ -69,25 +69,29 @@ public class CalendarModel implements ICalendarModel {
           LocalDateTime occurrenceStart = LocalDateTime.of(currentDate, startTime);
           LocalDateTime occurrenceEnd   = LocalDateTime.of(currentDate, endTime);
           // Create a temporary DTO for conflict checking.
-          CalendarEventDTO occurrenceDTO = CalendarEventDTO.builder().build();
+          CalendarEventDTO occurrenceDTO = CalendarEventDTO.builder()
+                  .setEventName(eventDTO.getEventName())
+                  .setStartDateTime(occurrenceStart)
+                  .setEndDateTime(occurrenceEnd)
+                  .setAutoDecline(eventDTO.isAutoDecline())
+                  .build();
           if (eventDTO.isAutoDecline() && doesEventConflict(occurrenceDTO)) {
-            throw new IllegalStateException("Conflict detected on " + occurrenceStart +
-                    ", event not created");
+            throw new IllegalStateException("Conflict detected on " + occurrenceStart + ", event not created");
           }
           occurrences.add(new CalendarEvent(
-              eventDTO.getEventName(),
-              occurrenceStart,
-              occurrenceEnd,
-              null,     // description
-              null,     // location
-              false,    // isPublic (default)
-              true,     // isRecurring
-              eventDTO.getRecurrenceDays(),
-              eventDTO.isAutoDecline()
+                  eventDTO.getEventName(),
+                  occurrenceStart,
+                  occurrenceEnd,
+                  eventDTO.getEventDescription(),
+                  eventDTO.getEventLocation(),
+                  !eventDTO.isPrivate(), // isPublic is the opposite of isPrivate
+                  true,                  // isRecurring
+                  eventDTO.getRecurrenceDays(),
+                  eventDTO.isAutoDecline()
           ));
           count++;
         }
-        currentDate = getNextRecurrenceDate(eventDTO.getStartDateTime().toLocalDate(), eventDTO.getRecurrenceDays());
+        currentDate = getNextRecurrenceDate(currentDate, eventDTO.getRecurrenceDays());
       }
 
       events.addAll(occurrences);
@@ -98,15 +102,15 @@ public class CalendarModel implements ICalendarModel {
         throw new IllegalStateException("Conflict detected, event not created");
       }
       CalendarEvent event = new CalendarEvent(
-          eventDTO.getEventName(),
-          eventDTO.getStartDateTime(),
-          eventDTO.getEndDateTime(),
-          null,
-          null,
-          false,
-          false,
-          null,
-          eventDTO.isAutoDecline()
+              eventDTO.getEventName(),
+              eventDTO.getStartDateTime(),
+              eventDTO.getEndDateTime(),
+              eventDTO.getEventDescription(),
+              eventDTO.getEventLocation(),
+              !eventDTO.isPrivate(),  // isPublic is the opposite of isPrivate
+              false,                 // Not recurring
+              null,
+              eventDTO.isAutoDecline()
       );
       events.add(event);
       return true;
@@ -117,8 +121,8 @@ public class CalendarModel implements ICalendarModel {
   public boolean editEvent(String property, String eventName, LocalDateTime fromDateTime, LocalDateTime toDateTime, String newValue) {
     for (CalendarEvent event : events) {
       if (event.getEventName().equals(eventName) &&
-          event.getStartDateTime().equals(fromDateTime) &&
-          event.getEndDateTime().equals(toDateTime)) {
+              event.getStartDateTime().equals(fromDateTime) &&
+              event.getEndDateTime().equals(toDateTime)) {
         switch(property.toLowerCase()) {
           case "name":
             event.setEventName(newValue);
@@ -146,7 +150,7 @@ public class CalendarModel implements ICalendarModel {
     // If fromDateTime is provided (non-null), only update events whose start equals fromDateTime.
     for (CalendarEvent event : events) {
       if (event.getEventName().equals(eventName) &&
-          (fromDateTime == null || event.getStartDateTime().equals(fromDateTime))) {
+              (fromDateTime == null || event.getStartDateTime().equals(fromDateTime))) {
         switch(property.toLowerCase()) {
           case "name":
             event.setEventName(newValue);
@@ -179,8 +183,8 @@ public class CalendarModel implements ICalendarModel {
     for (CalendarEvent event : events) {
       if (event.getStartDateTime().toLocalDate().equals(date)) {
         sb.append("- ").append(event.getEventName()).append(": ")
-          .append(event.getStartDateTime()).append(" to ")
-          .append(event.getEndDateTime());
+                .append(event.getStartDateTime()).append(" to ")
+                .append(event.getEndDateTime());
         if (event.getLocation() != null) {
           sb.append(" at ").append(event.getLocation());
         }
@@ -195,10 +199,10 @@ public class CalendarModel implements ICalendarModel {
     StringBuilder sb = new StringBuilder();
     for (CalendarEvent event : events) {
       if ((event.getStartDateTime().equals(fromDateTime) || event.getStartDateTime().isAfter(fromDateTime)) &&
-          (event.getStartDateTime().equals(toDateTime) || event.getStartDateTime().isBefore(toDateTime))) {
+              (event.getStartDateTime().equals(toDateTime) || event.getStartDateTime().isBefore(toDateTime))) {
         sb.append("- ").append(event.getEventName()).append(": ")
-          .append(event.getStartDateTime()).append(" to ")
-          .append(event.getEndDateTime());
+                .append(event.getStartDateTime()).append(" to ")
+                .append(event.getEndDateTime());
         if (event.getLocation() != null) {
           sb.append(" at ").append(event.getLocation());
         }
@@ -230,8 +234,8 @@ public class CalendarModel implements ICalendarModel {
         String description = (event.getDescription() == null) ? "" : event.getDescription();
         String location = (event.getLocation() == null) ? "" : event.getLocation();
 
-        // Assume events are public by default.
-        String isPrivate = "False";
+        // isPrivate is determined by the event's public flag.
+        String isPrivate = event.isPublic() ? "False" : "True";
 
         writer.println(String.format("\"%s\",%s,%s,%s,%s,%s,\"%s\",\"%s\",%s",
                 subject, startDate, startTime, endDate, endTime, allDay, description, location, isPrivate));
@@ -275,12 +279,11 @@ public class CalendarModel implements ICalendarModel {
     return false;
   }
 
-  private LocalDate getNextRecurrenceDate(LocalDate startDate, List<DayOfWeek> recurrenceDays) {
+  private LocalDate getNextRecurrenceDate(LocalDate currentDate, List<DayOfWeek> recurrenceDays) {
     if (recurrenceDays.isEmpty()) {
-      return startDate.plusDays(1);
+      return currentDate.plusDays(1);
     }
-
-    LocalDate nextDate = startDate.plusDays(1);
+    LocalDate nextDate = currentDate.plusDays(1);
     while (!recurrenceDays.contains(nextDate.getDayOfWeek())) {
       nextDate = nextDate.plusDays(1);
     }
