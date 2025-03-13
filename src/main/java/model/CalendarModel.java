@@ -84,14 +84,14 @@ public class CalendarModel implements ICalendarModel {
                   occurrenceEnd,
                   eventDTO.getEventDescription(),
                   eventDTO.getEventLocation(),
-                  !eventDTO.isPrivate(), // isPublic is the opposite of private
-                  true,     // isRecurring
+                  !eventDTO.isPrivate(), // isPublic is the opposite of isPrivate
+                  true,                  // isRecurring
                   eventDTO.getRecurrenceDays(),
                   eventDTO.isAutoDecline()
           ));
           count++;
         }
-        currentDate = getNextRecurrenceDate(eventDTO.getStartDateTime().toLocalDate(), eventDTO.getRecurrenceDays());
+        currentDate = getNextRecurrenceDate(currentDate, eventDTO.getRecurrenceDays());
       }
 
       events.addAll(occurrences);
@@ -107,8 +107,8 @@ public class CalendarModel implements ICalendarModel {
               eventDTO.getEndDateTime(),
               eventDTO.getEventDescription(),
               eventDTO.getEventLocation(),
-              !eventDTO.isPrivate(),  // isPublic is the opposite of private
-              false,
+              !eventDTO.isPrivate(),  // isPublic is the opposite of isPrivate
+              false,                 // Not recurring
               null,
               eventDTO.isAutoDecline()
       );
@@ -234,7 +234,7 @@ public class CalendarModel implements ICalendarModel {
         String description = (event.getDescription() == null) ? "" : event.getDescription();
         String location = (event.getLocation() == null) ? "" : event.getLocation();
 
-        // Here, isPrivate is determined by the DTO; isPublic is the opposite.
+        // isPrivate is determined by the event's public flag.
         String isPrivate = event.isPublic() ? "False" : "True";
 
         writer.println(String.format("\"%s\",%s,%s,%s,%s,%s,\"%s\",\"%s\",%s",
@@ -279,12 +279,11 @@ public class CalendarModel implements ICalendarModel {
     return false;
   }
 
-  private LocalDate getNextRecurrenceDate(LocalDate startDate, List<DayOfWeek> recurrenceDays) {
+  private LocalDate getNextRecurrenceDate(LocalDate currentDate, List<DayOfWeek> recurrenceDays) {
     if (recurrenceDays.isEmpty()) {
-      return startDate.plusDays(1);
+      return currentDate.plusDays(1);
     }
-
-    LocalDate nextDate = startDate.plusDays(1);
+    LocalDate nextDate = currentDate.plusDays(1);
     while (!recurrenceDays.contains(nextDate.getDayOfWeek())) {
       nextDate = nextDate.plusDays(1);
     }
