@@ -20,7 +20,7 @@ class CalendarController implements ICalendarController {
     this.view = view;
   }
 
-  public String processCommand(String command) {
+  private String processCommand(String command) {
     Scanner parts = new Scanner(command);
     try {
       if (!parts.hasNext()) return "Error: Empty command.";
@@ -247,6 +247,7 @@ class CalendarController implements ICalendarController {
     Boolean locationSet = Boolean.FALSE;
     Boolean descriptionSet = Boolean.FALSE;
     Boolean privateSet = Boolean.FALSE;
+    Boolean isAllDayEvent = Boolean.FALSE;
 
     if (parts.hasNext("from")) {
       parts.next();
@@ -270,6 +271,7 @@ class CalendarController implements ICalendarController {
       LocalDate date = LocalDate.parse(parts.next());
       startDateTime = date.atStartOfDay();
       endDateTime = startDateTime.plusDays(1).minusSeconds(1);
+      isAllDayEvent = Boolean.TRUE;
     }
 
     if (parts.hasNext("repeats")) {
@@ -309,7 +311,11 @@ class CalendarController implements ICalendarController {
         parts.next();
       } else if (parts.hasNext("until")) {
         parts.next();
-        recurrenceEndDate = LocalDate.parse(parts.next()).atStartOfDay();
+        if (isAllDayEvent) {
+          recurrenceEndDate = LocalDate.parse(parts.next()).atTime(23, 59, 59);
+        } else {
+          recurrenceEndDate = LocalDateTime.parse(parts.next());
+        }
       }
     }
 
