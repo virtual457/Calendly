@@ -24,7 +24,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import model.CalendarEventDTO;
+import model.ICalendarEventDTO;
 import model.ICalendarModel;
 import view.IView;
 
@@ -110,7 +110,7 @@ public class CalendarControllerTest {
       model.lastAddedEvent = null;
       testCommandInBothModes(mode,command);
       assertNotNull(model.lastAddedEvent);
-      assertEquals(0,model.lastAddedEvent.getRecurrenceCount());
+      assertEquals(Integer.valueOf(0),model.lastAddedEvent.getRecurrenceCount());
       assertTrue(model.lastAddedEvent.getRecurrenceDays().isEmpty());
       assertNull(model.lastAddedEvent.getRecurrenceEndDate());
       assertFalse(model.lastAddedEvent.isRecurring());
@@ -141,7 +141,7 @@ public class CalendarControllerTest {
       model.lastAddedEvent = null;
       testCommandInBothModes(mode,command);
       assertNotNull(model.lastAddedEvent);
-      assertEquals(0,model.lastAddedEvent.getRecurrenceCount());
+      assertEquals(Integer.valueOf(0),model.lastAddedEvent.getRecurrenceCount());
       assertTrue(model.lastAddedEvent.getRecurrenceDays().isEmpty());
       assertNull(model.lastAddedEvent.getRecurrenceEndDate());
       assertFalse(model.lastAddedEvent.isRecurring());
@@ -172,7 +172,7 @@ public class CalendarControllerTest {
       model.lastAddedEvent = null;
       testCommandInBothModes(mode,command);
       assertNotNull(model.lastAddedEvent);
-      assertEquals(0,model.lastAddedEvent.getRecurrenceCount());
+      assertEquals(Integer.valueOf(0),model.lastAddedEvent.getRecurrenceCount());
       assertTrue(model.lastAddedEvent.getRecurrenceDays().isEmpty());
       assertNull(model.lastAddedEvent.getRecurrenceEndDate());
       assertFalse(model.lastAddedEvent.isRecurring());
@@ -203,7 +203,7 @@ public class CalendarControllerTest {
       model.lastAddedEvent = null;
       testCommandInBothModes(mode,command);
       assertNotNull(model.lastAddedEvent);
-      assertEquals(0,model.lastAddedEvent.getRecurrenceCount());
+      assertEquals(Integer.valueOf(0),model.lastAddedEvent.getRecurrenceCount());
       assertTrue(model.lastAddedEvent.getRecurrenceDays().isEmpty());
       assertNull(model.lastAddedEvent.getRecurrenceEndDate());
       assertFalse(model.lastAddedEvent.isRecurring());
@@ -234,7 +234,7 @@ public class CalendarControllerTest {
       model.lastAddedEvent = null;
       testCommandInBothModes(mode,command);
       assertNotNull(model.lastAddedEvent);
-      assertEquals(0,model.lastAddedEvent.getRecurrenceCount());
+      assertEquals(Integer.valueOf(0),model.lastAddedEvent.getRecurrenceCount());
       assertTrue(model.lastAddedEvent.getRecurrenceDays().isEmpty());
       assertNull(model.lastAddedEvent.getRecurrenceEndDate());
       assertFalse(model.lastAddedEvent.isRecurring());
@@ -273,7 +273,7 @@ public class CalendarControllerTest {
     assertNotNull(model.lastAddedEvent);
     assertTrue(model.lastAddedEvent.isRecurring());
     assertEquals(List.of(DayOfWeek.MONDAY, DayOfWeek.THURSDAY, DayOfWeek.SUNDAY), model.lastAddedEvent.getRecurrenceDays());
-    assertEquals(5, model.lastAddedEvent.getRecurrenceCount());
+    assertEquals(Integer.valueOf(5), model.lastAddedEvent.getRecurrenceCount());
   }
 
   @Test
@@ -289,7 +289,7 @@ public class CalendarControllerTest {
       assertEquals("TeamMeeting", model.lastAddedEvent.getEventName());
       assertTrue(model.lastAddedEvent.isRecurring());
       assertEquals(List.of(DayOfWeek.MONDAY, DayOfWeek.THURSDAY, DayOfWeek.SUNDAY), model.lastAddedEvent.getRecurrenceDays());
-      assertEquals(5, model.lastAddedEvent.getRecurrenceCount());
+      assertEquals(Integer.valueOf(5), model.lastAddedEvent.getRecurrenceCount());
       assertNull(model.lastAddedEvent.getRecurrenceEndDate());
       assertTrue(model.lastAddedEvent.isRecurring());
 
@@ -320,7 +320,7 @@ public class CalendarControllerTest {
       assertEquals(LocalDateTime.parse("2024-03-20T11:00"), model.lastAddedEvent.getEndDateTime());
       assertEquals("Team Meeting", model.lastAddedEvent.getEventName());
       assertEquals(List.of(DayOfWeek.MONDAY, DayOfWeek.THURSDAY, DayOfWeek.SUNDAY), model.lastAddedEvent.getRecurrenceDays());
-      assertEquals(5, model.lastAddedEvent.getRecurrenceCount());
+      assertEquals(Integer.valueOf(5), model.lastAddedEvent.getRecurrenceCount());
       assertNull(model.lastAddedEvent.getRecurrenceEndDate());
       assertTrue(model.lastAddedEvent.isRecurring());
 
@@ -352,7 +352,7 @@ public class CalendarControllerTest {
       assertEquals(LocalDateTime.parse("2024-03-20T11:00"), model.lastAddedEvent.getEndDateTime());
       assertEquals("Team Meeting", model.lastAddedEvent.getEventName());
       assertEquals(List.of(DayOfWeek.MONDAY, DayOfWeek.THURSDAY, DayOfWeek.SUNDAY), model.lastAddedEvent.getRecurrenceDays());
-      assertEquals(5, model.lastAddedEvent.getRecurrenceCount());
+      assertEquals(Integer.valueOf(5), model.lastAddedEvent.getRecurrenceCount());
       assertNull(model.lastAddedEvent.getRecurrenceEndDate());
       assertTrue(model.lastAddedEvent.isRecurring());
 
@@ -384,7 +384,7 @@ public class CalendarControllerTest {
       assertEquals(LocalDateTime.parse("2024-03-20T11:00"), model.lastAddedEvent.getEndDateTime());
       assertEquals("Team Meeting", model.lastAddedEvent.getEventName());
       assertEquals(List.of(DayOfWeek.MONDAY, DayOfWeek.THURSDAY, DayOfWeek.SUNDAY), model.lastAddedEvent.getRecurrenceDays());
-      assertEquals(5, model.lastAddedEvent.getRecurrenceCount());
+      assertEquals(Integer.valueOf(5), model.lastAddedEvent.getRecurrenceCount());
       assertNull(model.lastAddedEvent.getRecurrenceEndDate());
       assertTrue(model.lastAddedEvent.isRecurring());
 
@@ -417,7 +417,7 @@ public class CalendarControllerTest {
       assertEquals("Team Meeting", model.lastAddedEvent.getEventName());
       assertTrue(model.lastAddedEvent.isRecurring());
       assertEquals(List.of(DayOfWeek.MONDAY, DayOfWeek.THURSDAY, DayOfWeek.SUNDAY), model.lastAddedEvent.getRecurrenceDays());
-      assertEquals(5, model.lastAddedEvent.getRecurrenceCount());
+      assertEquals(Integer.valueOf(5), model.lastAddedEvent.getRecurrenceCount());
       assertNull(model.lastAddedEvent.getRecurrenceEndDate());
 
       if (command.contains("-location")) {
@@ -459,7 +459,7 @@ public class CalendarControllerTest {
       assertEquals("TeamMeeting", model.lastAddedEvent.getEventName());
       assertTrue(model.lastAddedEvent.isRecurring());
       assertEquals(List.of(DayOfWeek.MONDAY, DayOfWeek.THURSDAY, DayOfWeek.SUNDAY), model.lastAddedEvent.getRecurrenceDays());
-      assertEquals(0, model.lastAddedEvent.getRecurrenceCount());
+      assertEquals(Integer.valueOf(0), model.lastAddedEvent.getRecurrenceCount());
       assertEquals(LocalDateTime.parse("2024-04-20T10:00"),model.lastAddedEvent.getRecurrenceEndDate());
       assertTrue(model.lastAddedEvent.isRecurring());
 
@@ -491,7 +491,7 @@ public class CalendarControllerTest {
       assertEquals("Team Meeting", model.lastAddedEvent.getEventName());
       assertTrue(model.lastAddedEvent.isRecurring());
       assertEquals(List.of(DayOfWeek.MONDAY, DayOfWeek.THURSDAY, DayOfWeek.SUNDAY), model.lastAddedEvent.getRecurrenceDays());
-      assertEquals(0, model.lastAddedEvent.getRecurrenceCount());
+      assertEquals(Integer.valueOf(0), model.lastAddedEvent.getRecurrenceCount());
       assertEquals(LocalDateTime.parse("2024-04-20T10:00"),model.lastAddedEvent.getRecurrenceEndDate());
       assertTrue(model.lastAddedEvent.isRecurring());
 
@@ -523,7 +523,7 @@ public class CalendarControllerTest {
       assertEquals("Team Meeting", model.lastAddedEvent.getEventName());
       assertTrue(model.lastAddedEvent.isRecurring());
       assertEquals(List.of(DayOfWeek.MONDAY, DayOfWeek.THURSDAY, DayOfWeek.SUNDAY), model.lastAddedEvent.getRecurrenceDays());
-      assertEquals(0, model.lastAddedEvent.getRecurrenceCount());
+      assertEquals(Integer.valueOf(0), model.lastAddedEvent.getRecurrenceCount());
       assertEquals(LocalDateTime.parse("2024-04-20T10:00"),model.lastAddedEvent.getRecurrenceEndDate());
       assertTrue(model.lastAddedEvent.isRecurring());
 
@@ -555,7 +555,7 @@ public class CalendarControllerTest {
       assertEquals("Team Meeting", model.lastAddedEvent.getEventName());
       assertTrue(model.lastAddedEvent.isRecurring());
       assertEquals(List.of(DayOfWeek.MONDAY, DayOfWeek.THURSDAY, DayOfWeek.SUNDAY), model.lastAddedEvent.getRecurrenceDays());
-      assertEquals(0, model.lastAddedEvent.getRecurrenceCount());
+      assertEquals(Integer.valueOf(0), model.lastAddedEvent.getRecurrenceCount());
       assertEquals(LocalDateTime.parse("2024-04-20T10:00"),model.lastAddedEvent.getRecurrenceEndDate());
       assertTrue(model.lastAddedEvent.isRecurring());
 
@@ -587,7 +587,7 @@ public class CalendarControllerTest {
       assertEquals("Team Meeting", model.lastAddedEvent.getEventName());
       assertTrue(model.lastAddedEvent.isRecurring());
       assertEquals(List.of(DayOfWeek.MONDAY, DayOfWeek.THURSDAY, DayOfWeek.SUNDAY), model.lastAddedEvent.getRecurrenceDays());
-      assertEquals(0, model.lastAddedEvent.getRecurrenceCount());
+      assertEquals(Integer.valueOf(0),model.lastAddedEvent.getRecurrenceCount());
       assertEquals(LocalDateTime.parse("2024-04-20T10:00"),model.lastAddedEvent.getRecurrenceEndDate());
       assertTrue(model.lastAddedEvent.isRecurring());
 
@@ -633,7 +633,7 @@ public class CalendarControllerTest {
       assertEquals("TeamMeeting", model.lastAddedEvent.getEventName());
       assertFalse(model.lastAddedEvent.isRecurring());
       assertTrue( model.lastAddedEvent.getRecurrenceDays().isEmpty());
-      assertEquals(0, model.lastAddedEvent.getRecurrenceCount());
+      assertEquals(Integer.valueOf(0), model.lastAddedEvent.getRecurrenceCount());
       assertNull(model.lastAddedEvent.getRecurrenceEndDate());
 
       if (command.contains("-location")) {
@@ -664,7 +664,7 @@ public class CalendarControllerTest {
       assertEquals("Team Meeting", model.lastAddedEvent.getEventName());
       assertFalse(model.lastAddedEvent.isRecurring());
       assertTrue( model.lastAddedEvent.getRecurrenceDays().isEmpty());
-      assertEquals(0, model.lastAddedEvent.getRecurrenceCount());
+      assertEquals(Integer.valueOf(0), model.lastAddedEvent.getRecurrenceCount());
       assertNull(model.lastAddedEvent.getRecurrenceEndDate());
 
       if (command.contains("-location")) {
@@ -695,7 +695,7 @@ public class CalendarControllerTest {
       assertEquals("Team Meeting", model.lastAddedEvent.getEventName());
       assertFalse(model.lastAddedEvent.isRecurring());
       assertTrue( model.lastAddedEvent.getRecurrenceDays().isEmpty());
-      assertEquals(0, model.lastAddedEvent.getRecurrenceCount());
+      assertEquals(Integer.valueOf(0), model.lastAddedEvent.getRecurrenceCount());
       assertNull(model.lastAddedEvent.getRecurrenceEndDate());
 
       if (command.contains("-location")) {
@@ -726,7 +726,7 @@ public class CalendarControllerTest {
       assertEquals("Team Meeting", model.lastAddedEvent.getEventName());
       assertFalse(model.lastAddedEvent.isRecurring());
       assertTrue( model.lastAddedEvent.getRecurrenceDays().isEmpty());
-      assertEquals(0, model.lastAddedEvent.getRecurrenceCount());
+      assertEquals(Integer.valueOf(0), model.lastAddedEvent.getRecurrenceCount());
       assertNull(model.lastAddedEvent.getRecurrenceEndDate());
 
       if (command.contains("-location")) {
@@ -758,7 +758,7 @@ public class CalendarControllerTest {
       assertEquals("Team Meeting", model.lastAddedEvent.getEventName());
       assertFalse(model.lastAddedEvent.isRecurring());
       assertTrue( model.lastAddedEvent.getRecurrenceDays().isEmpty());
-      assertEquals(0, model.lastAddedEvent.getRecurrenceCount());
+      assertEquals(Integer.valueOf(0), model.lastAddedEvent.getRecurrenceCount());
       assertNull(model.lastAddedEvent.getRecurrenceEndDate());
 
       if (command.contains("-location")) {
@@ -784,7 +784,7 @@ public class CalendarControllerTest {
     testCommandInBothModes(mode,"create event TeamMeeting on 2024-03-20 repeats MRU for 5 times");
     assertNotNull(model.lastAddedEvent);
     assertTrue(model.lastAddedEvent.isRecurring());
-    assertEquals(5, model.lastAddedEvent.getRecurrenceCount());
+    assertEquals(Integer.valueOf(5), model.lastAddedEvent.getRecurrenceCount());
   }
 
   @Test
@@ -800,7 +800,7 @@ public class CalendarControllerTest {
       assertEquals("TeamMeeting", model.lastAddedEvent.getEventName());
       assertTrue(model.lastAddedEvent.isRecurring());
       assertEquals(List.of(DayOfWeek.MONDAY, DayOfWeek.THURSDAY, DayOfWeek.SUNDAY), model.lastAddedEvent.getRecurrenceDays());
-      assertEquals(5, model.lastAddedEvent.getRecurrenceCount());
+      assertEquals(Integer.valueOf(5), model.lastAddedEvent.getRecurrenceCount());
       assertNull(model.lastAddedEvent.getRecurrenceEndDate());
 
       if (command.contains("-location")) {
@@ -831,7 +831,7 @@ public class CalendarControllerTest {
       assertEquals("Team Meeting", model.lastAddedEvent.getEventName());
       assertTrue(model.lastAddedEvent.isRecurring());
       assertEquals(List.of(DayOfWeek.MONDAY, DayOfWeek.THURSDAY, DayOfWeek.SUNDAY), model.lastAddedEvent.getRecurrenceDays());
-      assertEquals(5, model.lastAddedEvent.getRecurrenceCount());
+      assertEquals(Integer.valueOf(5), model.lastAddedEvent.getRecurrenceCount());
       assertNull(model.lastAddedEvent.getRecurrenceEndDate());
 
       if (command.contains("-location")) {
@@ -862,7 +862,7 @@ public class CalendarControllerTest {
       assertEquals("Team Meeting", model.lastAddedEvent.getEventName());
       assertTrue(model.lastAddedEvent.isRecurring());
       assertEquals(List.of(DayOfWeek.MONDAY, DayOfWeek.THURSDAY, DayOfWeek.SUNDAY), model.lastAddedEvent.getRecurrenceDays());
-      assertEquals(5, model.lastAddedEvent.getRecurrenceCount());
+      assertEquals(Integer.valueOf(5), model.lastAddedEvent.getRecurrenceCount());
       assertNull(model.lastAddedEvent.getRecurrenceEndDate());
 
       if (command.contains("-location")) {
@@ -893,7 +893,7 @@ public class CalendarControllerTest {
       assertEquals("Team Meeting", model.lastAddedEvent.getEventName());
       assertTrue(model.lastAddedEvent.isRecurring());
       assertEquals(List.of(DayOfWeek.MONDAY, DayOfWeek.THURSDAY, DayOfWeek.SUNDAY), model.lastAddedEvent.getRecurrenceDays());
-      assertEquals(5, model.lastAddedEvent.getRecurrenceCount());
+      assertEquals(Integer.valueOf(5), model.lastAddedEvent.getRecurrenceCount());
       assertNull(model.lastAddedEvent.getRecurrenceEndDate());
 
       if (command.contains("-location")) {
@@ -924,7 +924,7 @@ public class CalendarControllerTest {
       assertEquals("Team Meeting", model.lastAddedEvent.getEventName());
       assertTrue(model.lastAddedEvent.isRecurring());
       assertEquals(List.of(DayOfWeek.MONDAY, DayOfWeek.THURSDAY, DayOfWeek.SUNDAY), model.lastAddedEvent.getRecurrenceDays());
-      assertEquals(5, model.lastAddedEvent.getRecurrenceCount());
+      assertEquals(Integer.valueOf(5), model.lastAddedEvent.getRecurrenceCount());
       assertNull(model.lastAddedEvent.getRecurrenceEndDate());
 
       if (command.contains("-location")) {
@@ -963,7 +963,7 @@ public class CalendarControllerTest {
       assertEquals("TeamMeeting", model.lastAddedEvent.getEventName());
       assertTrue(model.lastAddedEvent.isRecurring());
       assertEquals(List.of(DayOfWeek.MONDAY, DayOfWeek.THURSDAY, DayOfWeek.SUNDAY), model.lastAddedEvent.getRecurrenceDays());
-      assertEquals(0, model.lastAddedEvent.getRecurrenceCount());
+      assertEquals(Integer.valueOf(0), model.lastAddedEvent.getRecurrenceCount());
       assertEquals(LocalDateTime.parse("2024-04-20T23:59:59"), model.lastAddedEvent.getRecurrenceEndDate());
 
       if (command.contains("-location")) {
@@ -994,7 +994,7 @@ public class CalendarControllerTest {
       assertEquals("Team Meeting", model.lastAddedEvent.getEventName());
       assertTrue(model.lastAddedEvent.isRecurring());
       assertEquals(List.of(DayOfWeek.MONDAY, DayOfWeek.THURSDAY, DayOfWeek.SUNDAY), model.lastAddedEvent.getRecurrenceDays());
-      assertEquals(0, model.lastAddedEvent.getRecurrenceCount());
+      assertEquals(Integer.valueOf(0), model.lastAddedEvent.getRecurrenceCount());
       assertEquals(LocalDateTime.parse("2024-04-20T23:59:59"), model.lastAddedEvent.getRecurrenceEndDate());
 
       if (command.contains("-location")) {
@@ -1025,7 +1025,7 @@ public class CalendarControllerTest {
       assertEquals("Team Meeting", model.lastAddedEvent.getEventName());
       assertTrue(model.lastAddedEvent.isRecurring());
       assertEquals(List.of(DayOfWeek.MONDAY, DayOfWeek.THURSDAY, DayOfWeek.SUNDAY), model.lastAddedEvent.getRecurrenceDays());
-      assertEquals(0, model.lastAddedEvent.getRecurrenceCount());
+      assertEquals(Integer.valueOf(0), model.lastAddedEvent.getRecurrenceCount());
       assertEquals(LocalDateTime.parse("2024-04-20T23:59:59"), model.lastAddedEvent.getRecurrenceEndDate());
 
       if (command.contains("-location")) {
@@ -1056,7 +1056,7 @@ public class CalendarControllerTest {
       assertEquals("Team Meeting", model.lastAddedEvent.getEventName());
       assertTrue(model.lastAddedEvent.isRecurring());
       assertEquals(List.of(DayOfWeek.MONDAY, DayOfWeek.THURSDAY, DayOfWeek.SUNDAY), model.lastAddedEvent.getRecurrenceDays());
-      assertEquals(0, model.lastAddedEvent.getRecurrenceCount());
+      assertEquals(Integer.valueOf(0), model.lastAddedEvent.getRecurrenceCount());
       assertEquals(LocalDateTime.parse("2024-04-20T23:59:59"), model.lastAddedEvent.getRecurrenceEndDate());
 
       if (command.contains("-location")) {
@@ -1087,7 +1087,7 @@ public class CalendarControllerTest {
       assertEquals("Team Meeting", model.lastAddedEvent.getEventName());
       assertTrue(model.lastAddedEvent.isRecurring());
       assertEquals(List.of(DayOfWeek.MONDAY, DayOfWeek.THURSDAY, DayOfWeek.SUNDAY), model.lastAddedEvent.getRecurrenceDays());
-      assertEquals(0, model.lastAddedEvent.getRecurrenceCount());
+      assertEquals(Integer.valueOf(0), model.lastAddedEvent.getRecurrenceCount());
       assertEquals(LocalDateTime.parse("2024-04-20T23:59:59"), model.lastAddedEvent.getRecurrenceEndDate());
 
       if (command.contains("-location")) {
@@ -1914,7 +1914,7 @@ public class CalendarControllerTest {
   }
 
   private class TestCalendarModel implements ICalendarModel {
-    CalendarEventDTO lastAddedEvent;
+    ICalendarEventDTO lastAddedEvent;
     // Fields for edit event
     String lastEditEventProperty;
     String lastEditEventName;
@@ -1935,7 +1935,7 @@ public class CalendarControllerTest {
     LocalDateTime lastPrintEndDateTime;
 
     @Override
-    public boolean addEvent(CalendarEventDTO event) {
+    public boolean addEvent(ICalendarEventDTO event) {
       this.lastAddedEvent = event;
       return true;
     }

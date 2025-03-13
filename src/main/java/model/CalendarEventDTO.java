@@ -3,7 +3,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public class CalendarEventDTO {
+class CalendarEventDTO implements ICalendarEventDTO{
   private String eventName;
   private LocalDateTime startDateTime;
   private LocalDateTime endDateTime;
@@ -34,7 +34,7 @@ public class CalendarEventDTO {
     this.isPrivate = builder.isPrivate;
   }
 
-  public static class CalendarEventDTOBuilder {
+  static class CalendarEventDTOBuilder implements ICalendarEventDTOBuilder<CalendarEventDTO>{
     private String eventName;
     private LocalDateTime startDateTime;
     private LocalDateTime endDateTime;
@@ -102,7 +102,7 @@ public class CalendarEventDTO {
       this.isPrivate = isPrivate;
       return this;
     }
-
+    @Override
     public CalendarEventDTO build() {
       return new CalendarEventDTO(this);
     }
@@ -120,7 +120,7 @@ public class CalendarEventDTO {
     return endDateTime;
   }
 
-  public boolean isRecurring() {
+  public Boolean isRecurring() {
     return isRecurring;
   }
 
@@ -128,7 +128,7 @@ public class CalendarEventDTO {
     return recurrenceDays;
   }
 
-  public int getRecurrenceCount() {
+  public Integer getRecurrenceCount() {
     return recurrenceCount;
   }
 
@@ -136,7 +136,7 @@ public class CalendarEventDTO {
     return recurrenceEndDate;
   }
 
-  public boolean isAutoDecline() {
+  public Boolean isAutoDecline() {
     return autoDecline;
   }
 

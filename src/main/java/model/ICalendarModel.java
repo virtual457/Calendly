@@ -13,7 +13,7 @@ public interface ICalendarModel {
     }
   }
 
-  boolean addEvent(CalendarEventDTO event);
+  boolean addEvent(ICalendarEventDTO event);
   boolean editEvent(String property, String eventName, LocalDateTime fromDateTime, LocalDateTime toDateTime, String newValue);
   boolean editEvents(String property, String eventName, LocalDateTime fromDateTime, String newValue);
   String printEventsOnSpecificDate(LocalDate date);

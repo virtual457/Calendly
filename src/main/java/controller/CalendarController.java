@@ -7,7 +7,7 @@ import java.io.InputStreamReader;
 import java.time.*;
 import java.util.*;
 
-import model.CalendarEventDTO;
+import model.ICalendarEventDTO;
 import model.ICalendarModel;
 import view.IView;
 
@@ -353,7 +353,7 @@ class CalendarController implements ICalendarController {
       }
     }
 
-    CalendarEventDTO event = CalendarEventDTO.builder()
+    ICalendarEventDTO event = ICalendarEventDTO.builder()
             .setAutoDecline(autoDecline)
             .setEventDescription(description)
             .setEventName(eventName)

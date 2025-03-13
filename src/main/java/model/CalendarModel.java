@@ -20,7 +20,7 @@ public class CalendarModel implements ICalendarModel {
   }
 
   @Override
-  public boolean addEvent(CalendarEventDTO eventDTO) {
+  public boolean addEvent(ICalendarEventDTO eventDTO) {
     // Check required fields.
     if (eventDTO.getEventName() == null || eventDTO.getEventName().trim().isEmpty()) {
       throw new IllegalArgumentException("Event name is required.");
@@ -245,6 +245,7 @@ public class CalendarModel implements ICalendarModel {
         sb.append("\n");
       }
     }
+    var a = sb.toString();
     return sb.toString();
   }
 
@@ -321,7 +322,7 @@ public class CalendarModel implements ICalendarModel {
   }
 
   // Helper method for conflict checking using a CalendarEventDTO.
-  private Boolean doesEventConflict(CalendarEventDTO eventDTO) {
+  private Boolean doesEventConflict(ICalendarEventDTO eventDTO) {
     LocalDateTime newStart = eventDTO.getStartDateTime();
     LocalDateTime newEnd = eventDTO.getEndDateTime();
     for (CalendarEvent event : events) {

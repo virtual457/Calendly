@@ -16,9 +16,21 @@ public class CalendarApp {
     String mode = args[1];
     String filePath = (args.length > 2) ? args[2] : "";
 
-    ICalendarModel model = ICalendarModel.createInstance("listBased");
-    IView view = IView.createInstance("consoleView");
-    ICalendarController controller = ICalendarController.createInstance(model, view);
+    ICalendarModel model = createModel();
+    IView view = createView();
+    ICalendarController controller = createController(model,view);
     controller.run(mode, filePath);
+  }
+
+  protected static ICalendarModel createModel() {
+    return ICalendarModel.createInstance("listBased");
+  }
+
+  protected static IView createView() {
+    return IView.createInstance("consoleView");
+  }
+
+  protected static ICalendarController createController(ICalendarModel model, IView view) {
+    return ICalendarController.createInstance(model, view);
   }
 }

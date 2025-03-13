@@ -12,8 +12,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import model.CalendarEventDTO;
-import model.CalendarModel;
 
 public class CalendarModelTest {
 
@@ -39,7 +37,7 @@ public class CalendarModelTest {
 
   @Test
   public void testAddValidSingleEvent_MinimalOptions() {
-    CalendarEventDTO eventDTO = CalendarEventDTO.builder()
+    ICalendarEventDTO eventDTO = ICalendarEventDTO.builder()
             .setEventName("Single Event")
             .setStartDateTime(LocalDateTime.of(2025, 3, 13, 14, 0))
             .setEndDateTime(LocalDateTime.of(2025, 3, 13, 15, 0))
@@ -51,7 +49,7 @@ public class CalendarModelTest {
 
   @Test
   public void testAddValidSingleEvent_WithOptions() {
-    CalendarEventDTO eventDTO = CalendarEventDTO.builder()
+    ICalendarEventDTO eventDTO = ICalendarEventDTO.builder()
             .setEventName("Meeting")
             .setStartDateTime(LocalDateTime.of(2025, 4, 10, 9, 30))
             .setEndDateTime(LocalDateTime.of(2025, 4, 10, 10, 30))
@@ -68,7 +66,7 @@ public class CalendarModelTest {
   @Test
   public void testAddValidAllDayEvent() {
     // All-day event: start at midnight and end at 23:59:59
-    CalendarEventDTO eventDTO = CalendarEventDTO.builder()
+    ICalendarEventDTO eventDTO = ICalendarEventDTO.builder()
             .setEventName("Holiday")
             .setStartDateTime(LocalDateTime.of(2025, 5, 1, 0, 0))
             .setEndDateTime(LocalDateTime.of(2025, 5, 1, 23, 59, 59))
@@ -82,7 +80,7 @@ public class CalendarModelTest {
   public void testAddValidRecurringEvent_FixedCount() {
     // Recurring event on Monday for 2 occurrences.
     // Assume 2025-03-10 is Monday.
-    CalendarEventDTO eventDTO = CalendarEventDTO.builder()
+    ICalendarEventDTO eventDTO = ICalendarEventDTO.builder()
             .setEventName("Weekly Meeting")
             .setStartDateTime(LocalDateTime.of(2025, 3, 10, 10, 0))
             .setEndDateTime(LocalDateTime.of(2025, 3, 10, 11, 0))
@@ -102,7 +100,7 @@ public class CalendarModelTest {
   public void testAddValidRecurringEvent_UntilEndDate() {
     // Recurring event on Friday until 2025-03-28.
     // Assume 2025-03-14 is Friday.
-    CalendarEventDTO eventDTO = CalendarEventDTO.builder()
+    ICalendarEventDTO eventDTO = ICalendarEventDTO.builder()
             .setEventName("Friday Review")
             .setStartDateTime(LocalDateTime.of(2025, 3, 14, 9, 0))
             .setEndDateTime(LocalDateTime.of(2025, 3, 14, 10, 0))
@@ -123,7 +121,7 @@ public class CalendarModelTest {
   @Test
   public void testAddValidRecurringAllDayEvent_FixedCount() {
     // Recurring all-day event on Tuesday for 2 occurrences.
-    CalendarEventDTO eventDTO = CalendarEventDTO.builder()
+    ICalendarEventDTO eventDTO = ICalendarEventDTO.builder()
             .setEventName("Recurring All Day")
             .setStartDateTime(LocalDateTime.of(2025, 6, 3, 0, 0))  // Tuesday
             .setEndDateTime(LocalDateTime.of(2025, 6, 3, 23, 59, 59))
@@ -145,7 +143,7 @@ public class CalendarModelTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void testAddEventWithoutEventName() {
-    CalendarEventDTO eventDTO = CalendarEventDTO.builder()
+    ICalendarEventDTO eventDTO = ICalendarEventDTO.builder()
             // No event name provided.
             .setStartDateTime(LocalDateTime.of(2025, 3, 13, 14, 0))
             .setEndDateTime(LocalDateTime.of(2025, 3, 13, 15, 0))
@@ -155,7 +153,7 @@ public class CalendarModelTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void testAddEventWithoutStartDateTime() {
-    CalendarEventDTO eventDTO = CalendarEventDTO.builder()
+    ICalendarEventDTO eventDTO = ICalendarEventDTO.builder()
             .setEventName("No Start")
             // Missing start date/time.
             .setEndDateTime(LocalDateTime.of(2025, 3, 13, 15, 0))
@@ -165,7 +163,7 @@ public class CalendarModelTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void testAddEventWithoutEndDateTime() {
-    CalendarEventDTO eventDTO = CalendarEventDTO.builder()
+    ICalendarEventDTO eventDTO = ICalendarEventDTO.builder()
             .setEventName("No End")
             .setStartDateTime(LocalDateTime.of(2025, 3, 13, 14, 0))
             // Missing end date/time.
@@ -176,7 +174,7 @@ public class CalendarModelTest {
   @Test(expected = NullPointerException.class)
   public void testAddRecurringEventWithoutRecurrenceDays() {
     // When isRecurring is true, recurrenceDays should not be null.
-    CalendarEventDTO eventDTO = CalendarEventDTO.builder()
+    ICalendarEventDTO eventDTO = ICalendarEventDTO.builder()
             .setEventName("No Recurrence Days")
             .setStartDateTime(LocalDateTime.of(2025, 3, 12, 10, 0))
             .setEndDateTime(LocalDateTime.of(2025, 3, 12, 11, 0))
@@ -189,7 +187,7 @@ public class CalendarModelTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void testAddRecurringEventWithZeroRecurrenceCount() {
-    CalendarEventDTO eventDTO = CalendarEventDTO.builder()
+    ICalendarEventDTO eventDTO = ICalendarEventDTO.builder()
             .setEventName("Zero Recurrence")
             .setStartDateTime(LocalDateTime.of(2025, 3, 12, 10, 0))
             .setEndDateTime(LocalDateTime.of(2025, 3, 12, 11, 0))
@@ -203,7 +201,7 @@ public class CalendarModelTest {
   @Test(expected = IllegalArgumentException.class)
   public void testAddRecurringEventWithDifferentDays() {
     // Recurring event with start and end on different days.
-    CalendarEventDTO eventDTO = CalendarEventDTO.builder()
+    ICalendarEventDTO eventDTO = ICalendarEventDTO.builder()
             .setEventName("Different Day Recurrence")
             .setStartDateTime(LocalDateTime.of(2025, 3, 12, 10, 0))
             .setEndDateTime(LocalDateTime.of(2025, 3, 13, 10, 0))
@@ -216,7 +214,7 @@ public class CalendarModelTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void testAddEventWithRecurrenceDataWhenNotRecurring_CountProvided() {
-    CalendarEventDTO eventDTO = CalendarEventDTO.builder()
+    ICalendarEventDTO eventDTO = ICalendarEventDTO.builder()
             .setEventName("Non-Recurring with Count")
             .setStartDateTime(LocalDateTime.of(2025, 3, 13, 14, 0))
             .setEndDateTime(LocalDateTime.of(2025, 3, 13, 15, 0))
@@ -228,7 +226,7 @@ public class CalendarModelTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void testAddEventWithRecurrenceDataWhenNotRecurring_EndDateProvided() {
-    CalendarEventDTO eventDTO = CalendarEventDTO.builder()
+    ICalendarEventDTO eventDTO = ICalendarEventDTO.builder()
             .setEventName("Non-Recurring with End Date")
             .setStartDateTime(LocalDateTime.of(2025, 3, 13, 14, 0))
             .setEndDateTime(LocalDateTime.of(2025, 3, 13, 15, 0))
@@ -244,7 +242,7 @@ public class CalendarModelTest {
 
   @Test
   public void testEditEventNameValid() {
-    CalendarEventDTO eventDTO = CalendarEventDTO.builder()
+    ICalendarEventDTO eventDTO = ICalendarEventDTO.builder()
             .setEventName("Original Name")
             .setStartDateTime(LocalDateTime.of(2025, 3, 20, 14, 0))
             .setEndDateTime(LocalDateTime.of(2025, 3, 20, 15, 0))
@@ -261,7 +259,21 @@ public class CalendarModelTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void testEditEventUnsupportedProperty() {
-    CalendarEventDTO eventDTO = CalendarEventDTO.builder()
+    ICalendarEventDTO eventDTO = ICalendarEventDTO.builder()
+            .setEventName("Test Event")
+            .setStartDateTime(LocalDateTime.of(2025, 3, 20, 14, 0))
+            .setEndDateTime(LocalDateTime.of(2025, 3, 20, 15, 0))
+            .build();
+    calendarModel.addEvent(eventDTO);
+    calendarModel.editEvent("Blast", "Test Event",
+            LocalDateTime.of(2025, 3, 20, 14, 0),
+            LocalDateTime.of(2025, 3, 20, 15, 0),
+            "New Description");
+  }
+
+  @Test
+  public void testEditEventSupportedProperty() {
+    ICalendarEventDTO eventDTO = ICalendarEventDTO.builder()
             .setEventName("Test Event")
             .setStartDateTime(LocalDateTime.of(2025, 3, 20, 14, 0))
             .setEndDateTime(LocalDateTime.of(2025, 3, 20, 15, 0))
@@ -271,6 +283,7 @@ public class CalendarModelTest {
             LocalDateTime.of(2025, 3, 20, 14, 0),
             LocalDateTime.of(2025, 3, 20, 15, 0),
             "New Description");
+
   }
 
   @Test(expected = IllegalStateException.class)
@@ -284,12 +297,12 @@ public class CalendarModelTest {
   @Test
   public void testEditEventsNameValid() {
     // Add two events with the same name and start time.
-    CalendarEventDTO eventDTO1 = CalendarEventDTO.builder()
+    ICalendarEventDTO eventDTO1 = ICalendarEventDTO.builder()
             .setEventName("Group Event")
             .setStartDateTime(LocalDateTime.of(2025, 3, 21, 10, 0))
             .setEndDateTime(LocalDateTime.of(2025, 3, 21, 11, 0))
             .build();
-    CalendarEventDTO eventDTO2 = CalendarEventDTO.builder()
+    ICalendarEventDTO eventDTO2 = ICalendarEventDTO.builder()
             .setEventName("Group Event")
             .setStartDateTime(LocalDateTime.of(2025, 3, 21, 10, 0))
             .setEndDateTime(LocalDateTime.of(2025, 3, 21, 11, 0))
@@ -316,7 +329,7 @@ public class CalendarModelTest {
 
   @Test
   public void testPrintEventsOnSpecificDateValid() {
-    CalendarEventDTO eventDTO = CalendarEventDTO.builder()
+    ICalendarEventDTO eventDTO = ICalendarEventDTO.builder()
             .setEventName("Print Test")
             .setStartDateTime(LocalDateTime.of(2025, 3, 22, 9, 0))
             .setEndDateTime(LocalDateTime.of(2025, 3, 22, 10, 0))
@@ -333,12 +346,12 @@ public class CalendarModelTest {
 
   @Test
   public void testPrintEventsInSpecificRangeValid() {
-    CalendarEventDTO eventDTO1 = CalendarEventDTO.builder()
+    ICalendarEventDTO eventDTO1 = ICalendarEventDTO.builder()
             .setEventName("Range Event 1")
             .setStartDateTime(LocalDateTime.of(2025, 3, 16, 9, 0))
             .setEndDateTime(LocalDateTime.of(2025, 3, 16, 10, 0))
             .build();
-    CalendarEventDTO eventDTO2 = CalendarEventDTO.builder()
+    ICalendarEventDTO eventDTO2 = ICalendarEventDTO.builder()
             .setEventName("Range Event 2")
             .setStartDateTime(LocalDateTime.of(2025, 3, 16, 11, 0))
             .setEndDateTime(LocalDateTime.of(2025, 3, 16, 12, 0))
@@ -375,7 +388,7 @@ public class CalendarModelTest {
 
   @Test
   public void testShowStatusBusy() {
-    CalendarEventDTO eventDTO = CalendarEventDTO.builder()
+    ICalendarEventDTO eventDTO = ICalendarEventDTO.builder()
             .setEventName("Status Event")
             .setStartDateTime(LocalDateTime.of(2025, 3, 24, 10, 0))
             .setEndDateTime(LocalDateTime.of(2025, 3, 24, 11, 0))
@@ -386,7 +399,7 @@ public class CalendarModelTest {
 
   @Test
   public void testShowStatusAvailable() {
-    CalendarEventDTO eventDTO = CalendarEventDTO.builder()
+    ICalendarEventDTO eventDTO = ICalendarEventDTO.builder()
             .setEventName("Status Event")
             .setStartDateTime(LocalDateTime.of(2025, 3, 24, 10, 0))
             .setEndDateTime(LocalDateTime.of(2025, 3, 24, 11, 0))
