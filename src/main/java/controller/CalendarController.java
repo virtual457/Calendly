@@ -125,10 +125,11 @@ class CalendarController implements ICalendarController {
       if (!parts.hasNext()) {
         return "Error: Missing new property value.";
       }
-      String newValue = parts.next();
+      String newValue = readQuotedValue(parts);
       model.editEvent(property, eventName, startDateTime, endDateTime, newValue);
       return "Event edited successfully.";
-    } else if (eventType.equals("events")) {
+    }
+    else if (eventType.equals("events")) {
       if (parts.hasNext("from")) {
         parts.next();
         if (!parts.hasNext()) {
@@ -142,13 +143,16 @@ class CalendarController implements ICalendarController {
         if (!parts.hasNext()) {
           return "Error: Missing new property value.";
         }
-        String newValue = parts.next();
+        String newValue = readQuotedValue(parts);
         model.editEvents(property, eventName, startDateTime, newValue);
       } else {
         if (!parts.hasNext()) {
           return "Error: Missing new property value.";
         }
-        String newValue = parts.next();
+        String newValue = readQuotedValue(parts);
+        if(parts.hasNext()) {
+          return "Error: Invalid Edit events command";
+        }
         model.editEvents(property, eventName, null, newValue);
       }
       return "Events edited successfully.";
@@ -232,7 +236,7 @@ class CalendarController implements ICalendarController {
     String eventName = readQuotedValue(parts);
 
     if (!parts.hasNext("from") && !parts.hasNext("on")) {
-      return "Error: Missing 'from' or 'on' keyword.";
+      return "Error: Missing 'from' or 'on' keyword. Or EventName is required.";
     }
 
     LocalDateTime startDateTime;
@@ -304,18 +308,23 @@ class CalendarController implements ICalendarController {
             return "Error: Invalid recurrence day.";
         }
       }
+
       isRecurring = true;
       if (parts.hasNext("for")) {
         parts.next();
         recurrenceCount = Integer.parseInt(parts.next());
         parts.next();
-      } else if (parts.hasNext("until")) {
+      }
+      else if (parts.hasNext("until")) {
         parts.next();
         if (isAllDayEvent) {
           recurrenceEndDate = LocalDate.parse(parts.next()).atTime(23, 59, 59);
         } else {
           recurrenceEndDate = LocalDateTime.parse(parts.next());
         }
+      }
+      else {
+        return "Error: command missing until or from.";
       }
     }
 

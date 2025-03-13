@@ -5,6 +5,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -12,13 +13,16 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.io.Reader;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import model.CalendarEventDTO;
 import model.ICalendarModel;
@@ -26,6 +30,7 @@ import view.IView;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -37,7 +42,7 @@ public class CalendarControllerTest {
   private TestCalendarModel model;
   private ByteArrayOutputStream outputStream;
   private PrintStream originalOut;
-  private IView view;
+  private MockView view;
   private String mode;
   String[] options = {"-location Office", "-description Quarterlymeeting", "-private"};
   String[] spacedOptions = {"-location 'Off ice'", "-description 'Quarterly meeting'", "-private"};
@@ -1130,6 +1135,73 @@ public class CalendarControllerTest {
   }
 
   @Test
+  public void testEditEventName() {
+    String command = "edit event name TeamMeeting from 2024-03-20T10:00 to 2024-03-20T10:30 with UpdatedMeeting";
+    testCommandInBothModes(mode, command);
+    assertEquals("name", model.lastEditEventProperty);
+    assertEquals("UpdatedMeeting",  model.lastEditEventNewValue);
+    assertEquals("TeamMeeting", model.lastEditEventName);
+    assertEquals(LocalDateTime.parse("2024-03-20T10:00"), model.lastEditEventStartDateTime);
+    assertEquals(LocalDateTime.parse("2024-03-20T10:30"), model.lastEditEventEndDateTime);
+  }
+
+  @Test
+  public void testEditEventDescription() {
+    String command = "edit event description TeamMeeting from 2024-03-20T10:00 to 2024-03-20T10:30 with 'Updated Description'";
+    testCommandInBothModes(mode, command);
+    assertEquals("description", model.lastEditEventProperty);
+    assertEquals("Updated Description", model.lastEditEventNewValue);
+    assertEquals("TeamMeeting", model.lastEditEventName);
+    assertEquals(LocalDateTime.parse("2024-03-20T10:00"), model.lastEditEventStartDateTime);
+    assertEquals(LocalDateTime.parse("2024-03-20T10:30"), model.lastEditEventEndDateTime);
+  }
+
+  @Test
+  public void testEditEventLocation(){
+    String command = "edit event location TeamMeeting from 2024-03-20T10:00 to 2024-03-20T10:30 with 'New Location'";
+    testCommandInBothModes(mode, command);
+    assertEquals("location", model.lastEditEventProperty);
+    assertEquals("New Location", model.lastEditEventNewValue);
+    assertEquals("TeamMeeting", model.lastEditEventName);
+    assertEquals(LocalDateTime.parse("2024-03-20T10:00"), model.lastEditEventStartDateTime);
+    assertEquals(LocalDateTime.parse("2024-03-20T10:30"), model.lastEditEventEndDateTime);
+  }
+
+  @Test
+  public void testEditEventStart() {
+    String command = "edit event start TeamMeeting from 2024-03-20T10:00 to 2024-03-20T10:30 with 2024-03-20T10:35";
+    testCommandInBothModes(mode, command);
+    assertEquals("start", model.lastEditEventProperty);
+    assertEquals("2024-03-20T10:35", model.lastEditEventNewValue);
+    assertEquals("TeamMeeting", model.lastEditEventName);
+    assertEquals(LocalDateTime.parse("2024-03-20T10:00"), model.lastEditEventStartDateTime);
+    assertEquals(LocalDateTime.parse("2024-03-20T10:30"), model.lastEditEventEndDateTime);
+  }
+
+  @Test
+  public void testEditEventEnd() {
+    String command = "edit event end TeamMeeting from 2024-03-20T10:00 to 2024-03-20T10:30 with 2024-03-20T10:35";
+    testCommandInBothModes(mode, command);
+    assertEquals("end", model.lastEditEventProperty);
+    assertEquals("2024-03-20T10:35", model.lastEditEventNewValue);
+    assertEquals("TeamMeeting", model.lastEditEventName);
+    assertEquals(LocalDateTime.parse("2024-03-20T10:00"), model.lastEditEventStartDateTime);
+    assertEquals(LocalDateTime.parse("2024-03-20T10:30"), model.lastEditEventEndDateTime);
+  }
+
+  @Test
+  public void testEditEventIsPublic() {
+    String command = "edit event isPublic TeamMeeting from 2024-03-20T10:00 to 2024-03-20T10:30 with false";
+    testCommandInBothModes(mode, command);
+    assertEquals("isPublic", model.lastEditEventProperty);
+    assertEquals("false", model.lastEditEventNewValue);
+    assertEquals("TeamMeeting", model.lastEditEventName);
+    assertEquals(LocalDateTime.parse("2024-03-20T10:00"), model.lastEditEventStartDateTime);
+    assertEquals(LocalDateTime.parse("2024-03-20T10:30"), model.lastEditEventEndDateTime);
+  }
+
+  //Edit Events Scenarrio
+  @Test
   public void testEditEventsCallsModelWithCorrectParams() {
     testCommandInBothModes(mode,"edit events name TeamMeeting from 2024-03-20T10:00 with UpdatedMeeting");
     assertEquals("name", model.lastEditEventsProperty);
@@ -1138,6 +1210,87 @@ public class CalendarControllerTest {
     assertEquals("UpdatedMeeting", model.lastEditEventsNewValue);
   }
 
+  @Test
+  public void testEditEventsName() {
+    String command = "edit events name TeamMeeting from 2024-03-20T10:00 with UpdatedMeeting";
+    testCommandInBothModes(mode, command);
+    assertEquals("name", model.lastEditEventsProperty);
+    assertEquals("UpdatedMeeting", model.lastEditEventsNewValue);
+    assertEquals("TeamMeeting", model.lastEditEventsName);
+    assertEquals(LocalDateTime.parse("2024-03-20T10:00"), model.lastEditEventsStartDateTime);
+  }
+
+  @Test
+  public void testEditEventsDescription() {
+    String command = "edit events description TeamMeeting from 2024-03-20T10:00 with 'Updated Description'";
+    testCommandInBothModes(mode, command);
+    assertEquals("description", model.lastEditEventsProperty);
+    assertEquals("Updated Description", model.lastEditEventsNewValue);
+    assertEquals("TeamMeeting", model.lastEditEventsName);
+    assertEquals(LocalDateTime.parse("2024-03-20T10:00"), model.lastEditEventsStartDateTime);
+  }
+
+  @Test
+  public void testEditEventsLocation() {
+    String command = "edit events location TeamMeeting from 2024-03-20T10:00 with 'New Location'";
+    testCommandInBothModes(mode, command);
+    assertEquals("location", model.lastEditEventsProperty);
+    assertEquals("New Location", model.lastEditEventsNewValue);
+    assertEquals("TeamMeeting", model.lastEditEventsName);
+    assertEquals(LocalDateTime.parse("2024-03-20T10:00"), model.lastEditEventsStartDateTime);
+  }
+
+  @Test
+  public void testEditEventsStart() {
+    String command = "edit events start TeamMeeting from 2024-03-20T10:00 with 2024-03-20T10:35";
+    testCommandInBothModes(mode, command);
+    assertEquals("start", model.lastEditEventsProperty);
+    assertEquals("2024-03-20T10:35", model.lastEditEventsNewValue);
+    assertEquals("TeamMeeting", model.lastEditEventsName);
+    assertEquals(LocalDateTime.parse("2024-03-20T10:00"), model.lastEditEventsStartDateTime);
+  }
+
+  @Test
+  public void testEditEventsEnd() {
+    String command = "edit events end TeamMeeting from 2024-03-20T10:00 with 2024-03-20T10:35";
+    testCommandInBothModes(mode, command);
+    assertEquals("end", model.lastEditEventsProperty);
+    assertEquals("2024-03-20T10:35", model.lastEditEventsNewValue);
+    assertEquals("TeamMeeting", model.lastEditEventsName);
+    assertEquals(LocalDateTime.parse("2024-03-20T10:00"), model.lastEditEventsStartDateTime);
+  }
+
+  @Test
+  public void testEditEventsIsPublic() {
+    String command = "edit events isPublic TeamMeeting from 2024-03-20T10:00 with false";
+    testCommandInBothModes(mode, command);
+    assertEquals("isPublic", model.lastEditEventsProperty);
+    assertEquals("false", model.lastEditEventsNewValue);
+    assertEquals("TeamMeeting", model.lastEditEventsName);
+    assertEquals(LocalDateTime.parse("2024-03-20T10:00"), model.lastEditEventsStartDateTime);
+  }
+
+  @Test
+  public void testEditEventsAtSpecificStartTime() throws IOException {
+    String command = "edit events name TeamMeeting from 2024-03-20T10:00 with UpdatedMeeting";
+    testCommandInBothModes(mode, command);
+    assertEquals("name", model.lastEditEventsProperty);
+    assertEquals("UpdatedMeeting", model.lastEditEventsNewValue);
+    assertEquals("TeamMeeting", model.lastEditEventsName);
+    assertEquals(LocalDateTime.parse("2024-03-20T10:00"), model.lastEditEventsStartDateTime);
+  }
+
+  @Test
+  public void testEditAllMatchingEvents() throws IOException {
+    String command = "edit events description TeamMeeting 'Updated Description'";
+    testCommandInBothModes(mode, command);
+    assertEquals("description", model.lastEditEventsProperty);
+    assertEquals("Updated Description", model.lastEditEventsNewValue);
+    assertEquals("TeamMeeting", model.lastEditEventsName);
+    assertNull(model.lastEditEventsStartDateTime);
+  }
+
+  // End of edit events function
   @Test
   public void testPrintEventsOnDateCallsModelWithCorrectParams() {
     testCommandInBothModes(mode,"print events on 2024-03-20");
@@ -1169,6 +1322,595 @@ public class CalendarControllerTest {
     assertNull(model.lastAddedEvent);
     assertNull(model.lastEditEventName);
     assertNull(model.lastEditEventsName);
+  }
+
+  @Test
+  public void testCreateEventAutoDeclineMissingWords() {
+    String baseCommand = "create event TeamMeeting from 2024-03-20T10:00 to 2024-03-20T10:30";
+
+    Map<String, String> errorCases = new LinkedHashMap<>();
+    errorCases.put("create", "Error: Unsupported command.");
+    errorCases.put("event", "Error: Expected 'event' after 'create'.");
+    errorCases.put("TeamMeeting", "Error: Missing 'from' or 'on' keyword. Or EventName is required.");
+    errorCases.put("from", "Error: Missing 'from' or 'on' keyword. Or EventName is required.");
+    errorCases.put("2024-03-20T10:00", "Error processing command: Text 'to' could not be parsed at index 0");
+    errorCases.put("to", "Error: Missing 'to' keyword and end time.");
+    errorCases.put("2024-03-20T10:30", "Error: Missing end date and time.");
+
+    for (Map.Entry<String, String> entry : errorCases.entrySet()) {
+      String modifiedCommand = baseCommand.replace(entry.getKey(), "").replaceAll("\\s+", " ").trim();
+      testCommandInBothModes(mode, modifiedCommand);
+      assertEquals(entry.getValue(), view.getLastDisplayedMessage());
+    }
+  }
+
+  @Test
+  public void testCreateRecurringEventUntilMissingWords() {
+    String baseCommand = "create event TeamMeeting from 2024-03-20T10:00 to 2024-03-20T10:30 repeats MTWRFSU until 2024-04-20T10:30";
+
+    Map<String, String> errorCases = new LinkedHashMap<>();
+    errorCases.put("create", "Error: Unsupported command.");
+    errorCases.put("event", "Error: Expected 'event' after 'create'.");
+    errorCases.put("TeamMeeting", "Error: Missing 'from' or 'on' keyword. Or EventName is required.");
+    errorCases.put("from", "Error: Missing 'from' or 'on' keyword. Or EventName is required.");
+    errorCases.put("2024-03-20T10:00", "Error processing command: Text 'to' could not be parsed at index 0");
+    errorCases.put("to", "Error: Missing 'to' keyword and end time.");
+    errorCases.put("2024-03-20T10:30", "Error processing command: Text 'repeats' could not be parsed at index 0");
+    errorCases.put("repeats", "Error: Unknown option: MTWRFSU");
+    errorCases.put("MTWRFSU", "Error: Invalid recurrence day.");
+    errorCases.put("until", "Error: command missing until or from.");
+    errorCases.put("2024-04-20T10:30", "Error processing command: null");
+
+    for (Map.Entry<String, String> entry : errorCases.entrySet()) {
+      String modifiedCommand = baseCommand.replace(entry.getKey(), "").replaceAll("\\s+", " ").trim();
+      testCommandInBothModes(mode, modifiedCommand);
+      assertEquals(entry.getValue(), view.getLastDisplayedMessage());
+    }
+  }
+
+  @Test
+  public void testCreateRecurringEventForNTimesMissingWords() {
+    String baseCommand = "create event TeamMeeting from 2024-03-20T10:00 to 2024-03-20T10:30 repeats MTWR for 5 times";
+
+    Map<String, String> errorCases = new LinkedHashMap<>();
+    errorCases.put("create", "Error: Unsupported command.");
+    errorCases.put("event", "Error: Expected 'event' after 'create'.");
+    errorCases.put("TeamMeeting", "Error: Missing 'from' or 'on' keyword. Or EventName is required.");
+    errorCases.put("from", "Error: Missing 'from' or 'on' keyword. Or EventName is required.");
+    errorCases.put("2024-03-20T10:00", "Error processing command: Text 'to' could not be parsed at index 0");
+    errorCases.put("to", "Error: Missing 'to' keyword and end time.");
+    errorCases.put("2024-03-20T10:30", "Error processing command: Text 'repeats' could not be parsed at index 0");
+    errorCases.put("repeats", "Error: Unknown option: MTWR");
+    errorCases.put("MTWR", "Error: Invalid recurrence day.");
+    errorCases.put("for", "Error: command missing until or from.");
+    errorCases.put("5", "Error processing command: For input string: \"times\"");
+    errorCases.put("times", "Error processing command: null");
+
+    for (Map.Entry<String, String> entry : errorCases.entrySet()) {
+      String modifiedCommand = baseCommand.replace(entry.getKey(), "").replaceAll("\\s+", " ").trim();
+      testCommandInBothModes(mode, modifiedCommand);
+      assertEquals(entry.getValue(), view.getLastDisplayedMessage());
+    }
+  }
+
+  @Test
+  public void testCreateEventAllDayMissingWords() {
+    String baseCommand = "create event TeamMeeting on 2024-03-20T10:00";
+
+    Map<String, String> errorCases = new LinkedHashMap<>();
+    errorCases.put("create", "Error: Unsupported command.");
+    errorCases.put("event", "Error: Expected 'event' after 'create'.");
+    errorCases.put("TeamMeeting", "Error: Missing 'from' or 'on' keyword. Or EventName is required.");
+    errorCases.put("on", "Error: Missing 'from' or 'on' keyword. Or EventName is required.");
+    errorCases.put("2024-03-20T10:00", "Error: Missing date for all-day event.");
+
+    for (Map.Entry<String, String> entry : errorCases.entrySet()) {
+      String modifiedCommand = baseCommand.replaceFirst("\\b" + entry.getKey() + "\\b", "").replaceAll("\\s+", " ").trim();
+      testCommandInBothModes(mode, modifiedCommand);
+      assertEquals(entry.getValue(), view.getLastDisplayedMessage());
+    }
+  }
+
+  @Test
+  public void testCreateRecurringAllDayEventForNTimesMissingWords() {
+    String baseCommand = "create event TeamMeeting on 2024-03-20 repeats MTWR for 5 times";
+
+    Map<String, String> errorCases = new LinkedHashMap<>();
+    errorCases.put("create", "Error: Unsupported command.");
+    errorCases.put("event", "Error: Expected 'event' after 'create'.");
+    errorCases.put("TeamMeeting", "Error: Missing 'from' or 'on' keyword. Or EventName is required.");
+    errorCases.put("on", "Error: Missing 'from' or 'on' keyword. Or EventName is required.");
+    errorCases.put("2024-03-20", "Error processing command: Text 'repeats' could not be parsed at index 0");
+    errorCases.put("repeats", "Error: Unknown option: MTWR");
+    errorCases.put("MTWR", "Error: Invalid recurrence day.");
+    errorCases.put("for", "Error: command missing until or from.");
+    errorCases.put("5", "Error processing command: For input string: \"times\"");
+    errorCases.put("times", "Error processing command: null");
+
+    for (Map.Entry<String, String> entry : errorCases.entrySet()) {
+      String modifiedCommand = baseCommand.replaceFirst("\\b" + entry.getKey() + "\\b", "").replaceAll("\\s+", " ").trim();
+      testCommandInBothModes(mode, modifiedCommand);
+      assertEquals(entry.getValue(), view.getLastDisplayedMessage());
+    }
+  }
+
+  @Test
+  public void testEditEventMissingWords2() {
+    String baseCommand = "edit event name TeamMeeting from 2024-03-20T10:00 to 2024-03-20T10:30 with UpdatedMeeting";
+
+    Map<String, String> errorCases = new LinkedHashMap<>();
+    errorCases.put("edit", "Error: Unsupported command.");
+    errorCases.put("event", "Error: Invalid event type. Expected 'event' or 'events'.");
+    errorCases.put("name", "Error: Missing 'from' keyword.");
+    errorCases.put("TeamMeeting", "Error: Missing 'from' keyword.");
+    errorCases.put("from", "Error: Missing 'from' keyword.");
+    errorCases.put("2024-03-20T10:00", "Error processing command: Text 'to' could not be parsed at index 0");
+    errorCases.put("to", "Error: Missing 'to' keyword.");
+    errorCases.put("2024-03-20T10:30", "Error processing command: Text 'with' could not be parsed at index 0");
+    errorCases.put("with", "Error: Missing 'with' keyword.");
+    errorCases.put("UpdatedMeeting", "Error: Missing new property value.");
+
+    for (Map.Entry<String, String> entry : errorCases.entrySet()) {
+      String modifiedCommand = baseCommand.replaceFirst("\\b" + entry.getKey() + "\\b", "").replaceAll("\\s+", " ").trim();
+      testCommandInBothModes(mode, modifiedCommand);
+      assertEquals(entry.getValue(), view.getLastDisplayedMessage());
+    }
+  }
+
+  @Test
+  public void testCreateRecurringAllDayEventUntilMissingWords() {
+    String baseCommand = "create event TeamMeeting on 2024-03-20 repeats MTWR until 2024-04-20";
+
+    Map<String, String> errorCases = new LinkedHashMap<>();
+    errorCases.put("create", "Error: Unsupported command.");
+    errorCases.put("event", "Error: Expected 'event' after 'create'.");
+    errorCases.put("TeamMeeting", "Error: Missing 'from' or 'on' keyword. Or EventName is required.");
+    errorCases.put("on", "Error: Missing 'from' or 'on' keyword. Or EventName is required.");
+    errorCases.put("2024-03-20", "Error processing command: Text 'repeats' could not be parsed at index 0");
+    errorCases.put("repeats", "Error: Unknown option: MTWR");
+    errorCases.put("MTWR", "Error: Invalid recurrence day.");
+    errorCases.put("until", "Error: command missing until or from.");
+    errorCases.put("2024-04-20", "Error processing command: null");
+
+    for (Map.Entry<String, String> entry : errorCases.entrySet()) {
+      String modifiedCommand = baseCommand.replaceFirst("\\b" + entry.getKey() + "\\b", "").replaceAll("\\s+", " ").trim();
+      testCommandInBothModes(mode, modifiedCommand);
+      assertEquals(entry.getValue(), view.getLastDisplayedMessage());
+    }
+  }
+
+  @Test
+  public void testEditEventsFromMissingWords() {
+    String baseCommand = "edit events name TeamMeeting from 2024-03-20T10:00 with UpdatedMeeting";
+
+    Map<String, String> errorCases = new LinkedHashMap<>();
+    errorCases.put("edit", "Error: Unsupported command.");
+    errorCases.put("events", "Error: Invalid event type. Expected 'event' or 'events'.");
+    errorCases.put("name", "Error: Invalid Edit events command");
+    errorCases.put("TeamMeeting", "Error: Invalid Edit events command");
+    errorCases.put("from", "Error: Invalid Edit events command");
+    errorCases.put("2024-03-20T10:00", "Error processing command: Text 'with' could not be parsed at index 0");
+    errorCases.put("with", "Error: Missing 'with' keyword.");
+    errorCases.put("UpdatedMeeting", "Error: Missing new property value.");
+
+    for (Map.Entry<String, String> entry : errorCases.entrySet()) {
+      String modifiedCommand = baseCommand.replaceFirst("\\b" + entry.getKey() + "\\b", "").replaceAll("\\s+", " ").trim();
+      testCommandInBothModes(mode, modifiedCommand);
+      assertEquals(entry.getValue(), view.getLastDisplayedMessage());
+    }
+  }
+
+  @Test
+  public void testEditEventsAllMatchingMissingWords() {
+    String baseCommand = "edit events name TeamMeeting UpdatedMeeting";
+
+    Map<String, String> errorCases = new LinkedHashMap<>();
+    errorCases.put("edit", "Error: Unsupported command.");
+    errorCases.put("events", "Error: Invalid event type. Expected 'event' or 'events'.");
+    errorCases.put("name", "Error: Missing new property value.");
+    errorCases.put("TeamMeeting", "Error: Missing new property value.");
+    errorCases.put("UpdatedMeeting", "Error: Missing new property value.");
+
+    for (Map.Entry<String, String> entry : errorCases.entrySet()) {
+      String modifiedCommand = baseCommand.replaceFirst("\\b" + entry.getKey() + "\\b", "").replaceAll("\\s+", " ").trim();
+      testCommandInBothModes(mode, modifiedCommand);
+      assertEquals(entry.getValue(), view.getLastDisplayedMessage());
+    }
+  }
+
+
+
+  @Test
+  public void testPrintEventsOnMissingWords() {
+    String baseCommand = "print events on 2024-03-20";
+
+    Map<String, String> errorCases = new LinkedHashMap<>();
+    errorCases.put("print", "Error: Unsupported command.");
+    errorCases.put("events", "Error: Expected 'events' after 'print'.");
+    errorCases.put("on", "Error: Invalid print command format.");
+    errorCases.put("2024-03-20", "Error: Missing date.");
+
+    for (Map.Entry<String, String> entry : errorCases.entrySet()) {
+      String modifiedCommand = baseCommand.replaceFirst("\\b" + entry.getKey() + "\\b", "").replaceAll("\\s+", " ").trim();
+      testCommandInBothModes(mode, modifiedCommand);
+      assertEquals(entry.getValue(), view.getLastDisplayedMessage());
+    }
+  }
+
+  @Test
+  public void testPrintEventsFromToMissingWords() {
+    String baseCommand = "print events from 2024-03-20T10:00 to 2024-03-20T12:00";
+
+    Map<String, String> errorCases = new LinkedHashMap<>();
+    errorCases.put("print", "Error: Unsupported command.");
+    errorCases.put("events", "Error: Expected 'events' after 'print'.");
+    errorCases.put("from", "Error: Invalid print command format.");
+    errorCases.put("2024-03-20T10:00", "Error processing command: Text 'to' could not be parsed at index 0");
+    errorCases.put("to", "Error: Missing 'to' keyword.");
+    errorCases.put("2024-03-20T12:00", "Error: Missing end date and time.");
+
+    for (Map.Entry<String, String> entry : errorCases.entrySet()) {
+      String modifiedCommand = baseCommand.replaceFirst("\\b" + entry.getKey() + "\\b", "").replaceAll("\\s+", " ").trim();
+      testCommandInBothModes(mode, modifiedCommand);
+      assertEquals(entry.getValue(), view.getLastDisplayedMessage());
+    }
+  }
+
+  @Test
+  public void testExportCalMissingWords() {
+    String baseCommand = "export cal events.csv";
+
+    Map<String, String> errorCases = new LinkedHashMap<>();
+    errorCases.put("export", "Error: Unsupported command.");
+    errorCases.put("cal", "Error: Expected 'cal' after 'export'.");
+    errorCases.put("events.csv", "Error: Missing filename.");
+
+    for (Map.Entry<String, String> entry : errorCases.entrySet()) {
+      String modifiedCommand = baseCommand.replaceFirst("\\b" + entry.getKey() + "\\b", "").replaceAll("\\s+", " ").trim();
+      testCommandInBothModes(mode, modifiedCommand);
+      assertEquals(entry.getValue(), view.getLastDisplayedMessage());
+    }
+  }
+
+  @Test
+  public void testShowStatusOnMissingWords() {
+    String baseCommand = "show status on 2024-03-20T14:00";
+
+    Map<String, String> errorCases = new LinkedHashMap<>();
+    errorCases.put("show", "Error: Unsupported command.");
+    errorCases.put("status", "Error: Expected 'status' after 'show'.");
+    errorCases.put("on", "Error: Expected 'on' keyword.");
+    errorCases.put("2024-03-20T14:00", "Error: Missing date and time.");
+
+    for (Map.Entry<String, String> entry : errorCases.entrySet()) {
+      String modifiedCommand = baseCommand.replaceFirst("\\b" + entry.getKey() + "\\b", "").replaceAll("\\s+", " ").trim();
+      testCommandInBothModes(mode, modifiedCommand);
+      assertEquals(entry.getValue(), view.getLastDisplayedMessage());
+    }
+  }
+
+  @Test
+  public void testTest(){
+    testCommandInBothModes(mode,"create event TeamMeeting from 2024-03-20T10:00 to 2024-03-20T10:30 repeats until 2024-04-20T10:30");
+  }
+
+
+  @Test
+  public void testCreateEventMissingWords() {
+    String baseCommand = "create event --autoDecline TeamMeeting from 2024-03-20T10:00 to 2024-03-20T10:30";
+
+    String[] wordsToRemove = {"create", "event", "TeamMeeting", "from", "2024-03-20T10:00", "to", "2024-03-20T10:30"};
+
+    for (String word : wordsToRemove) {
+      String modifiedCommand = baseCommand.replace(word, "").replaceAll("\\s+", " ").trim();
+      testCommandInBothModes(mode, modifiedCommand);
+      assertTrue("Expected an error message", view.getLastDisplayedMessage().toLowerCase().contains("error"));
+    }
+  }
+
+  @Test
+  public void testCreateEventRecurringMissingWords() {
+    String baseCommand = "create event --autoDecline TeamMeeting from 2024-03-20T10:00 to 2024-03-20T10:30 repeats MTWRF for 5 times";
+
+    String[] wordsToRemove = {"create", "event", "TeamMeeting", "from", "2024-03-20T10:00", "to", "2024-03-20T10:30", "repeats", "MTWRF", "for", "5", "times"};
+
+    for (String word : wordsToRemove) {
+      String modifiedCommand = baseCommand.replace(word, "").replaceAll("\\s+", " ").trim();
+      testCommandInBothModes(mode, modifiedCommand);
+      assertTrue("Expected an error message", view.getLastDisplayedMessage().toLowerCase().contains("error"));
+    }
+  }
+
+  @Test
+  public void testCreateEventRecurringUntilMissingWords() {
+    String baseCommand = "create event --autoDecline TeamMeeting from 2024-03-20T10:00 to 2024-03-20T10:30 repeats MTWRF until 2024-04-20T10:30";
+
+    String[] wordsToRemove = {"create", "event", "TeamMeeting", "from", "2024-03-20T10:00", "to", "2024-03-20T10:30", "repeats", "MTWRF", "until", "2024-04-20T10:30"};
+
+    for (String word : wordsToRemove) {
+      String modifiedCommand = baseCommand.replace(word, "").replaceAll("\\s+", " ").trim();
+      testCommandInBothModes(mode, modifiedCommand);
+      assertTrue("Expected an error message", view.getLastDisplayedMessage().toLowerCase().contains("error"));
+    }
+  }
+
+  @Test
+  public void testCreateAllDayEventMissingWords() {
+    String baseCommand = "create event TeamMeeting on 2024-03-20";
+
+    String[] wordsToRemove = {"create", "event", "TeamMeeting", "on", "2024-03-20"};
+
+    for (String word : wordsToRemove) {
+      String modifiedCommand = baseCommand.replace(word, "").replaceAll("\\s+", " ").trim();
+      testCommandInBothModes(mode, modifiedCommand);
+      assertTrue("Expected an error message", view.getLastDisplayedMessage().toLowerCase().contains("error"));
+    }
+  }
+
+  @Test
+  public void testCreateRecurringAllDayEventForMissingWords() {
+    String baseCommand = "create event TeamMeeting on 2024-03-20 repeats MTWRF for 5 times";
+
+    String[] wordsToRemove = {"create", "event", "TeamMeeting", "on", "2024-03-20", "repeats", "MTWRF", "for", "5", "times"};
+
+    for (String word : wordsToRemove) {
+      String modifiedCommand = baseCommand.replace(word, "").replaceAll("\\s+", " ").trim();
+      testCommandInBothModes(mode, modifiedCommand);
+      assertTrue("Expected an error message", view.getLastDisplayedMessage().toLowerCase().contains("error"));
+    }
+  }
+
+  @Test
+  public void testCreateRecurringAllDayEventUntilMissingWords1() {
+    String baseCommand = "create event TeamMeeting on 2024-03-20 repeats MTWRF until 2024-04-20";
+
+    String[] wordsToRemove = {"create", "event", "TeamMeeting", "on", "2024-03-20", "repeats", "MTWRF", "until", "2024-04-20"};
+
+    for (String word : wordsToRemove) {
+      String modifiedCommand = baseCommand.replace(word, "").replaceAll("\\s+", " ").trim();
+      testCommandInBothModes(mode, modifiedCommand);
+      assertTrue("Expected an error message", view.getLastDisplayedMessage().toLowerCase().contains("error"));
+    }
+  }
+
+  @Test
+  public void testEditEventMissingWords() {
+    String baseCommand = "edit event name TeamMeeting from 2024-03-20T10:00 to 2024-03-20T10:30 with UpdatedMeeting";
+
+    String[] wordsToRemove = {"edit", "event", "name", "TeamMeeting", "from", "2024-03-20T10:00", "to", "2024-03-20T10:30", "with", "UpdatedMeeting"};
+
+    for (String word : wordsToRemove) {
+      String modifiedCommand = baseCommand.replace(word, "").replaceAll("\\s+", " ").trim();
+      testCommandInBothModes(mode, modifiedCommand);
+      assertTrue("Expected an error message", view.getLastDisplayedMessage().toLowerCase().contains("error"));
+    }
+  }
+
+  @Test
+  public void testEditEventsFromMissingWords2() {
+    String baseCommand = "edit events name TeamMeeting from 2024-03-20T10:00 with UpdatedMeeting";
+
+    String[] wordsToRemove = {"edit", "events", "name", "TeamMeeting", "from", "2024-03-20T10:00", "with", "UpdatedMeeting"};
+
+    for (String word : wordsToRemove) {
+      String modifiedCommand = baseCommand.replace(word, "").replaceAll("\\s+", " ").trim();
+      testCommandInBothModes(mode, modifiedCommand);
+      assertTrue("Expected an error message", view.getLastDisplayedMessage().toLowerCase().contains("error"));
+    }
+  }
+
+  @Test
+  public void testEditEventsAllMatchingMissingWords2() {
+    String baseCommand = "edit events name TeamMeeting UpdatedMeeting";
+
+    String[] wordsToRemove = {"edit", "events", "name", "TeamMeeting", "UpdatedMeeting"};
+
+    for (String word : wordsToRemove) {
+      String modifiedCommand = baseCommand.replace(word, "").replaceAll("\\s+", " ").trim();
+      testCommandInBothModes(mode, modifiedCommand);
+      assertTrue("Expected an error message", view.getLastDisplayedMessage().toLowerCase().contains("error"));
+    }
+  }
+
+  @Test
+  public void testEmptyCommand() {
+    String command = "";
+    testCommandInBothModes(mode, command);
+    assertTrue("Expected an error message for empty command", view.getLastDisplayedMessage().toLowerCase().contains("error"));
+  }
+
+  //Tests to verify correct output is returned if we are using string return statements
+  @Test
+  public void testPrintEventsOnSpecificDate() {
+    String command = "print events on 2024-03-20";
+    testCommandInBothModes(mode, command);
+    assertEquals("Printed events.", view.getLastDisplayedMessage());
+  }
+
+  @Test
+  public void testPrintEventsInSpecificRange() {
+    String command = "print events from 2024-03-20T10:00 to 2024-03-20T12:00";
+    testCommandInBothModes(mode, command);
+    assertEquals("Printed events in range.", view.getLastDisplayedMessage());
+  }
+
+  @Test
+  public void testExportEvents() {
+    String command = "export cal events.csv";
+    testCommandInBothModes(mode, command);
+    assertEquals("Exported events.", view.getLastDisplayedMessage());
+  }
+
+  @Test
+  public void testShowStatus() {
+    String command = "show status on 2024-03-20T14:00";
+    testCommandInBothModes(mode, command);
+    assertEquals("Status checked.", view.getLastDisplayedMessage());
+  }
+
+  //Tests to validate the mode of the controlleer run
+  @Test
+  public void testRunWithInvalidMode() {
+    controller.run("invalidMode", "");
+    assertEquals("Invalid mode. Use --mode interactive OR --mode headless <filePath>", view.getLastDisplayedMessage());
+  }
+  //Repeated options checking
+
+  @Test
+  public void testDuplicateLocationOption() {
+    String command = "create event TeamMeeting from 2024-03-20T10:00 to 2024-03-20T10:30 -location Office -location Home";
+    testCommandInBothModes(mode, command);
+    assertEquals("Error: Location specified multiple times.", view.getLastDisplayedMessage());
+  }
+
+  @Test
+  public void testDuplicateDescriptionOption() {
+    String command = "create event TeamMeeting from 2024-03-20T10:00 to 2024-03-20T10:30 -description Meeting -description Important";
+    testCommandInBothModes(mode, command);
+    assertEquals("Error: Description specified multiple times.", view.getLastDisplayedMessage());
+  }
+
+  @Test
+  public void testDuplicatePrivateOption() {
+    String command = "create event TeamMeeting from 2024-03-20T10:00 to 2024-03-20T10:30 -private -private";
+    testCommandInBothModes(mode, command);
+    assertEquals("Error: Private flag specified multiple times.", view.getLastDisplayedMessage());
+  }
+
+  //simulate io exceptions
+  @Test
+  public void testIOExceptionHandling() {
+    Reader faultyReader = new Reader() {
+      @Override
+      public int read(char[] cbuf, int off, int len) throws IOException {
+        throw new IOException("Simulated read error");
+      }
+      @Override
+      public void close() throws IOException {
+        throw new IOException("Simulated close error");
+      }
+    };
+
+    BufferedReader bufferedReader = new BufferedReader(faultyReader);
+    controller.run("headless", "faultyFile.txt");
+    assertEquals("Error reading input: faultyFile.txt (The system cannot find the file specified)", view.getLastDisplayedMessage());
+  }
+
+  @Test
+  public void testIOExceptionOnReaderClose() {
+    Reader faultyReader = new Reader() {
+      @Override
+      public int read(char[] cbuf, int off, int len) throws IOException {
+        return -1; // Simulate successful read
+      }
+      @Override
+      public void close() throws IOException {
+        throw new IOException("Simulated close error");
+      }
+    };
+
+    BufferedReader bufferedReader = new BufferedReader(faultyReader);
+    controller.run("headless", "faultyFile.txt");
+    assertEquals("Error reading input: faultyFile.txt (The system cannot find the file specified)", view.getLastDisplayedMessage());
+  }
+
+  //Edit Invalid scenarios
+  @Test
+  public void testEditCommandMissingEventType() {
+    String command = "edit";
+    testCommandInBothModes(mode, command);
+    assertEquals("Error: Missing event type (event/events).", view.getLastDisplayedMessage());
+  }
+
+  @Test
+  public void testEditCommandMissingProperty() {
+    String command = "edit event";
+    testCommandInBothModes(mode, command);
+    assertEquals("Error: Missing property.", view.getLastDisplayedMessage());
+  }
+
+  @Test
+  public void testEditCommandMissingEventName() {
+    String command = "edit event name";
+    testCommandInBothModes(mode, command);
+    assertEquals("Error: Missing event name.", view.getLastDisplayedMessage());
+  }
+
+  @Test
+  public void testEditCommandMissingStartDateTime() {
+    String command = "edit event name TeamMeeting from";
+    testCommandInBothModes(mode, command);
+    assertEquals("Error: Missing start date and time.", view.getLastDisplayedMessage());
+  }
+
+  @Test
+  public void testEditCommandMissingEndDateTime() {
+    String command = "edit event name TeamMeeting from 2024-03-20T10:00 to";
+    testCommandInBothModes(mode, command);
+    assertEquals("Error: Missing end date and time.", view.getLastDisplayedMessage());
+  }
+
+  @Test
+  public void testEditCommandSuccessful() {
+    String command = "edit event name TeamMeeting from 2024-03-20T10:00 to 2024-03-20T10:30 with UpdatedMeeting";
+    testCommandInBothModes(mode, command);
+    assertEquals("Event edited successfully.", view.getLastDisplayedMessage());
+  }
+
+  @Test
+  public void testEditEventsMissingStartDateTime() {
+    String command = "edit events name TeamMeeting from";
+    testCommandInBothModes(mode, command);
+    assertEquals("Error: Missing start date and time.", view.getLastDisplayedMessage());
+  }
+
+  @Test
+  public void testEditEventsSuccessful() {
+    String command = "edit events name TeamMeeting from 2024-03-20T10:00 with UpdatedMeeting";
+    testCommandInBothModes(mode, command);
+    assertEquals("Events edited successfully.", view.getLastDisplayedMessage());
+  }
+
+  @Test
+  public void testPrintEventsMissingStartDateTime() {
+    String command = "print events from";
+    testCommandInBothModes(mode, command);
+    assertEquals("Error: Missing start date and time.", view.getLastDisplayedMessage());
+  }
+
+  @Test
+  public void testCreateCommandMissingEventName() {
+    String command = "create event";
+    testCommandInBothModes(mode, command);
+    assertEquals("Error: Missing event name.", view.getLastDisplayedMessage());
+  }
+
+  @Test
+  public void testCreateCommandMissingStartDateTime() {
+    String command = "create event TeamMeeting from";
+    testCommandInBothModes(mode, command);
+    assertEquals("Error: Missing start date and time.", view.getLastDisplayedMessage());
+  }
+
+  @Test
+  public void testCreateCommandMissingLocationValue() {
+    String command = "create event TeamMeeting from 2024-03-20T10:00 to 2024-03-20T10:30 -location";
+    testCommandInBothModes(mode, command);
+    assertEquals("Error: Missing location value.", view.getLastDisplayedMessage());
+  }
+
+  @Test
+  public void testCreateCommandMissingDescriptionValue() {
+    String command = "create event TeamMeeting from 2024-03-20T10:00 to 2024-03-20T10:30 -description";
+    testCommandInBothModes(mode, command);
+    assertEquals("Error: Missing description value.", view.getLastDisplayedMessage());
+  }
+
+  @Test
+  public void testCreateCommandSuccessful() {
+    String command = "create event TeamMeeting from 2024-03-20T10:00 to 2024-03-20T10:30";
+    testCommandInBothModes(mode, command);
+    assertEquals("Event created successfully.", view.getLastDisplayedMessage());
   }
 
   private class TestCalendarModel implements ICalendarModel {
@@ -1243,12 +1985,17 @@ public class CalendarControllerTest {
       return "Status checked.";
     }
   }
+
   private class MockView implements IView {
     private final List<String> displayedMessages = new ArrayList<>();
 
     @Override
     public void display(String message) {
       displayedMessages.add(message);
+    }
+
+    public String getLastDisplayedMessage() {
+      return displayedMessages.get(displayedMessages.size() - 1);
     }
 
     public List<String> getDisplayedMessages() {
