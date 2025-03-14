@@ -110,7 +110,8 @@ public class CalendarAppTest {
       CalendarApp.main(args);
       tempFile.delete();
     } else {
-      ByteArrayInputStream inContent = new ByteArrayInputStream(String.join("\n", commands).getBytes());
+      ByteArrayInputStream inContent = new ByteArrayInputStream(String.join("\n",
+              commands).getBytes());
       System.setIn(inContent);
       String[] args = {"--mode", mode};
       CalendarApp.main(args);
@@ -132,8 +133,8 @@ public class CalendarAppTest {
             "exit"
     };
     runAppWithCommands(commands);
-    assertEquals("Subject,Start Date,Start Time,End Date,End Time,All Day Event," +
-            "Description,Location,Private\n" +
+    assertEquals("Subject,Start Date,Start Time,End Date,End Time,All Day Event,"
+                    + "Description,Location,Private\n" +
             "\"Meeting\",04/10/2025,10:00 AM,04/10/2025,11:00 AM,False,\"\",\"\",False",
             readExportedFile());
   }
@@ -154,8 +155,8 @@ public class CalendarAppTest {
   @Test
   public void testCreateRecurringEvent() throws IOException {
     String[] commands = {
-            "create event Standup from 2025-03-21T09:00 to 2025-03-21T09:30 repeats MTWRF " +
-                    "for 10 times",
+            "create event Standup from 2025-03-21T09:00 to 2025-03-21T09:30 repeats MTWRF "
+                    + "for 10 times",
             "print events on 2025-03-21",
             "exit"
     };
@@ -167,8 +168,8 @@ public class CalendarAppTest {
   @Test
   public void testCreateRecurringEventUntil() throws IOException {
     String[] commands = {
-            "create event Yoga from 2025-03-21T07:00 to 2025-03-21T08:00 repeats MW " +
-                    "until 2025-04-21T09:30",
+            "create event Yoga from 2025-03-21T07:00 to 2025-03-21T08:00 repeats MW "
+                    + "until 2025-04-21T09:30",
             "print events on 2025-03-24",
             "exit"
     };
@@ -186,8 +187,8 @@ public class CalendarAppTest {
     };
     runAppWithCommands(commands);
     assertTrue(outContent.toString().contains("Event created successfully."));
-    assertTrue(outContent.toString().contains("Conference: 2025-03-25T00:00 to " +
-            "2025-03-25T23:59:59"));
+    assertTrue(outContent.toString().contains("Conference: 2025-03-25T00:00 to "
+            + "2025-03-25T23:59:59"));
   }
 
   @Test
@@ -200,8 +201,8 @@ public class CalendarAppTest {
     runAppWithCommands(commands);
     assertTrue(outContent.toString().contains("Event created successfully."
     ));
-    assertTrue(outContent.toString().contains("Holiday: 2025-03-23T00:00 to " +
-            "2025-03-23T23:59:59"));
+    assertTrue(outContent.toString().contains("Holiday: 2025-03-23T00:00 to "
+            + "2025-03-23T23:59:59"));
   }
 
   @Test
@@ -214,11 +215,11 @@ public class CalendarAppTest {
     runAppWithCommands(commands);
     assertTrue(outContent.toString().contains("Event created successfully."));
     if (LocalDate.of(2025, 3, 20).getDayOfWeek() == DayOfWeek.SUNDAY) {
-      assertTrue(outContent.toString().contains("Holiday: 2025-03-20T00:00 to" +
-              " 2025-03-20T23:59:59"));
+      assertTrue(outContent.toString().contains("Holiday: 2025-03-20T00:00 to"
+              + " 2025-03-20T23:59:59"));
     } else {
-      assertFalse(outContent.toString().contains("Holiday: 2025-03-20T00:00 to " +
-              "2025-03-20T23:59:59"));
+      assertFalse(outContent.toString().contains("Holiday: 2025-03-20T00:00 to "
+              + "2025-03-20T23:59:59"));
     }
   }
 
@@ -230,9 +231,9 @@ public class CalendarAppTest {
             "exit"
     };
     runAppWithCommands(commands);
-    assertEquals("Subject,Start Date,Start Time,End Date,End Time,All Day Event," +
-            "Description,Location,Private\n" +
-            "\"Meeting\",04/10/2025,10:00 AM,04/10/2025,11:00 AM,False,\"\",\"\",False",
+    assertEquals("Subject,Start Date,Start Time,End Date,End Time,All Day Event,"
+                    + "Description,Location,Private\n"
+                    + "\"Meeting\",04/10/2025,10:00 AM,04/10/2025,11:00 AM,False,\"\",\"\",False",
             readExportedFile());
   }
 
@@ -260,22 +261,22 @@ public class CalendarAppTest {
     runAppWithCommands(commands);
     assertEquals("Subject,Start Date,Start Time,End Date,End Time," +
             "All Day Event,Description,Location,Private\n" +
-            "\"Workout\",04/16/2025,07:00 AM,04/16/2025,08:00 AM,False,\"\",\"\",False\n" +
-            "\"Workout\",04/21/2025,07:00 AM,04/21/2025,08:00 AM,False,\"\",\"\",False",
+            "\"Workout\",04/16/2025,07:00 AM,04/16/2025,08:00 AM,False,\"\",\"\",False\n"
+                    + "\"Workout\",04/21/2025,07:00 AM,04/21/2025,08:00 AM,False,\"\",\"\",False",
             readExportedFile());
   }
   @Test
   public void testEditEventName() throws IOException {
     String[] commands = {
             "create event Meeting from 2025-04-10T10:00 to 2025-04-10T11:00",
-            "edit event name Meeting from 2025-04-10T10:00 to 2025-04-10T11:00 " +
-                    "with UpdatedMeeting",
+            "edit event name Meeting from 2025-04-10T10:00 to 2025-04-10T11:00 "
+                    + "with UpdatedMeeting",
             "export cal " + OUTPUT_FILE,
             "exit"
     };
     runAppWithCommands(commands);
-    assertEquals("Subject,Start Date,Start Time,End Date,End Time,All Day Event," +
-                    "Description,Location,Private\n" +
+    assertEquals("Subject,Start Date,Start Time,End Date,End Time,All Day Event,"
+                    + "Description,Location,Private\n" +
             "\"UpdatedMeeting\",04/10/2025,10:00 AM,04/10/2025,11:00 AM,False,\"\",\"\",False",
             readExportedFile());
   }
@@ -284,16 +285,16 @@ public class CalendarAppTest {
   public void testEditEventTime() throws IOException {
     String[] commands = {
             "create event Meeting from 2025-04-10T10:00 to 2025-04-10T11:00",
-            "edit event start Meeting from 2025-04-10T10:00 to 2025-04-10T11:00 with" +
-                    " 2025-04-10T09:30",
-            "edit event end Meeting from 2025-04-10T09:30 to 2025-04-10T11:00 with " +
-                    "2025-04-10T10:30",
+            "edit event start Meeting from 2025-04-10T10:00 to 2025-04-10T11:00 with"
+                    + " 2025-04-10T09:30",
+            "edit event end Meeting from 2025-04-10T09:30 to 2025-04-10T11:00 with "
+                    + "2025-04-10T10:30",
             "export cal " + OUTPUT_FILE,
             "exit"
     };
     runAppWithCommands(commands);
-    assertEquals("Subject,Start Date,Start Time,End Date,End Time,All Day Event," +
-                    "Description,Location,Private\n" +
+    assertEquals("Subject,Start Date,Start Time,End Date,End Time,All Day Event,"
+                    + "Description,Location,Private\n" +
             "\"Meeting\",04/10/2025,09:30 AM,04/10/2025,10:30 AM,False,\"\",\"\",False",
             readExportedFile());
   }
@@ -308,8 +309,8 @@ public class CalendarAppTest {
             "exit"
     };
     runAppWithCommands(commands);
-    assertEquals("Subject,Start Date,Start Time,End Date,End Time,All Day Event," +
-            "Description,Location,Private\n" +
+    assertEquals("Subject,Start Date,Start Time,End Date,End Time,All Day Event,"
+            + "Description,Location,Private\n" +
             "\"Workshop\",04/15/2025,02:00 PM,04/15/2025,04:00 PM,False," +
             "\"TechnicalTraining\",\"\",False", readExportedFile());
   }
@@ -323,8 +324,8 @@ public class CalendarAppTest {
             "exit"
     };
     runAppWithCommands(commands);
-    assertEquals("Subject,Start Date,Start Time,End Date,End Time,All Day Event," +
-            "Description,Location,Private\n" +
+    assertEquals("Subject,Start Date,Start Time,End Date,End Time,All Day Event,"
+                    + "Description,Location,Private\n" +
             "\"Workshop\",04/15/2025,02:00 PM,04/15/2025,04:00 PM,False,\"\",\"RoomA\",False",
             readExportedFile());
   }
