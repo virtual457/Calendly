@@ -11,14 +11,18 @@ import java.util.List;
 public class CalendarEventDTOTest {
   private CalendarEventDTO eventDTO;
   private final String eventName = "Meeting";
-  private final LocalDateTime startDateTime = LocalDateTime.of(2024, 3, 15, 10, 0);
-  private final LocalDateTime endDateTime = LocalDateTime.of(2024, 3, 15, 11, 0);
+  private final LocalDateTime startDateTime = LocalDateTime.of(2024, 3,
+          15, 10, 0);
+  private final LocalDateTime endDateTime = LocalDateTime.of(2024, 3,
+          15, 11, 0);
   private final String description = "Team sync-up";
   private final String location = "Conference Room";
   private final Boolean isRecurring = Boolean.TRUE;
-  private final List<DayOfWeek> recurrenceDays = Arrays.asList(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY);
+  private final List<DayOfWeek> recurrenceDays = Arrays.asList(DayOfWeek.MONDAY,
+          DayOfWeek.WEDNESDAY);
   private final Integer recurrenceCount = Integer.valueOf(2);
-  private final LocalDateTime recurrenceEndDate = LocalDateTime.of(2024, 4, 1, 0, 0);
+  private final LocalDateTime recurrenceEndDate = LocalDateTime.of(2024,
+          4, 1, 0, 0);
   private final Boolean autoDecline = Boolean.FALSE;
   private final Boolean isPrivate = Boolean.FALSE;
 

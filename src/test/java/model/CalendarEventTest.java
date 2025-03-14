@@ -15,18 +15,22 @@ import static org.junit.Assert.assertTrue;
 public class CalendarEventTest {
   private CalendarEvent event;
   private final String eventName = "Meeting";
-  private final LocalDateTime startDateTime = LocalDateTime.of(2024, 3, 15, 10, 0);
-  private final LocalDateTime endDateTime = LocalDateTime.of(2024, 3, 15, 11, 0);
+  private final LocalDateTime startDateTime = LocalDateTime.of(2024, 3,
+          15, 10, 0);
+  private final LocalDateTime endDateTime = LocalDateTime.of(2024, 3,
+          15, 11, 0);
   private final String description = "Team sync-up";
   private final String location = "Conference Room";
   private final boolean isPublic = true;
   private final boolean isRecurring = true;
-  private final List<DayOfWeek> recurrenceDays = Arrays.asList(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY);
+  private final List<DayOfWeek> recurrenceDays = Arrays.asList(DayOfWeek.MONDAY,
+          DayOfWeek.WEDNESDAY);
   private final boolean autoDecline = false;
 
   @Before
   public void setUp() {
-    event = new CalendarEvent(eventName, startDateTime, endDateTime, description, location, isPublic, isRecurring, recurrenceDays, autoDecline);
+    event = new CalendarEvent(eventName, startDateTime, endDateTime, description,
+            location, isPublic, isRecurring, recurrenceDays, autoDecline);
   }
 
   @Test
@@ -52,8 +56,10 @@ public class CalendarEventTest {
     event.setPublic(false);
 
     assertEquals("Updated Meeting", event.getEventName());
-    assertEquals(LocalDateTime.of(2024, 3, 16, 9, 0), event.getStartDateTime());
-    assertEquals(LocalDateTime.of(2024, 3, 16, 10, 0), event.getEndDateTime());
+    assertEquals(LocalDateTime.of(2024, 3, 16, 9, 0),
+            event.getStartDateTime());
+    assertEquals(LocalDateTime.of(2024, 3, 16, 10, 0),
+            event.getEndDateTime());
     assertEquals("Updated Description", event.getDescription());
     assertEquals("New Conference Room", event.getLocation());
     assertFalse(event.isPublic());
@@ -63,7 +69,8 @@ public class CalendarEventTest {
   public void testIsRecurring() {
     assertTrue(event.isRecurring());
 
-    event = new CalendarEvent(eventName, startDateTime, endDateTime, description, location, isPublic, false, recurrenceDays, autoDecline);
+    event = new CalendarEvent(eventName, startDateTime, endDateTime, description, location,
+            isPublic, false, recurrenceDays, autoDecline);
     assertFalse(event.isRecurring());
   }
 
@@ -71,7 +78,8 @@ public class CalendarEventTest {
   public void testIsAutoDecline() {
     assertFalse(event.isAutoDecline());
 
-    event = new CalendarEvent(eventName, startDateTime, endDateTime, description, location, isPublic, isRecurring, recurrenceDays, true);
+    event = new CalendarEvent(eventName, startDateTime, endDateTime, description, location,
+            isPublic, isRecurring, recurrenceDays, true);
     assertTrue(event.isAutoDecline());
   }
 }

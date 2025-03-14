@@ -45,8 +45,8 @@ public class ConsoleViewTest {
   public void testDisplayNullMessage() {
     ConsoleView consoleView = new ConsoleView();
     consoleView.display(null);
-    assertNotNull(outContent.toString()); // Ensures output is not null
-    assertTrue(outContent.toString().trim().isEmpty()); // Ensures null doesn't print unexpected text
+    assertNotNull(outContent.toString());
+    assertTrue(outContent.toString().trim().isEmpty());
   }
 
   @Test
