@@ -240,7 +240,7 @@ public class CalendarAppTest {
   @Test
   public void testCreateRecurringEventAndExport() throws IOException {
     String[] commands = {
-            "create event \"Workout\" from 2025-04-15T07:00 to 2025-04-15T08:00 repeats MW for 2 times",
+            "create event Workout from 2025-04-15T07:00 to 2025-04-15T08:00 repeats MW for 2 times",
             "export cal " + OUTPUT_FILE,
             "exit"
     };

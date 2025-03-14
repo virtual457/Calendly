@@ -104,7 +104,7 @@ public class CalendarModel implements ICalendarModel {
                   occurrenceEnd,
                   eventDTO.getEventDescription(),
                   eventDTO.getEventLocation(),
-                  Boolean.TRUE.equals(isPrivate), // isPublic is the opposite of isPrivate
+                  Boolean.TRUE.equals(isPublic), // isPublic is the opposite of isPrivate
                   true,                  // isRecurring
                   eventDTO.getRecurrenceDays(),
                   eventDTO.isAutoDecline()
