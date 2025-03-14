@@ -1,4 +1,4 @@
-package calendarApp;
+package calendarapp;
 
 import static org.junit.Assert.*;
 
