@@ -38,9 +38,6 @@ public class CalendarModelTest {
     }
   }
 
-  // ====================================================
-  // AddEvent Tests – Valid Cases
-  // ====================================================
 
   @Test
   public void testAddValidSingleEvent_MinimalOptions() {
@@ -72,7 +69,7 @@ public class CalendarModelTest {
 
   @Test
   public void testAddValidAllDayEvent() {
-    // All-day event: start at midnight and end at 23:59:59
+
     ICalendarEventDTO eventDTO = ICalendarEventDTO.builder()
             .setEventName("Holiday")
             .setStartDateTime(LocalDateTime.of(2025, 5, 1, 0, 0))
@@ -85,8 +82,7 @@ public class CalendarModelTest {
 
   @Test
   public void testAddValidRecurringEvent_FixedCount() {
-    // Recurring event on Monday for 2 occurrences.
-    // Assume 2025-03-10 is Monday.
+
     ICalendarEventDTO eventDTO = ICalendarEventDTO.builder()
             .setEventName("Weekly Meeting")
             .setStartDateTime(LocalDateTime.of(2025, 3, 10, 10, 0))
@@ -105,8 +101,7 @@ public class CalendarModelTest {
 
   @Test
   public void testRecurringEventTerminationByFixedCount() {
-    // Create a recurring event on Monday with a recurrence count of 3.
-    // Assume 2025-03-10 is a Monday.
+
     CalendarEventDTO eventDTO = CalendarEventDTO.builder()
             .setEventName("Termination Test")
             .setStartDateTime(LocalDateTime.of(2025, 3, 10, 10, 0))
@@ -127,15 +122,12 @@ public class CalendarModelTest {
     assertEquals(expectedMonday1, calendarModel.printEventsOnSpecificDate(LocalDate.of(2025, 3, 10)));
     assertEquals(expectedMonday2, calendarModel.printEventsOnSpecificDate(LocalDate.of(2025, 3, 17)));
     assertEquals(expectedMonday3, calendarModel.printEventsOnSpecificDate(LocalDate.of(2025, 3, 24)));
-
-    // Verify that no event occurs on the following Monday (2025-03-31) since count=3 has been reached.
     assertEquals("", calendarModel.printEventsOnSpecificDate(LocalDate.of(2025, 3, 31)));
   }
 
   @Test
   public void testAddValidRecurringEvent_UntilEndDate() {
-    // Recurring event on Friday until 2025-03-28.
-    // Assume 2025-03-14 is Friday.
+
     ICalendarEventDTO eventDTO = ICalendarEventDTO.builder()
             .setEventName("Friday Review")
             .setStartDateTime(LocalDateTime.of(2025, 3, 14, 9, 0))
@@ -156,7 +148,7 @@ public class CalendarModelTest {
 
   @Test
   public void testAddValidRecurringAllDayEvent_FixedCount() {
-    // Recurring all-day event on Tuesday for 2 occurrences.
+
     ICalendarEventDTO eventDTO = ICalendarEventDTO.builder()
             .setEventName("Recurring All Day")
             .setStartDateTime(LocalDateTime.of(2025, 6, 3, 0, 0))  // Tuesday
@@ -189,12 +181,10 @@ public class CalendarModelTest {
     CalendarModel model = new CalendarModel();
     assertTrue(model.addEvent(eventDTO));
 
-    // Export the event to a CSV file.
     String filePath = model.exportEvents("temp_export.csv");
     File file = new File(filePath);
     assertTrue(file.exists());
 
-    // Read the content of the file.
     StringBuilder content = new StringBuilder();
     try (Scanner scanner = new Scanner(file)) {
       while (scanner.hasNextLine()) {
@@ -204,24 +194,13 @@ public class CalendarModelTest {
       fail(e.getMessage());
     }
 
-    // The exported CSV header is:
-    // Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private
-    // The event row should end with ,True indicating that the event is private.
-    // For example, it might look like:
-    // "Private Test",07/01/2025,10:00 AM,07/01/2025,11:00 AM,False,"Test Desc","Test Loc",True
-    // We check that the line ends with ",True".
     String[] lines = content.toString().split("\n");
     assertTrue("CSV file should have at least two lines", lines.length >= 2);
     String eventRow = lines[1].trim();
     assertTrue("The event row should end with ',True'", eventRow.endsWith(",True"));
 
-    // Clean up the temporary file.
     file.delete();
   }
-
-  // ====================================================
-  // AddEvent Tests – Error Cases
-  // ====================================================
 
   @Test(expected = IllegalArgumentException.class)
   public void testAddEventWithoutEventName() {
@@ -231,6 +210,100 @@ public class CalendarModelTest {
             .setEndDateTime(LocalDateTime.of(2025, 3, 13, 15, 0))
             .build();
     calendarModel.addEvent(eventDTO);
+  }
+
+  @Test(expected = IllegalStateException.class)
+  public void testRecurringEventOccurrenceConflictAutoDecline() {
+    // Add an existing event that occupies Monday, 10:00 to 11:00 on 2025-03-10.
+    CalendarEventDTO existingEvent = CalendarEventDTO.builder()
+            .setEventName("Existing Event")
+            .setStartDateTime(LocalDateTime.of(2025, 3, 10, 10, 0))
+            .setEndDateTime(LocalDateTime.of(2025, 3, 10, 11, 0))
+            .build();
+    calendarModel.addEvent(existingEvent);
+
+    CalendarEventDTO recurringEvent = CalendarEventDTO.builder()
+            .setEventName("Recurring Conflict")
+            .setStartDateTime(LocalDateTime.of(2025, 3, 10, 10, 0))
+            .setEndDateTime(LocalDateTime.of(2025, 3, 10, 11, 0))
+            .setRecurring(true)
+            .setRecurrenceDays(Arrays.asList(DayOfWeek.MONDAY))
+            .setRecurrenceCount(2)
+            .setAutoDecline(true)
+            .build();
+
+    calendarModel.addEvent(recurringEvent);
+  }
+
+  @Test
+  public void testEventPrivacyTrue() throws Exception {
+
+    CalendarEventDTO eventDTO = CalendarEventDTO.builder()
+            .setEventName("Private Event")
+            .setStartDateTime(LocalDateTime.of(2025, 7, 1, 10, 0))
+            .setEndDateTime(LocalDateTime.of(2025, 7, 1, 11, 0))
+            .setEventDescription("Confidential")
+            .setEventLocation("Room A")
+            .setPrivate(true)   // Mark event as private.
+            .setAutoDecline(false)
+            .build();
+
+    calendarModel.addEvent(eventDTO);
+    String exportPath = calendarModel.exportEvents("Something2");
+    assertNotNull(exportPath);
+    // Read the file content as a string.
+    String content = new String(Files.readAllBytes(Paths.get(exportPath)));
+
+    String expectedHeader = "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private";
+    String expectedRow = "\"Private Event\",07/01/2025,10:00 AM,07/01/2025,11:00 AM,False,\"Confidential\",\"Room A\",True";
+    String expectedContent = expectedHeader + "\n" + expectedRow + "\n";
+    assertEquals(expectedContent, content);
+  }
+
+  @Test
+  public void testEventPrivacyFalse() throws Exception {
+
+    CalendarEventDTO eventDTO = CalendarEventDTO.builder()
+            .setEventName("Public Event")
+            .setStartDateTime(LocalDateTime.of(2025, 7, 2, 10, 0))
+            .setEndDateTime(LocalDateTime.of(2025, 7, 2, 11, 0))
+            .setEventDescription("Open Meeting")
+            .setEventLocation("Room B")
+            .setPrivate(false)   // Mark event as not private (i.e. public).
+            .setAutoDecline(false)
+            .build();
+
+    calendarModel.addEvent(eventDTO);
+    String exportPath = calendarModel.exportEvents("Something2");
+    assertNotNull(exportPath);
+    String content = new String(Files.readAllBytes(Paths.get(exportPath)));
+    String expectedHeader = "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private";
+    String expectedRow = "\"Public Event\",07/02/2025,10:00 AM,07/02/2025,11:00 AM,False,\"Open Meeting\",\"Room B\",False";
+    String expectedContent = expectedHeader + "\n" + expectedRow + "\n";
+    assertEquals(expectedContent, content);
+  }
+
+  @Test(expected = IllegalStateException.class)
+  public void testSingleEventConflictAutoDecline() {
+
+    CalendarEventDTO event1 = CalendarEventDTO.builder()
+            .setEventName("Conflict Event")
+            .setStartDateTime(LocalDateTime.of(2025, 3, 20, 10, 0))
+            .setEndDateTime(LocalDateTime.of(2025, 3, 20, 11, 0))
+            .setAutoDecline(true)
+            .build();
+    calendarModel.addEvent(event1);
+
+    // Second event overlaps with the first one (10:30 to 11:30).
+    CalendarEventDTO event2 = CalendarEventDTO.builder()
+            .setEventName("Conflict Event")
+            .setStartDateTime(LocalDateTime.of(2025, 3, 20, 10, 30))
+            .setEndDateTime(LocalDateTime.of(2025, 3, 20, 11, 30))
+            .setAutoDecline(true)
+            .build();
+
+    // This call should throw an IllegalStateException due to the conflict.
+    calendarModel.addEvent(event2);
   }
 
   @Test(expected = IllegalStateException.class)
@@ -252,7 +325,6 @@ public class CalendarModelTest {
             .setAutoDecline(true)
             .build();
 
-    // This call should throw IllegalStateException due to the conflict.
     calendarModel.addEvent(eventDTO2);
   }
 
@@ -266,7 +338,6 @@ public class CalendarModelTest {
             .build();
     calendarModel.addEvent(eventDTO);
 
-    // Attempt to edit the event's start time to 15:00 (which is not before the current end time).
     calendarModel.editEvent("start", "Test Event",
             LocalDateTime.of(2025, 3, 20, 14, 0),
             LocalDateTime.of(2025, 3, 20, 15, 0),
@@ -304,7 +375,6 @@ public class CalendarModelTest {
             .setRecurrenceCount(5)  // Fixed count provided.
             .setRecurrenceEndDate(LocalDateTime.of(2025, 4, 12, 0, 0))  // End date also provided.
             .build();
-    // This call should throw IllegalArgumentException.
     calendarModel.addEvent(eventDTO);
   }
 
@@ -313,7 +383,6 @@ public class CalendarModelTest {
     ICalendarEventDTO eventDTO = ICalendarEventDTO.builder()
             .setEventName("No End")
             .setStartDateTime(LocalDateTime.of(2025, 3, 13, 14, 0))
-            // Missing end date/time.
             .build();
     calendarModel.addEvent(eventDTO);
   }
@@ -326,7 +395,6 @@ public class CalendarModelTest {
             .setStartDateTime(LocalDateTime.of(2025, 3, 12, 10, 0))
             .setEndDateTime(LocalDateTime.of(2025, 3, 12, 11, 0))
             .setRecurring(true)
-            // Not setting recurrenceDays (remains null)
             .setRecurrenceCount(3)
             .build();
     calendarModel.addEvent(eventDTO);
@@ -366,7 +434,7 @@ public class CalendarModelTest {
             .setStartDateTime(LocalDateTime.of(2025, 3, 13, 14, 0))
             .setEndDateTime(LocalDateTime.of(2025, 3, 13, 15, 0))
             .setRecurring(false)
-            .setRecurrenceCount(3) // Should not be provided when not recurring.
+            .setRecurrenceCount(3)
             .build();
     calendarModel.addEvent(eventDTO);
   }
@@ -393,8 +461,6 @@ public class CalendarModelTest {
             .build();
     calendarModel.addEvent(existingEvent);
 
-    // Now create a recurring event that would conflict with the above event.
-    // It recurs on Monday, with a fixed recurrence count.
     CalendarEventDTO recurringEvent = CalendarEventDTO.builder()
             .setEventName("Recurring Conflict")
             .setStartDateTime(LocalDateTime.of(2025, 3, 10, 10, 0))
@@ -405,13 +471,9 @@ public class CalendarModelTest {
             .setAutoDecline(true)
             .build();
 
-    // This call should throw an IllegalStateException because the recurring event's first occurrence conflicts.
     calendarModel.addEvent(recurringEvent);
   }
 
-  // ====================================================
-  // Edit Event Tests
-  // ====================================================
 
   @Test
   public void testEditEventNameValid() {
@@ -431,8 +493,35 @@ public class CalendarModelTest {
   }
 
   @Test
+  public void testEditEventsName2() {
+
+    LocalDateTime start = LocalDateTime.of(2025, 3, 21, 10, 0);
+    LocalDateTime end = LocalDateTime.of(2025, 3, 21, 11, 0);
+
+    CalendarEventDTO eventDTO1 = CalendarEventDTO.builder()
+            .setEventName("Group Event")
+            .setStartDateTime(start)
+            .setEndDateTime(end)
+            .build();
+    CalendarEventDTO eventDTO2 = CalendarEventDTO.builder()
+            .setEventName("Group Event")
+            .setStartDateTime(start)
+            .setEndDateTime(end)
+            .build();
+    calendarModel.addEvent(eventDTO1);
+    calendarModel.addEvent(eventDTO2);
+
+    boolean result = calendarModel.editEvents("name", "Group Event", start, "Updated Group Event");
+    assertTrue(result);
+
+    String expectedOutput = "- Updated Group Event: 2025-03-21T10:00 to 2025-03-21T11:00\n" +
+            "- Updated Group Event: 2025-03-21T10:00 to 2025-03-21T11:00\n";
+    String actualOutput = calendarModel.printEventsOnSpecificDate(LocalDate.of(2025, 3, 21));
+    assertEquals(expectedOutput, actualOutput);
+  }
+
+  @Test
   public void testEditEventValidStart() {
-    // Add event with start=14:00 and end=15:00.
     CalendarEventDTO eventDTO = CalendarEventDTO.builder()
             .setEventName("Edit Start Test")
             .setStartDateTime(LocalDateTime.of(2025, 3, 20, 14, 0))
@@ -440,21 +529,18 @@ public class CalendarModelTest {
             .build();
     calendarModel.addEvent(eventDTO);
 
-    // Change start time to 13:30, which is valid (13:30 < 15:00)
     boolean result = calendarModel.editEvent("start", "Edit Start Test",
             LocalDateTime.of(2025, 3, 20, 14, 0),
             LocalDateTime.of(2025, 3, 20, 15, 0),
             "2025-03-20T13:30");
     assertTrue(result);
 
-    // Expect the printed output to reflect the updated start time.
     String expected = "- Edit Start Test: 2025-03-20T13:30 to 2025-03-20T15:00\n";
     assertEquals(expected, calendarModel.printEventsOnSpecificDate(LocalDate.of(2025, 3, 20)));
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testEditEventInvalidStart() {
-    // Add event with start=14:00 and end=15:00.
     CalendarEventDTO eventDTO = CalendarEventDTO.builder()
             .setEventName("Invalid Start Test")
             .setStartDateTime(LocalDateTime.of(2025, 3, 20, 14, 0))
@@ -462,7 +548,6 @@ public class CalendarModelTest {
             .build();
     calendarModel.addEvent(eventDTO);
 
-    // Attempt to update start time to 15:00 (which is not strictly before end time).
     calendarModel.editEvent("start", "Invalid Start Test",
             LocalDateTime.of(2025, 3, 20, 14, 0),
             LocalDateTime.of(2025, 3, 20, 15, 0),
@@ -471,7 +556,7 @@ public class CalendarModelTest {
 
   @Test
   public void testEditEventValidEnd() {
-    // Add event with start=14:00 and end=15:00.
+
     CalendarEventDTO eventDTO = CalendarEventDTO.builder()
             .setEventName("Edit End Test")
             .setStartDateTime(LocalDateTime.of(2025, 3, 20, 14, 0))
@@ -479,7 +564,6 @@ public class CalendarModelTest {
             .build();
     calendarModel.addEvent(eventDTO);
 
-    // Change end time to 15:30, which is valid (15:30 > 14:00).
     boolean result = calendarModel.editEvent("end", "Edit End Test",
             LocalDateTime.of(2025, 3, 20, 14, 0),
             LocalDateTime.of(2025, 3, 20, 15, 0),
@@ -492,7 +576,7 @@ public class CalendarModelTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void testEditEventInvalidEnd() {
-    // Add event with start=14:00 and end=15:00.
+
     CalendarEventDTO eventDTO = CalendarEventDTO.builder()
             .setEventName("Invalid End Test")
             .setStartDateTime(LocalDateTime.of(2025, 3, 20, 14, 0))
@@ -500,7 +584,6 @@ public class CalendarModelTest {
             .build();
     calendarModel.addEvent(eventDTO);
 
-    // Attempt to update end time to 14:00 (which is not after start time).
     calendarModel.editEvent("end", "Invalid End Test",
             LocalDateTime.of(2025, 3, 20, 14, 0),
             LocalDateTime.of(2025, 3, 20, 15, 0),
@@ -524,8 +607,6 @@ public class CalendarModelTest {
             "New Description");
     assertTrue(result);
 
-    // We can't see the description in the printEventsOnSpecificDate method.
-    // Instead, we use the exportEvents method and check that the CSV row contains the description.
     String filePath = calendarModel.exportEvents("temp_desc_export.csv");
     File file = new File(filePath);
     StringBuilder content = new StringBuilder();
@@ -536,8 +617,6 @@ public class CalendarModelTest {
     } catch (FileNotFoundException e) {
       fail(e.getMessage());
     }
-    // The CSV row for our event should include "New Description" in the Description column.
-    // For simplicity, we'll assert that the exported content contains that substring.
     assertTrue(content.toString().contains("New Description"));
     file.delete();
   }
@@ -552,7 +631,7 @@ public class CalendarModelTest {
             .build();
     calendarModel.addEvent(eventDTO);
 
-    // Edit the location.
+
     boolean result = calendarModel.editEvent("location", "Location Test",
             LocalDateTime.of(2025, 3, 21, 12, 0),
             LocalDateTime.of(2025, 3, 21, 13, 0),
@@ -565,7 +644,7 @@ public class CalendarModelTest {
 
   @Test
   public void testEditEventIsPublic() {
-    // Add event with isPrivate false (i.e. public = true).
+
     CalendarEventDTO eventDTO = CalendarEventDTO.builder()
             .setEventName("Public Test")
             .setStartDateTime(LocalDateTime.of(2025, 3, 22, 12, 0))
@@ -574,14 +653,12 @@ public class CalendarModelTest {
             .build();
     calendarModel.addEvent(eventDTO);
 
-    // Change the public flag by editing "ispublic" property.
     boolean result = calendarModel.editEvent("ispublic", "Public Test",
             LocalDateTime.of(2025, 3, 22, 12, 0),
             LocalDateTime.of(2025, 3, 22, 13, 0),
-            "false"); // setting to false means event becomes not public (private).
+            "false");
     assertTrue(result);
 
-    // To verify, we use the exportEvents method. The last column of the CSV row should now be "True" because isPublic is false.
     String filePath = calendarModel.exportEvents("temp_public_export.csv");
     File file = new File(filePath);
     StringBuilder content = new StringBuilder();
@@ -592,7 +669,7 @@ public class CalendarModelTest {
     } catch (FileNotFoundException e) {
       fail(e.getMessage());
     }
-    // The CSV row for the event should end with ,True
+
     String[] lines = content.toString().split("\n");
     assertTrue("CSV file should have at least two lines", lines.length >= 2);
     String eventRow = lines[1].trim();
@@ -640,17 +717,12 @@ public class CalendarModelTest {
             .setEndDateTime(end)
             .build();
 
-    // Add both events.
     calendarModel.addEvent(eventDTO1);
     calendarModel.addEvent(eventDTO2);
 
-    // Edit events: change name from "Original" to "Updated" for events with the given start time.
     boolean result = calendarModel.editEvents("name", "Original", start, "Updated");
     assertTrue(result);
 
-    // The printEventsOnSpecificDate method produces a string like:
-    // "- Updated: 2025-03-21T10:00 to 2025-03-21T11:00\n"
-    // Since there are two events, the expected output is both lines concatenated.
     String expected = "- Updated: 2025-03-21T10:00 to 2025-03-21T11:00\n" +
             "- Updated: 2025-03-21T10:00 to 2025-03-21T11:00\n";
     String actual = calendarModel.printEventsOnSpecificDate(LocalDate.of(2025, 3, 21));
@@ -669,18 +741,16 @@ public class CalendarModelTest {
             .build();
     calendarModel.addEvent(eventDTO);
 
-    // Update start to 13:30 (which is before current end)
     boolean result = calendarModel.editEvents("start", "Test Event", start, "2025-03-20T13:30");
     assertTrue(result);
 
-    // Expected event now: start 13:30 to 15:00 on 2025-03-20.
     String expected = "- Test Event: 2025-03-20T13:30 to 2025-03-20T15:00\n";
     assertEquals(expected, calendarModel.printEventsOnSpecificDate(LocalDate.of(2025, 3, 20)));
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testEditEventsStartInvalid() {
-    // Create an event with start=14:00 and end=15:00.
+
     LocalDateTime start = LocalDateTime.of(2025, 3, 20, 14, 0);
     LocalDateTime end = LocalDateTime.of(2025, 3, 20, 15, 0);
     CalendarEventDTO eventDTO = CalendarEventDTO.builder()
@@ -690,7 +760,6 @@ public class CalendarModelTest {
             .build();
     calendarModel.addEvent(eventDTO);
 
-    // Attempt to update start time to 15:00 (which is not before the end time)
     calendarModel.editEvents("start", "Test Event", start, "2025-03-20T15:00");
   }
 
@@ -736,7 +805,7 @@ public class CalendarModelTest {
 
   @Test
   public void testEditEventsEndValid() {
-    // Create an event with start=14:00 and end=15:00.
+
     LocalDateTime start = LocalDateTime.of(2025, 3, 20, 14, 0);
     LocalDateTime end = LocalDateTime.of(2025, 3, 20, 15, 0);
     CalendarEventDTO eventDTO = CalendarEventDTO.builder()
@@ -746,18 +815,16 @@ public class CalendarModelTest {
             .build();
     calendarModel.addEvent(eventDTO);
 
-    // Update end time to 15:30 (valid, since 15:30 > 14:00)
     boolean result = calendarModel.editEvents("end", "Test Event", start, "2025-03-20T15:30");
     assertTrue(result);
 
-    // Expected event now: start 14:00 to 15:30.
     String expected = "- Test Event: 2025-03-20T14:00 to 2025-03-20T15:30\n";
     assertEquals(expected, calendarModel.printEventsOnSpecificDate(LocalDate.of(2025, 3, 20)));
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testEditEventsEndInvalid() {
-    // Create an event with start=14:00 and end=15:00.
+
     LocalDateTime start = LocalDateTime.of(2025, 3, 20, 14, 0);
     LocalDateTime end = LocalDateTime.of(2025, 3, 20, 15, 0);
     CalendarEventDTO eventDTO = CalendarEventDTO.builder()
@@ -767,7 +834,6 @@ public class CalendarModelTest {
             .build();
     calendarModel.addEvent(eventDTO);
 
-    // Attempt to update end time to 14:00 (invalid because 14:00 is not after start time)
     calendarModel.editEvents("end", "Test Event", start, "2025-03-20T14:00");
   }
 
@@ -783,11 +849,9 @@ public class CalendarModelTest {
             .build();
     calendarModel.addEvent(eventDTO);
 
-    // Edit the description.
     boolean result = calendarModel.editEvents("description", "Desc Event", start, "Updated Description");
     assertTrue(result);
 
-    // Use exportEvents to verify description.
     String filePath = calendarModel.exportEvents("temp_export_desc.csv");
     File file = new File(filePath);
     StringBuilder content = new StringBuilder();
@@ -798,11 +862,7 @@ public class CalendarModelTest {
     } catch (FileNotFoundException e) {
       fail(e.getMessage());
     }
-    // Expected CSV row should include Updated Description in the Description column.
-    // Construct expected row manually:
-    // For simplicity, assume the CSV row for our event is:
-    // "Desc Event",<startDate>,<startTime>,<endDate>,<endTime>,False,"Updated Description","",False
-    // We can compute these based on known date/time format.
+
     String expectedStartDate = "03/21/2025";
     String expectedStartTime = "10:00 AM";
     String expectedEndDate = "03/21/2025";
@@ -828,7 +888,6 @@ public class CalendarModelTest {
             .build();
     calendarModel.addEvent(eventDTO);
 
-    // Edit the location.
     boolean result = calendarModel.editEvents("location", "Loc Event", start, "New Location");
     assertTrue(result);
 
@@ -845,15 +904,13 @@ public class CalendarModelTest {
             .setEventName("Public Flag Test")
             .setStartDateTime(start)
             .setEndDateTime(end)
-            .setPrivate(true)  // means event is private (i.e. isPublic false)
+            .setPrivate(true)
             .build();
     calendarModel.addEvent(eventDTO);
 
-    // Now update the "ispublic" property to "true" using editEvents.
     boolean result = calendarModel.editEvents("ispublic", "Public Flag Test", start, "true");
     assertTrue(result);
 
-    // After update, isPublic becomes true, so in export, the last column (Private) is "False".
     String filePath = calendarModel.exportEvents("temp_export_pub.csv");
     File file = new File(filePath);
     StringBuilder content = new StringBuilder();
@@ -864,8 +921,7 @@ public class CalendarModelTest {
     } catch (FileNotFoundException e) {
       fail(e.getMessage());
     }
-    // Expected CSV row for our event:
-    // "Public Flag Test",<startDate>,<startTime>,<endDate>,<endTime>,False,<desc>,<loc>,False
+
     String expectedStartDate = "03/22/2025";
     String expectedStartTime = "12:00 PM";
     String expectedEndDate = "03/22/2025";
@@ -890,7 +946,6 @@ public class CalendarModelTest {
             .build();
     calendarModel.addEvent(eventDTO);
 
-    // Attempt to edit with an unsupported property "foo"
     calendarModel.editEvents("foo", "Unsupported Test", start, "Some Value");
   }
 
@@ -924,9 +979,6 @@ public class CalendarModelTest {
     calendarModel.editEvents("name", "Nonexistent", null, "New Name");
   }
 
-  // ====================================================
-  // Print Events Tests
-  // ====================================================
 
   @Test
   public void testPrintEventsOnSpecificDateValid() {
@@ -964,7 +1016,6 @@ public class CalendarModelTest {
     calendarModel.addEvent(eventDTO1);
     calendarModel.addEvent(eventDTO2);
 
-    // Define the range from 2025-03-16T08:00 to 2025-03-16T13:00.
     String expected = "- Event 1: 2025-03-16T09:00 to 2025-03-16T10:00 at Room A\n" +
             "- Event 2: 2025-03-16T11:00 to 2025-03-16T12:00 at Room B\n";
     String actual = calendarModel.printEventsInSpecificRange(
@@ -1022,8 +1073,6 @@ public class CalendarModelTest {
             .build();
     calendarModel.addEvent(eventDTO);
 
-    // If we call the range with toDateTime exactly 10:00, then the event start equals toDateTime.
-    // According to our condition (equals(toDateTime) OR isBefore(toDateTime)), the event should be included.
     String expected = "- Boundary Upper: 2025-03-16T10:00 to 2025-03-16T11:00 at Room Y\n";
     String actual = calendarModel.printEventsInSpecificRange(
             LocalDateTime.of(2025, 3, 16, 9, 0),
@@ -1079,9 +1128,6 @@ public class CalendarModelTest {
             LocalDateTime.of(2025, 3, 16, 14, 0));
   }
 
-  // ====================================================
-  // Export Events Tests
-  // ====================================================
 
   @Test
   public void testExportEventsValid() throws Exception {
@@ -1106,11 +1152,6 @@ public class CalendarModelTest {
     // Read the file's content.
     String content = new String(Files.readAllBytes(Paths.get(exportPath)));
 
-    // Expected output:
-    // Header: Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private
-    // For our event:
-    // "Export Event",03/23/2025,10:00 AM,03/23/2025,11:00 AM,False,"Final Exam","Room 305",True
-    // (with newlines at the end of each line)
     String expectedHeader = "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private";
     String expectedRow = "\"Export Event\",03/23/2025,10:00 AM,03/23/2025,11:00 AM,False,\"Final Exam\",\"Room 305\",True";
     String expectedContent = expectedHeader + "\n" + expectedRow + "\n";
@@ -1119,9 +1160,49 @@ public class CalendarModelTest {
     assertTrue(content.contains(expectedRow));
   }
 
-  // ====================================================
-  // Show Status Tests
-  // ====================================================
+  @Test
+  public void testExportAllDayEvent() throws Exception {
+
+    CalendarEventDTO eventDTO = CalendarEventDTO.builder()
+            .setEventName("Holiday")
+            .setStartDateTime(LocalDateTime.of(2025, 5, 1, 0, 0))
+            .setEndDateTime(LocalDateTime.of(2025, 5, 1, 23, 59, 59))
+            .build();
+    calendarModel.addEvent(eventDTO);
+
+
+    String exportPath = calendarModel.exportEvents("something.csv");
+    assertNotNull(exportPath);
+    String content = new String(Files.readAllBytes(Paths.get(exportPath)));
+
+    String expectedHeader = "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private";
+    String expectedRow = "\"Holiday\",05/01/2025,12:00 AM,05/01/2025,11:59 PM,True,\"\",\"\",False";
+    String expectedContent = expectedHeader + "\n" + expectedRow + "\n";
+
+    assertEquals(expectedContent, content);
+  }
+
+  @Test
+  public void testExportNonAllDayEvent() throws Exception {
+
+    CalendarEventDTO eventDTO = CalendarEventDTO.builder()
+            .setEventName("Meeting")
+            .setStartDateTime(LocalDateTime.of(2025, 5, 1, 9, 0))
+            .setEndDateTime(LocalDateTime.of(2025, 5, 1, 10, 0))
+            .build();
+    calendarModel.addEvent(eventDTO);
+
+
+    String exportPath = calendarModel.exportEvents("something.csv");
+    assertNotNull(exportPath);
+    String content = new String(Files.readAllBytes(Paths.get(exportPath)));
+
+    String expectedHeader = "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private";
+    String expectedRow = "\"Meeting\",05/01/2025,09:00 AM,05/01/2025,10:00 AM,False,\"\",\"\",False";
+    String expectedContent = expectedHeader + "\n" + expectedRow + "\n";
+
+    assertEquals(expectedContent, content);
+  }
 
   @Test
   public void testShowStatusBusy() {
@@ -1136,7 +1217,7 @@ public class CalendarModelTest {
 
   @Test
   public void testAddNonConflictingEvents() {
-    // First event: 10:00 to 11:00
+
     CalendarEventDTO event1 = CalendarEventDTO.builder()
             .setEventName("Event 1")
             .setStartDateTime(LocalDateTime.of(2025, 3, 20, 10, 0))
@@ -1144,7 +1225,6 @@ public class CalendarModelTest {
             .build();
     assertTrue(calendarModel.addEvent(event1));
 
-    // Second event: 11:00 to 12:00 (no overlap with first event)
     CalendarEventDTO event2 = CalendarEventDTO.builder()
             .setEventName("Event 2")
             .setStartDateTime(LocalDateTime.of(2025, 3, 20, 11, 0))
@@ -1160,7 +1240,7 @@ public class CalendarModelTest {
 
   @Test(expected = IllegalStateException.class)
   public void testAddConflictingEventAutoDecline() {
-    // First event: 10:00 to 11:00
+
     CalendarEventDTO event1 = CalendarEventDTO.builder()
             .setEventName("Conflict Event")
             .setStartDateTime(LocalDateTime.of(2025, 3, 20, 10, 0))
@@ -1169,20 +1249,18 @@ public class CalendarModelTest {
             .build();
     calendarModel.addEvent(event1);
 
-    // Second event: overlapping time 10:30 to 11:30; autoDecline true causes conflict check to fail.
     CalendarEventDTO event2 = CalendarEventDTO.builder()
             .setEventName("Conflict Event")
             .setStartDateTime(LocalDateTime.of(2025, 3, 20, 10, 30))
             .setEndDateTime(LocalDateTime.of(2025, 3, 20, 11, 30))
             .setAutoDecline(true)
             .build();
-    // This call should throw an IllegalStateException due to conflict.
     calendarModel.addEvent(event2);
   }
 
   @Test(expected = IllegalStateException.class)
   public void testAddEventConflictAutoDecline() {
-    // Add an existing event from 10:00 to 11:00.
+
     CalendarEventDTO event1 = CalendarEventDTO.builder()
             .setEventName("Conflict Event")
             .setStartDateTime(LocalDateTime.of(2025, 3, 20, 10, 0))
@@ -1191,7 +1269,6 @@ public class CalendarModelTest {
             .build();
     calendarModel.addEvent(event1);
 
-    // Attempt to add a new event that overlaps with the existing one (10:30 to 11:30).
     CalendarEventDTO event2 = CalendarEventDTO.builder()
             .setEventName("Conflict Event")
             .setStartDateTime(LocalDateTime.of(2025, 3, 20, 10, 30))
@@ -1199,8 +1276,6 @@ public class CalendarModelTest {
             .setAutoDecline(true)
             .build();
 
-    // Since auto-decline is true and there is an overlapping event,
-    // this call should throw an IllegalStateException.
     calendarModel.addEvent(event2);
   }
 
@@ -1217,8 +1292,8 @@ public class CalendarModelTest {
 
   @Test
   public void testGetNextRecurrenceDate_EmptyRecurrenceDays() throws Exception {
-    // When recurrenceDays is empty, the method should return currentDate.plusDays(1)
-    LocalDate currentDate = LocalDate.of(2025, 3, 10); // Example date: Monday
+
+    LocalDate currentDate = LocalDate.of(2025, 3, 10);
     List<DayOfWeek> emptyList = new ArrayList<>();
 
     Method method = CalendarModel.class.getDeclaredMethod("getNextRecurrenceDate", LocalDate.class, List.class);
@@ -1230,32 +1305,28 @@ public class CalendarModelTest {
 
   @Test
   public void testGetNextRecurrenceDate_NonEmptyRecurrenceDays_ImmediateMatch() throws Exception {
-    // If recurrenceDays contains a day that is exactly currentDate.plusDays(1), expect that day.
-    LocalDate currentDate = LocalDate.of(2025, 3, 10); // Monday
-    // Set recurrenceDays to include Tuesday.
+
+    LocalDate currentDate = LocalDate.of(2025, 3, 10);
     List<DayOfWeek> recurrenceDays = Arrays.asList(DayOfWeek.TUESDAY);
 
     Method method = CalendarModel.class.getDeclaredMethod("getNextRecurrenceDate", LocalDate.class, List.class);
     method.setAccessible(true);
     LocalDate nextDate = (LocalDate) method.invoke(calendarModel, currentDate, recurrenceDays);
 
-    // Expected: Tuesday (Monday plus 1 day)
     LocalDate expected = currentDate.plusDays(1);
     assertEquals(expected, nextDate);
   }
 
   @Test
   public void testGetNextRecurrenceDate_NonEmptyRecurrenceDays_NonImmediateMatch() throws Exception {
-    // If recurrenceDays does not contain currentDate.plusDays(1), the method should iterate until it finds a match.
-    // For example, currentDate is Monday and recurrenceDays only contains Wednesday.
-    LocalDate currentDate = LocalDate.of(2025, 3, 10); // Monday
+
+    LocalDate currentDate = LocalDate.of(2025, 3, 10);
     List<DayOfWeek> recurrenceDays = Arrays.asList(DayOfWeek.WEDNESDAY);
 
     Method method = CalendarModel.class.getDeclaredMethod("getNextRecurrenceDate", LocalDate.class, List.class);
     method.setAccessible(true);
     LocalDate nextDate = (LocalDate) method.invoke(calendarModel, currentDate, recurrenceDays);
 
-    // Expected: Wednesday, which is currentDate plus 2 days.
     LocalDate expected = currentDate.plusDays(2);
     assertEquals(expected, nextDate);
   }
