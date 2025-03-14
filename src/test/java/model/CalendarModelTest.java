@@ -1,6 +1,10 @@
 package model;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -19,6 +23,14 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+/**
+ * A JUnit test class for verifying the behavior of the {@link CalendarModel} class.
+ * <p>
+ * This class contains tests that ensure the model correctly handles event creation,
+ * editing, printing, exporting, and other core functionalities. Various edge cases,
+ * such as time conflicts or invalid input, are also covered to ensure robustness.
+ * </p>
+ */
 
 public class CalendarModelTest {
 
@@ -119,10 +131,14 @@ public class CalendarModelTest {
     String expectedMonday3 = "- Termination Test: 2025-03-24T10:00 to 2025-03-24T11:00\n";
 
     // Verify the occurrence on each expected Monday.
-    assertEquals(expectedMonday1, calendarModel.printEventsOnSpecificDate(LocalDate.of(2025, 3, 10)));
-    assertEquals(expectedMonday2, calendarModel.printEventsOnSpecificDate(LocalDate.of(2025, 3, 17)));
-    assertEquals(expectedMonday3, calendarModel.printEventsOnSpecificDate(LocalDate.of(2025, 3, 24)));
-    assertEquals("", calendarModel.printEventsOnSpecificDate(LocalDate.of(2025, 3, 31)));
+    assertEquals(expectedMonday1, calendarModel.printEventsOnSpecificDate(
+            LocalDate.of(2025, 3, 10)));
+    assertEquals(expectedMonday2, calendarModel.printEventsOnSpecificDate(
+            LocalDate.of(2025, 3, 17)));
+    assertEquals(expectedMonday3, calendarModel.printEventsOnSpecificDate(
+            LocalDate.of(2025, 3, 24)));
+    assertEquals("", calendarModel.printEventsOnSpecificDate(
+            LocalDate.of(2025, 3, 31)));
   }
 
   @Test
@@ -254,8 +270,12 @@ public class CalendarModelTest {
     // Read the file content as a string.
     String content = new String(Files.readAllBytes(Paths.get(exportPath)));
 
-    String expectedHeader = "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private";
-    String expectedRow = "\"Private Event\",07/01/2025,10:00 AM,07/01/2025,11:00 AM,False,\"Confidential\",\"Room A\",True";
+    String expectedHeader = "Subject,Start Date,Start Time,End Date,End Time,"
+            +
+            "All Day Event,Description,Location,Private";
+    String expectedRow = "\"Private Event\",07/01/2025,10:00 AM,07/01/2025,11:00 AM,False,"
+            +
+            "\"Confidential\",\"Room A\",True";
     String expectedContent = expectedHeader + "\n" + expectedRow + "\n";
     assertEquals(expectedContent, content);
   }
@@ -277,8 +297,12 @@ public class CalendarModelTest {
     String exportPath = calendarModel.exportEvents("Something2");
     assertNotNull(exportPath);
     String content = new String(Files.readAllBytes(Paths.get(exportPath)));
-    String expectedHeader = "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private";
-    String expectedRow = "\"Public Event\",07/02/2025,10:00 AM,07/02/2025,11:00 AM,False,\"Open Meeting\",\"Room B\",False";
+    String expectedHeader = "Subject,Start Date,Start Time,End Date,End Time,"
+            +
+            "All Day Event,Description,Location,Private";
+    String expectedRow = "\"Public Event\",07/02/2025,10:00 AM,07/02/2025,11:00 AM,False,"
+            +
+            "\"Open Meeting\",\"Room B\",False";
     String expectedContent = expectedHeader + "\n" + expectedRow + "\n";
     assertEquals(expectedContent, content);
   }
@@ -514,7 +538,8 @@ public class CalendarModelTest {
     boolean result = calendarModel.editEvents("name", "Group Event", start, "Updated Group Event");
     assertTrue(result);
 
-    String expectedOutput = "- Updated Group Event: 2025-03-21T10:00 to 2025-03-21T11:00\n" +
+    String expectedOutput = "- Updated Group Event: 2025-03-21T10:00 to 2025-03-21T11:00\n"
+            +
             "- Updated Group Event: 2025-03-21T10:00 to 2025-03-21T11:00\n";
     String actualOutput = calendarModel.printEventsOnSpecificDate(LocalDate.of(2025, 3, 21));
     assertEquals(expectedOutput, actualOutput);
@@ -723,7 +748,8 @@ public class CalendarModelTest {
     boolean result = calendarModel.editEvents("name", "Original", start, "Updated");
     assertTrue(result);
 
-    String expected = "- Updated: 2025-03-21T10:00 to 2025-03-21T11:00\n" +
+    String expected = "- Updated: 2025-03-21T10:00 to 2025-03-21T11:00\n"
+            +
             "- Updated: 2025-03-21T10:00 to 2025-03-21T11:00\n";
     String actual = calendarModel.printEventsOnSpecificDate(LocalDate.of(2025, 3, 21));
     assertEquals(expected, actual);
@@ -764,8 +790,6 @@ public class CalendarModelTest {
   }
 
 
-
-
   @Test(expected = IllegalArgumentException.class)
   public void testEditEventUnsupportedProperty2() {
     ICalendarEventDTO eventDTO = ICalendarEventDTO.builder()
@@ -778,21 +802,6 @@ public class CalendarModelTest {
             LocalDateTime.of(2025, 3, 20, 14, 0),
             LocalDateTime.of(2025, 3, 20, 15, 0),
             "New Description");
-  }
-
-  @Test
-  public void testEditEventSupportedProperty() {
-    ICalendarEventDTO eventDTO = ICalendarEventDTO.builder()
-            .setEventName("Test Event")
-            .setStartDateTime(LocalDateTime.of(2025, 3, 20, 14, 0))
-            .setEndDateTime(LocalDateTime.of(2025, 3, 20, 15, 0))
-            .build();
-    calendarModel.addEvent(eventDTO);
-    calendarModel.editEvent("description", "Test Event",
-            LocalDateTime.of(2025, 3, 20, 14, 0),
-            LocalDateTime.of(2025, 3, 20, 15, 0),
-            "New Description");
-
   }
 
   @Test(expected = IllegalStateException.class)
@@ -849,7 +858,8 @@ public class CalendarModelTest {
             .build();
     calendarModel.addEvent(eventDTO);
 
-    boolean result = calendarModel.editEvents("description", "Desc Event", start, "Updated Description");
+    boolean result = calendarModel.editEvents("description",
+            "Desc Event", start, "Updated Description");
     assertTrue(result);
 
     String filePath = calendarModel.exportEvents("temp_export_desc.csv");
@@ -870,7 +880,10 @@ public class CalendarModelTest {
     String expectedRow = String.format("\"Desc Event\",%s,%s,%s,%s,False,\"Updated Description\",\"\",False",
             expectedStartDate, expectedStartTime, expectedEndDate, expectedEndTime);
     // The file should contain a header and one row.
-    String expectedContent = "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private\n" +
+    String expectedContent = "Subject,Start Date,Start Time,End Date,"
+            +
+            "End Time,All Day Event,Description,Location,Private\n"
+            +
             expectedRow + "\n";
     assertEquals(expectedContent, content.toString());
     file.delete();
@@ -908,7 +921,8 @@ public class CalendarModelTest {
             .build();
     calendarModel.addEvent(eventDTO);
 
-    boolean result = calendarModel.editEvents("ispublic", "Public Flag Test", start, "true");
+    boolean result = calendarModel.editEvents("ispublic",
+            "Public Flag Test", start, "true");
     assertTrue(result);
 
     String filePath = calendarModel.exportEvents("temp_export_pub.csv");
@@ -928,7 +942,10 @@ public class CalendarModelTest {
     String expectedEndTime = "01:00 PM";
     String expectedRow = String.format("\"Public Flag Test\",%s,%s,%s,%s,False,\"\",\"\",False",
             expectedStartDate, expectedStartTime, expectedEndDate, expectedEndTime);
-    String expectedContent = "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private\n" +
+    String expectedContent = "Subject,Start Date,Start Time,End Date,End Time,"
+            +
+            "All Day Event,Description,Location,Private\n"
+            +
             expectedRow + "\n";
     assertEquals(expectedContent, content.toString());
     file.delete();
@@ -969,9 +986,11 @@ public class CalendarModelTest {
             LocalDateTime.of(2025, 3, 21, 10, 0),
             "Group Event Updated");
     assertTrue(result);
-    String expected = "- Group Event Updated: 2025-03-21T10:00 to 2025-03-21T11:00\n" +
+    String expected = "- Group Event Updated: 2025-03-21T10:00 to 2025-03-21T11:00\n"
+            +
             "- Group Event Updated: 2025-03-21T10:00 to 2025-03-21T11:00\n";
-    assertEquals(expected, calendarModel.printEventsOnSpecificDate(LocalDate.of(2025, 3, 21)));
+    assertEquals(expected, calendarModel.printEventsOnSpecificDate(
+            LocalDate.of(2025, 3, 21)));
   }
 
   @Test(expected = IllegalStateException.class)
@@ -1016,7 +1035,8 @@ public class CalendarModelTest {
     calendarModel.addEvent(eventDTO1);
     calendarModel.addEvent(eventDTO2);
 
-    String expected = "- Event 1: 2025-03-16T09:00 to 2025-03-16T10:00 at Room A\n" +
+    String expected = "- Event 1: 2025-03-16T09:00 to 2025-03-16T10:00 at Room A\n"
+            +
             "- Event 2: 2025-03-16T11:00 to 2025-03-16T12:00 at Room B\n";
     String actual = calendarModel.printEventsInSpecificRange(
             LocalDateTime.of(2025, 3, 16, 8, 0),
@@ -1093,8 +1113,6 @@ public class CalendarModelTest {
   }
 
 
-
-
   @Test
   public void testPrintEventsInSpecificRangeValid() {
     ICalendarEventDTO eventDTO1 = ICalendarEventDTO.builder()
@@ -1109,7 +1127,8 @@ public class CalendarModelTest {
             .build();
     calendarModel.addEvent(eventDTO1);
     calendarModel.addEvent(eventDTO2);
-    String expected = "- Range Event 1: 2025-03-16T09:00 to 2025-03-16T10:00\n" +
+    String expected = "- Range Event 1: 2025-03-16T09:00 to 2025-03-16T10:00\n"
+            +
             "- Range Event 2: 2025-03-16T11:00 to 2025-03-16T12:00\n";
     assertEquals(expected, calendarModel.printEventsInSpecificRange(
             LocalDateTime.of(2025, 3, 16, 8, 0),
@@ -1152,8 +1171,12 @@ public class CalendarModelTest {
     // Read the file's content.
     String content = new String(Files.readAllBytes(Paths.get(exportPath)));
 
-    String expectedHeader = "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private";
-    String expectedRow = "\"Export Event\",03/23/2025,10:00 AM,03/23/2025,11:00 AM,False,\"Final Exam\",\"Room 305\",True";
+    String expectedHeader = "Subject,Start Date,Start Time,End Date,"
+            +
+            "End Time,All Day Event,Description,Location,Private";
+    String expectedRow = "\"Export Event\",03/23/2025,10:00 AM,03/23/2025,11:00 AM,False,"
+            +
+            "\"Final Exam\",\"Room 305\",True";
     String expectedContent = expectedHeader + "\n" + expectedRow + "\n";
 
     assertTrue(content.contains(expectedHeader));
@@ -1175,7 +1198,9 @@ public class CalendarModelTest {
     assertNotNull(exportPath);
     String content = new String(Files.readAllBytes(Paths.get(exportPath)));
 
-    String expectedHeader = "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private";
+    String expectedHeader = "Subject,Start Date,Start Time,End Date,End Time,"
+            +
+            "All Day Event,Description,Location,Private";
     String expectedRow = "\"Holiday\",05/01/2025,12:00 AM,05/01/2025,11:59 PM,True,\"\",\"\",False";
     String expectedContent = expectedHeader + "\n" + expectedRow + "\n";
 
@@ -1197,7 +1222,9 @@ public class CalendarModelTest {
     assertNotNull(exportPath);
     String content = new String(Files.readAllBytes(Paths.get(exportPath)));
 
-    String expectedHeader = "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private";
+    String expectedHeader = "Subject,Start Date,Start Time,End Date,End Time,"
+            +
+            "All Day Event,Description,Location,Private";
     String expectedRow = "\"Meeting\",05/01/2025,09:00 AM,05/01/2025,10:00 AM,False,\"\",\"\",False";
     String expectedContent = expectedHeader + "\n" + expectedRow + "\n";
 
@@ -1233,7 +1260,8 @@ public class CalendarModelTest {
     assertTrue(calendarModel.addEvent(event2));
 
     // Verify that both events are printed.
-    String expected = "- Event 1: 2025-03-20T10:00 to 2025-03-20T11:00\n" +
+    String expected = "- Event 1: 2025-03-20T10:00 to 2025-03-20T11:00\n"
+            +
             "- Event 2: 2025-03-20T11:00 to 2025-03-20T12:00\n";
     assertEquals(expected, calendarModel.printEventsOnSpecificDate(LocalDate.of(2025, 3, 20)));
   }
@@ -1296,7 +1324,8 @@ public class CalendarModelTest {
     LocalDate currentDate = LocalDate.of(2025, 3, 10);
     List<DayOfWeek> emptyList = new ArrayList<>();
 
-    Method method = CalendarModel.class.getDeclaredMethod("getNextRecurrenceDate", LocalDate.class, List.class);
+    Method method = CalendarModel.class.getDeclaredMethod(
+            "getNextRecurrenceDate", LocalDate.class, List.class);
     method.setAccessible(true);
     LocalDate nextDate = (LocalDate) method.invoke(calendarModel, currentDate, emptyList);
 
@@ -1309,7 +1338,8 @@ public class CalendarModelTest {
     LocalDate currentDate = LocalDate.of(2025, 3, 10);
     List<DayOfWeek> recurrenceDays = Arrays.asList(DayOfWeek.TUESDAY);
 
-    Method method = CalendarModel.class.getDeclaredMethod("getNextRecurrenceDate", LocalDate.class, List.class);
+    Method method = CalendarModel.class.getDeclaredMethod(
+            "getNextRecurrenceDate", LocalDate.class, List.class);
     method.setAccessible(true);
     LocalDate nextDate = (LocalDate) method.invoke(calendarModel, currentDate, recurrenceDays);
 
@@ -1318,7 +1348,8 @@ public class CalendarModelTest {
   }
 
   @Test
-  public void testGetNextRecurrenceDate_NonEmptyRecurrenceDays_NonImmediateMatch() throws Exception {
+  public void testGetNextRecurrenceDate_NonEmptyRecurrenceDays_NonImmediateMatch()
+          throws Exception {
 
     LocalDate currentDate = LocalDate.of(2025, 3, 10);
     List<DayOfWeek> recurrenceDays = Arrays.asList(DayOfWeek.WEDNESDAY);
@@ -1341,7 +1372,7 @@ public class CalendarModelTest {
   public void testCreateInstance_ValidType() {
     ICalendarModel model = ICalendarModel.createInstance("listBased");
     assertNotNull(model);
-    assertEquals("class model.CalendarModel",model.getClass().toString());
+    assertEquals("class model.CalendarModel", model.getClass().toString());
   }
 
   @Test

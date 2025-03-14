@@ -1,6 +1,7 @@
 package calendarApp;
 
 import static org.junit.Assert.*;
+
 import org.junit.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -18,6 +19,16 @@ import java.util.Collection;
 import model.ICalendarModel;
 
 @RunWith(Parameterized.class)
+/**
+ * A JUnit test suite for verifying the behavior of the Calendar application's entry point.
+ * <p>
+ * This class tests various scenarios for the {@code CalendarApp} class, such as
+ * handling command line arguments to run in interactive or headless mode, and
+ * ensuring that the application can be started and shut down properly under
+ * different conditions.
+ * </p>
+ */
+
 public class CalendarAppTest {
 
   private static final String OUTPUT_FILE = "events.csv";
@@ -70,7 +81,8 @@ public class CalendarAppTest {
     appThread.start();
     try {
       Thread.sleep(2000);
-    } catch (InterruptedException ignored) {}
+    } catch (InterruptedException ignored) {
+    }
     appThread.interrupt();
     assertTrue(outContent.toString().trim().contains("Welcome to the Calendar App!"));
   }
@@ -135,7 +147,7 @@ public class CalendarAppTest {
     runAppWithCommands(commands);
     assertEquals("Subject,Start Date,Start Time,End Date,End Time,All Day Event,"
                     + "Description,Location,Private\n" +
-            "\"Meeting\",04/10/2025,10:00 AM,04/10/2025,11:00 AM,False,\"\",\"\",False",
+                    "\"Meeting\",04/10/2025,10:00 AM,04/10/2025,11:00 AM,False,\"\",\"\",False",
             readExportedFile());
   }
 
@@ -246,8 +258,8 @@ public class CalendarAppTest {
     };
     runAppWithCommands(commands);
     assertEquals("Subject,Start Date,Start Time,End Date,End Time," +
-            "All Day Event,Description,Location,Private\n" +
-            "\"OneOnOne\",04/11/2025,02:00 PM,04/11/2025,02:30 PM,False,\"\",\"\",True",
+                    "All Day Event,Description,Location,Private\n" +
+                    "\"OneOnOne\",04/11/2025,02:00 PM,04/11/2025,02:30 PM,False,\"\",\"\",True",
             readExportedFile());
   }
 
@@ -260,11 +272,12 @@ public class CalendarAppTest {
     };
     runAppWithCommands(commands);
     assertEquals("Subject,Start Date,Start Time,End Date,End Time," +
-            "All Day Event,Description,Location,Private\n" +
-            "\"Workout\",04/16/2025,07:00 AM,04/16/2025,08:00 AM,False,\"\",\"\",False\n"
+                    "All Day Event,Description,Location,Private\n" +
+                    "\"Workout\",04/16/2025,07:00 AM,04/16/2025,08:00 AM,False,\"\",\"\",False\n"
                     + "\"Workout\",04/21/2025,07:00 AM,04/21/2025,08:00 AM,False,\"\",\"\",False",
             readExportedFile());
   }
+
   @Test
   public void testEditEventName() throws IOException {
     String[] commands = {
@@ -277,7 +290,7 @@ public class CalendarAppTest {
     runAppWithCommands(commands);
     assertEquals("Subject,Start Date,Start Time,End Date,End Time,All Day Event,"
                     + "Description,Location,Private\n" +
-            "\"UpdatedMeeting\",04/10/2025,10:00 AM,04/10/2025,11:00 AM,False,\"\",\"\",False",
+                    "\"UpdatedMeeting\",04/10/2025,10:00 AM,04/10/2025,11:00 AM,False,\"\",\"\",False",
             readExportedFile());
   }
 
@@ -295,7 +308,7 @@ public class CalendarAppTest {
     runAppWithCommands(commands);
     assertEquals("Subject,Start Date,Start Time,End Date,End Time,All Day Event,"
                     + "Description,Location,Private\n" +
-            "\"Meeting\",04/10/2025,09:30 AM,04/10/2025,10:30 AM,False,\"\",\"\",False",
+                    "\"Meeting\",04/10/2025,09:30 AM,04/10/2025,10:30 AM,False,\"\",\"\",False",
             readExportedFile());
   }
 
@@ -326,7 +339,7 @@ public class CalendarAppTest {
     runAppWithCommands(commands);
     assertEquals("Subject,Start Date,Start Time,End Date,End Time,All Day Event,"
                     + "Description,Location,Private\n" +
-            "\"Workshop\",04/15/2025,02:00 PM,04/15/2025,04:00 PM,False,\"\",\"RoomA\",False",
+                    "\"Workshop\",04/15/2025,02:00 PM,04/15/2025,04:00 PM,False,\"\",\"RoomA\",False",
             readExportedFile());
   }
 

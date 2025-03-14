@@ -40,29 +40,36 @@ public class CalendarModel implements ICalendarModel {
 
     if (eventDTO.isRecurring()) {
       // For recurring events, start and end must be on the same day.
-      if (!eventDTO.getStartDateTime().toLocalDate().equals(eventDTO.getEndDateTime().toLocalDate())) {
-        throw new IllegalArgumentException("Recurring events must have start and end on the same day.");
+      if (!eventDTO.getStartDateTime()
+              .toLocalDate().equals(eventDTO.getEndDateTime().toLocalDate())) {
+        throw new IllegalArgumentException(
+                "Recurring events must have start and end on the same day.");
       }
 
       // Both recurrence count and recurrence end date cannot be provided together.
       if (eventDTO.getRecurrenceCount() > 0 && eventDTO.getRecurrenceEndDate() != null) {
-        throw new IllegalArgumentException("Cannot define both recurrence count and recurrence end date for a recurring event.");
+        throw new IllegalArgumentException(
+                "Cannot define both recurrence count "
+                        +
+                        "and recurrence end date for a recurring event.");
       }
 
       // At least one must be provided (recurrenceCount > 0 OR recurrenceEndDate not null).
       if (eventDTO.getRecurrenceCount() <= 0 && eventDTO.getRecurrenceEndDate() == null) {
-        throw new IllegalArgumentException("Either recurrence count or recurrence end date must be defined for a recurring event.");
+        throw new IllegalArgumentException("Either recurrence count or recurrence"
+                +
+                " end date must be defined for a recurring event.");
       }
 
       // Also, recurrenceDays must not be null.
       if (eventDTO.getRecurrenceDays() == null) {
-        throw new NullPointerException("Recurrence days must be provided for recurring events.");
+        throw new IllegalArgumentException("Recurrence days must be provided for recurring events.");
       }
 
       List<CalendarEvent> occurrences = new ArrayList<>();
       LocalDate startDate = eventDTO.getStartDateTime().toLocalDate();
       LocalTime startTime = eventDTO.getStartDateTime().toLocalTime();
-      LocalTime endTime   = eventDTO.getEndDateTime().toLocalTime();
+      LocalTime endTime = eventDTO.getEndDateTime().toLocalTime();
 
       int count = 0;
       LocalDate currentDate = startDate;
@@ -84,7 +91,7 @@ public class CalendarModel implements ICalendarModel {
 
         if (eventDTO.getRecurrenceDays().contains(currentDate.getDayOfWeek())) {
           LocalDateTime occurrenceStart = LocalDateTime.of(currentDate, startTime);
-          LocalDateTime occurrenceEnd   = LocalDateTime.of(currentDate, endTime);
+          LocalDateTime occurrenceEnd = LocalDateTime.of(currentDate, endTime);
           // Create a temporary DTO for conflict checking.
           CalendarEventDTO occurrenceDTO = CalendarEventDTO.builder()
                   .setEventName(eventDTO.getEventName())
@@ -93,7 +100,8 @@ public class CalendarModel implements ICalendarModel {
                   .setAutoDecline(eventDTO.isAutoDecline())
                   .build();
           if (eventDTO.isAutoDecline() && doesEventConflict(occurrenceDTO)) {
-            throw new IllegalStateException("Conflict detected on " + occurrenceStart + ", event not created");
+            throw new IllegalStateException("Conflict detected on "
+                    + occurrenceStart + ", event not created");
           }
           Boolean isPrivate = (eventDTO != null) ? eventDTO.isPrivate() : null;
           Boolean isPublic = (isPrivate == null) ? true : !isPrivate;
@@ -119,7 +127,8 @@ public class CalendarModel implements ICalendarModel {
     } else {
       // For non-recurring events, ensure no recurrence info is provided.
       if (eventDTO.getRecurrenceCount() > 0 || eventDTO.getRecurrenceEndDate() != null) {
-        throw new IllegalArgumentException("Non-recurring event should not have recurrence count or recurrence end date.");
+        throw new IllegalArgumentException("Non-recurring event " +
+                "should not have recurrence count or recurrence end date.");
       }
       // Single event: check conflict if auto-decline is set.
       if (eventDTO.isAutoDecline() && doesEventConflict(eventDTO)) {
@@ -145,12 +154,16 @@ public class CalendarModel implements ICalendarModel {
   }
 
   @Override
-  public boolean editEvent(String property, String eventName, LocalDateTime fromDateTime, LocalDateTime toDateTime, String newValue) {
+  public boolean editEvent(String property,
+                           String eventName, LocalDateTime fromDateTime,
+                           LocalDateTime toDateTime, String newValue) {
     for (CalendarEvent event : events) {
-      if (event.getEventName().equals(eventName) &&
-              event.getStartDateTime().equals(fromDateTime) &&
+      if (event.getEventName().equals(eventName)
+              &&
+              event.getStartDateTime().equals(fromDateTime)
+              &&
               event.getEndDateTime().equals(toDateTime)) {
-        switch(property.toLowerCase()) {
+        switch (property.toLowerCase()) {
           case "name":
             event.setEventName(newValue);
             return true;
@@ -186,12 +199,15 @@ public class CalendarModel implements ICalendarModel {
   }
 
   @Override
-  public boolean editEvents(String property, String eventName, LocalDateTime fromDateTime, String newValue) {
+  public boolean editEvents(String property,
+                            String eventName, LocalDateTime fromDateTime,
+                            String newValue) {
     boolean found = false;
     for (CalendarEvent event : events) {
-      if (event.getEventName().equals(eventName) &&
+      if (event.getEventName().equals(eventName)
+              &&
               (fromDateTime == null || event.getStartDateTime().equals(fromDateTime))) {
-        switch(property.toLowerCase()) {
+        switch (property.toLowerCase()) {
           case "name":
             event.setEventName(newValue);
             found = true;
@@ -266,8 +282,11 @@ public class CalendarModel implements ICalendarModel {
     }
     StringBuilder sb = new StringBuilder();
     for (CalendarEvent event : events) {
-      if ((event.getStartDateTime().equals(fromDateTime) || event.getStartDateTime().isAfter(fromDateTime)) &&
-              (event.getStartDateTime().equals(toDateTime) || event.getStartDateTime().isBefore(toDateTime))) {
+      if ((event.getStartDateTime().equals(fromDateTime)
+              || event.getStartDateTime().isAfter(fromDateTime))
+              &&
+              (event.getStartDateTime().equals(toDateTime)
+                      || event.getStartDateTime().isBefore(toDateTime))) {
         sb.append("- ").append(event.getEventName()).append(": ")
                 .append(event.getStartDateTime()).append(" to ")
                 .append(event.getEndDateTime());
@@ -285,7 +304,8 @@ public class CalendarModel implements ICalendarModel {
     DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
     DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("hh:mm a");
     try (PrintWriter writer = new PrintWriter(new FileWriter(filename))) {
-      writer.println("Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private");
+      writer.println("Subject,Start Date,Start Time," +
+              "End Date,End Time,All Day Event,Description,Location,Private");
 
       for (CalendarEvent event : events) {
         String subject = event.getEventName();
@@ -295,17 +315,21 @@ public class CalendarModel implements ICalendarModel {
         String endTime = event.getEndDateTime().format(timeFormatter);
 
         // Determine if this is an all-day event.
-        boolean isAllDay = event.getStartDateTime().equals(event.getStartDateTime().toLocalDate().atStartOfDay())
-                && event.getEndDateTime().equals(event.getStartDateTime().toLocalDate().atTime(23, 59, 59));
+        boolean isAllDay = event.getStartDateTime()
+                .equals(event.getStartDateTime().toLocalDate().atStartOfDay())
+                && event.getEndDateTime().equals(event.getStartDateTime()
+                .toLocalDate().atTime(23, 59, 59));
         String allDay = isAllDay ? "True" : "False";
 
         String description = (event.getDescription() == null) ? null : event.getDescription();
         String location = (event.getLocation() == null) ? null : event.getLocation();
 
-        String isPrivate = (Objects.isNull(event.isPublic())) ? null : (event.isPublic() ? "False" : "True");
+        String isPrivate = (Objects.isNull(event.isPublic()))
+                ? null : (event.isPublic() ? "False" : "True");
 
         writer.println(String.format("\"%s\",%s,%s,%s,%s,%s,\"%s\",\"%s\",%s",
-                subject, startDate, startTime, endDate, endTime, allDay, description, location, isPrivate));
+                subject, startDate, startTime,
+                endDate, endTime, allDay, description, location, isPrivate));
       }
 
       writer.flush();
@@ -342,7 +366,8 @@ public class CalendarModel implements ICalendarModel {
   // Helper method to check if there is any event at the given time.
   private Boolean checkStatus(LocalDateTime dateTime) {
     for (CalendarEvent event : events) {
-      if (!dateTime.isBefore(event.getStartDateTime()) && !dateTime.isAfter(event.getEndDateTime())) {
+      if (!dateTime.isBefore(event.getStartDateTime())
+              && !dateTime.isAfter(event.getEndDateTime())) {
         return true;
       }
     }

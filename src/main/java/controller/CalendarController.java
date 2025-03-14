@@ -4,12 +4,26 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.time.*;
-import java.util.*;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
 
 import model.ICalendarEventDTO;
 import model.ICalendarModel;
 import view.IView;
+
+/**
+ * A concrete implementation of the {@link ICalendarModel} interface that manages
+ * all event data within the application.
+ * <p>
+ * This class stores events (both single and recurring), checks for conflicts,
+ * supports editing and printing events, and handles exporting event data to a
+ * CSV file. It serves as the core data model in the Calendar application.
+ * </p>
+ */
 
 class CalendarController implements ICalendarController {
   private final ICalendarModel model;
@@ -23,7 +37,9 @@ class CalendarController implements ICalendarController {
   private String processCommand(String command) {
     Scanner parts = new Scanner(command);
     try {
-      if (!parts.hasNext()) return "Error: Empty command.";
+      if (!parts.hasNext()) {
+        return "Error: Empty command.";
+      }
       String action = parts.next();
 
       switch (action) {
@@ -150,7 +166,7 @@ class CalendarController implements ICalendarController {
           return "Error: Missing new property value.";
         }
         String newValue = readQuotedValue(parts);
-        if(parts.hasNext()) {
+        if (parts.hasNext()) {
           return "Error: Invalid Edit events command";
         }
         model.editEvents(property, eventName, null, newValue);
@@ -332,19 +348,29 @@ class CalendarController implements ICalendarController {
       String option = parts.next();
       switch (option) {
         case "-location":
-          if (locationSet) return "Error: Location specified multiple times.";
-          if (!parts.hasNext()) return "Error: Missing location value.";
+          if (locationSet) {
+            return "Error: Location specified multiple times.";
+          }
+          if (!parts.hasNext()) {
+            return "Error: Missing location value.";
+          }
           location = readQuotedValue(parts);
           locationSet = Boolean.TRUE;
           break;
         case "-description":
-          if (descriptionSet) return "Error: Description specified multiple times.";
-          if (!parts.hasNext()) return "Error: Missing description value.";
+          if (descriptionSet) {
+            return "Error: Description specified multiple times.";
+          }
+          if (!parts.hasNext()) {
+            return "Error: Missing description value.";
+          }
           description = readQuotedValue(parts);
           descriptionSet = Boolean.TRUE;
           break;
         case "-private":
-          if (privateSet) return "Error: Private flag specified multiple times.";
+          if (privateSet) {
+            return "Error: Private flag specified multiple times.";
+          }
           isPrivate = Boolean.TRUE;
           privateSet = Boolean.TRUE;
           break;

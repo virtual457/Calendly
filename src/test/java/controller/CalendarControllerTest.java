@@ -37,6 +37,15 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+/**
+ * A set of parameterized JUnit tests for verifying the behavior of the CalendarController.
+ * <p>
+ * This test class is run with the JUnit {@code Parameterized} runner, allowing
+ * multiple parameter sets to be tested against the same test methods. It helps
+ * cover a variety of input scenarios more comprehensively.
+ * </p>
+ */
+
 @RunWith(Parameterized.class)
 public class CalendarControllerTest {
   private ICalendarController controller;
@@ -58,20 +67,24 @@ public class CalendarControllerTest {
   public void setUp() {
     model = new TestCalendarModel();
     view = new MockView();
-    controller = new CalendarController(model,view);
+    controller = new CalendarController(model, view);
     outputStream = new ByteArrayOutputStream();
     originalOut = System.out;
     System.setOut(new PrintStream(outputStream));
   }
 
-  private void resetModels(){
+  private void resetModels() {
     model = new TestCalendarModel();
     view = new MockView();
-    controller = new CalendarController(model,view);
+    controller = new CalendarController(model, view);
     outputStream = new ByteArrayOutputStream();
     originalOut = System.out;
     System.setOut(new PrintStream(outputStream));
   }
+
+  /**
+   * A set of parameterized JUnit tests for verifying the behavior of the CalendarController.
+   */
 
   @Parameterized.Parameters
   public static Collection<Object[]> modes() {
@@ -91,7 +104,7 @@ public class CalendarControllerTest {
         controller.run("interactive", null);
         assertTrue(view.getDisplayedMessages().contains("Welcome to the Calendar App!"));
       } else if (mode.equalsIgnoreCase("headless")) {
-      resetModels();
+        resetModels();
         File tempFile = File.createTempFile("commands", ".txt");
         try (FileWriter writer = new FileWriter(tempFile)) {
           writer.write(command + "\nexit\n");
@@ -99,9 +112,8 @@ public class CalendarControllerTest {
         controller.run("headless", tempFile.getAbsolutePath());
         assertTrue(view.getDisplayedMessages().contains("Welcome to the Calendar App!"));
       }
-    }
-    catch (IOException e) {
-      fail("IOException thrown: "+e.getMessage());
+    } catch (IOException e) {
+      fail("IOException thrown: " + e.getMessage());
     }
   }
 
@@ -112,9 +124,9 @@ public class CalendarControllerTest {
     List<String> commands = generateCommandCombinations(baseCommand, options);
     for (String command : commands) {
       model.lastAddedEvent = null;
-      testCommandInBothModes(mode,command);
+      testCommandInBothModes(mode, command);
       assertNotNull(model.lastAddedEvent);
-      assertEquals(Integer.valueOf(0),model.lastAddedEvent.getRecurrenceCount());
+      assertEquals(Integer.valueOf(0), model.lastAddedEvent.getRecurrenceCount());
       assertTrue(model.lastAddedEvent.getRecurrenceDays().isEmpty());
       assertNull(model.lastAddedEvent.getRecurrenceEndDate());
       assertFalse(model.lastAddedEvent.isRecurring());
@@ -133,7 +145,7 @@ public class CalendarControllerTest {
       if (command.contains("-private")) {
         assertTrue(model.lastAddedEvent.isPrivate());
       }
-      if(command.contains("--autoDecline")) {
+      if (command.contains("--autoDecline")) {
         assertTrue(model.lastAddedEvent.isAutoDecline());
       }
     }
@@ -145,9 +157,9 @@ public class CalendarControllerTest {
     List<String> commands = generateCommandCombinations(baseCommand, spacedOptions);
     for (String command : commands) {
       model.lastAddedEvent = null;
-      testCommandInBothModes(mode,command);
+      testCommandInBothModes(mode, command);
       assertNotNull(model.lastAddedEvent);
-      assertEquals(Integer.valueOf(0),model.lastAddedEvent.getRecurrenceCount());
+      assertEquals(Integer.valueOf(0), model.lastAddedEvent.getRecurrenceCount());
       assertTrue(model.lastAddedEvent.getRecurrenceDays().isEmpty());
       assertNull(model.lastAddedEvent.getRecurrenceEndDate());
       assertFalse(model.lastAddedEvent.isRecurring());
@@ -166,7 +178,7 @@ public class CalendarControllerTest {
       if (command.contains("-private")) {
         assertTrue(model.lastAddedEvent.isPrivate());
       }
-      if(command.contains("--autoDecline")) {
+      if (command.contains("--autoDecline")) {
         assertTrue(model.lastAddedEvent.isAutoDecline());
       }
     }
@@ -178,9 +190,9 @@ public class CalendarControllerTest {
     List<String> commands = generateCommandCombinations(baseCommand, options);
     for (String command : commands) {
       model.lastAddedEvent = null;
-      testCommandInBothModes(mode,command);
+      testCommandInBothModes(mode, command);
       assertNotNull(model.lastAddedEvent);
-      assertEquals(Integer.valueOf(0),model.lastAddedEvent.getRecurrenceCount());
+      assertEquals(Integer.valueOf(0), model.lastAddedEvent.getRecurrenceCount());
       assertTrue(model.lastAddedEvent.getRecurrenceDays().isEmpty());
       assertNull(model.lastAddedEvent.getRecurrenceEndDate());
       assertFalse(model.lastAddedEvent.isRecurring());
@@ -199,7 +211,7 @@ public class CalendarControllerTest {
       if (command.contains("-private")) {
         assertTrue(model.lastAddedEvent.isPrivate());
       }
-      if(command.contains("--autoDecline")) {
+      if (command.contains("--autoDecline")) {
         assertTrue(model.lastAddedEvent.isAutoDecline());
       }
     }
@@ -211,9 +223,9 @@ public class CalendarControllerTest {
     List<String> commands = generateCommandCombinations(baseCommand, spacedOptions2);
     for (String command : commands) {
       model.lastAddedEvent = null;
-      testCommandInBothModes(mode,command);
+      testCommandInBothModes(mode, command);
       assertNotNull(model.lastAddedEvent);
-      assertEquals(Integer.valueOf(0),model.lastAddedEvent.getRecurrenceCount());
+      assertEquals(Integer.valueOf(0), model.lastAddedEvent.getRecurrenceCount());
       assertTrue(model.lastAddedEvent.getRecurrenceDays().isEmpty());
       assertNull(model.lastAddedEvent.getRecurrenceEndDate());
       assertFalse(model.lastAddedEvent.isRecurring());
@@ -232,7 +244,7 @@ public class CalendarControllerTest {
       if (command.contains("-private")) {
         assertTrue(model.lastAddedEvent.isPrivate());
       }
-      if(command.contains("--autoDecline")) {
+      if (command.contains("--autoDecline")) {
         assertTrue(model.lastAddedEvent.isAutoDecline());
       }
     }
@@ -244,9 +256,9 @@ public class CalendarControllerTest {
     List<String> commands = generateCommandCombinations(baseCommand, spacedOptions3);
     for (String command : commands) {
       model.lastAddedEvent = null;
-      testCommandInBothModes(mode,command);
+      testCommandInBothModes(mode, command);
       assertNotNull(model.lastAddedEvent);
-      assertEquals(Integer.valueOf(0),model.lastAddedEvent.getRecurrenceCount());
+      assertEquals(Integer.valueOf(0), model.lastAddedEvent.getRecurrenceCount());
       assertTrue(model.lastAddedEvent.getRecurrenceDays().isEmpty());
       assertNull(model.lastAddedEvent.getRecurrenceEndDate());
       assertFalse(model.lastAddedEvent.isRecurring());
@@ -266,7 +278,7 @@ public class CalendarControllerTest {
       if (command.contains("-private")) {
         assertTrue(model.lastAddedEvent.isPrivate());
       }
-      if(command.contains("--autoDecline")) {
+      if (command.contains("--autoDecline")) {
         assertTrue(model.lastAddedEvent.isAutoDecline());
       }
     }
@@ -276,7 +288,7 @@ public class CalendarControllerTest {
   //tests forr crrerate reccurring events repeates for times
   @Test
   public void testCreateRecurringEventForNTimes() {
-    testCommandInBothModes(mode,"create event TeamMeeting from 2024-03-20T10:00"
+    testCommandInBothModes(mode, "create event TeamMeeting from 2024-03-20T10:00"
             + " to 2024-03-20T11:00 repeats MRU for 5 times");
     assertNotNull(model.lastAddedEvent);
     assertTrue(model.lastAddedEvent.isRecurring());
@@ -292,7 +304,7 @@ public class CalendarControllerTest {
     List<String> commands = generateCommandCombinations(baseCommand, options);
     for (String command : commands) {
       model.lastAddedEvent = null;
-      testCommandInBothModes(mode,command);
+      testCommandInBothModes(mode, command);
       assertNotNull(model.lastAddedEvent);
       assertEquals(LocalDateTime.parse("2024-03-20T10:00"),
               model.lastAddedEvent.getStartDateTime());
@@ -315,7 +327,7 @@ public class CalendarControllerTest {
       if (command.contains("-private")) {
         assertTrue(model.lastAddedEvent.isPrivate());
       }
-      if(command.contains("--autoDecline")) {
+      if (command.contains("--autoDecline")) {
         assertTrue(model.lastAddedEvent.isAutoDecline());
       }
     }
@@ -328,7 +340,7 @@ public class CalendarControllerTest {
     List<String> commands = generateCommandCombinations(baseCommand, spacedOptions);
     for (String command : commands) {
       model.lastAddedEvent = null;
-      testCommandInBothModes(mode,command);
+      testCommandInBothModes(mode, command);
       assertNotNull(model.lastAddedEvent);
       assertEquals(LocalDateTime.parse("2024-03-20T10:00"),
               model.lastAddedEvent.getStartDateTime());
@@ -351,7 +363,7 @@ public class CalendarControllerTest {
       if (command.contains("-private")) {
         assertTrue(model.lastAddedEvent.isPrivate());
       }
-      if(command.contains("--autoDecline")) {
+      if (command.contains("--autoDecline")) {
         assertTrue(model.lastAddedEvent.isAutoDecline());
       }
     }
@@ -364,7 +376,7 @@ public class CalendarControllerTest {
     List<String> commands = generateCommandCombinations(baseCommand, options);
     for (String command : commands) {
       model.lastAddedEvent = null;
-      testCommandInBothModes(mode,command);
+      testCommandInBothModes(mode, command);
       assertNotNull(model.lastAddedEvent);
       assertEquals(LocalDateTime.parse("2024-03-20T10:00"),
               model.lastAddedEvent.getStartDateTime());
@@ -387,7 +399,7 @@ public class CalendarControllerTest {
       if (command.contains("-private")) {
         assertTrue(model.lastAddedEvent.isPrivate());
       }
-      if(command.contains("--autoDecline")) {
+      if (command.contains("--autoDecline")) {
         assertTrue(model.lastAddedEvent.isAutoDecline());
       }
     }
@@ -396,11 +408,11 @@ public class CalendarControllerTest {
   @Test
   public void testCreateRecurringEventForNTimesVariationsSpacedOptions2() {
     String baseCommand = "create event 'Team Meeting' from 2024-03-20T10:00 to 2"
-            +"024-03-20T11:00 repeats MRU for 5 times";
+            + "024-03-20T11:00 repeats MRU for 5 times";
     List<String> commands = generateCommandCombinations(baseCommand, spacedOptions2);
     for (String command : commands) {
       model.lastAddedEvent = null;
-      testCommandInBothModes(mode,command);
+      testCommandInBothModes(mode, command);
       assertNotNull(model.lastAddedEvent);
       assertEquals(LocalDateTime.parse("2024-03-20T10:00"),
               model.lastAddedEvent.getStartDateTime());
@@ -423,7 +435,7 @@ public class CalendarControllerTest {
       if (command.contains("-private")) {
         assertTrue(model.lastAddedEvent.isPrivate());
       }
-      if(command.contains("--autoDecline")) {
+      if (command.contains("--autoDecline")) {
         assertTrue(model.lastAddedEvent.isAutoDecline());
       }
     }
@@ -432,11 +444,11 @@ public class CalendarControllerTest {
   @Test
   public void testCreateRecurringEventForNTimesVariationsSpacedOptions3() {
     String baseCommand = "create event 'Team Meeting' from 2024-03-20T10:00 "
-            +"to 2024-03-20T11:00 repeats MRU for 5 times";
+            + "to 2024-03-20T11:00 repeats MRU for 5 times";
     List<String> commands = generateCommandCombinations(baseCommand, spacedOptions3);
     for (String command : commands) {
       model.lastAddedEvent = null;
-      testCommandInBothModes(mode,command);
+      testCommandInBothModes(mode, command);
       assertNotNull(model.lastAddedEvent);
       assertEquals(LocalDateTime.parse("2024-03-20T10:00"),
               model.lastAddedEvent.getStartDateTime());
@@ -458,7 +470,7 @@ public class CalendarControllerTest {
       if (command.contains("-private")) {
         assertTrue(model.lastAddedEvent.isPrivate());
       }
-      if(command.contains("--autoDecline")) {
+      if (command.contains("--autoDecline")) {
         assertTrue(model.lastAddedEvent.isAutoDecline());
       }
     }
@@ -469,8 +481,8 @@ public class CalendarControllerTest {
   //tests create a recurring date until a date
   @Test
   public void testCreateRecurringEventUntilDate() {
-    testCommandInBothModes(mode,"create event TeamMeeting from "
-            +"2024-03-20T10:00 to 2024-03-20T11:00 repeats MRU until 2024-04-20T10:00");
+    testCommandInBothModes(mode, "create event TeamMeeting from "
+            + "2024-03-20T10:00 to 2024-03-20T11:00 repeats MRU until 2024-04-20T10:00");
     assertNotNull(model.lastAddedEvent);
     assertTrue(model.lastAddedEvent.isRecurring());
     assertEquals(LocalDateTime.parse("2024-04-20T10:00"),
@@ -484,7 +496,7 @@ public class CalendarControllerTest {
     List<String> commands = generateCommandCombinations(baseCommand, options);
     for (String command : commands) {
       model.lastAddedEvent = null;
-      testCommandInBothModes(mode,command);
+      testCommandInBothModes(mode, command);
       assertNotNull(model.lastAddedEvent);
       assertEquals(LocalDateTime.parse("2024-03-20T10:00"),
               model.lastAddedEvent.getStartDateTime());
@@ -508,7 +520,7 @@ public class CalendarControllerTest {
       if (command.contains("-private")) {
         assertTrue(model.lastAddedEvent.isPrivate());
       }
-      if(command.contains("--autoDecline")) {
+      if (command.contains("--autoDecline")) {
         assertTrue(model.lastAddedEvent.isAutoDecline());
       }
     }
@@ -521,7 +533,7 @@ public class CalendarControllerTest {
     List<String> commands = generateCommandCombinations(baseCommand, spacedOptions);
     for (String command : commands) {
       model.lastAddedEvent = null;
-      testCommandInBothModes(mode,command);
+      testCommandInBothModes(mode, command);
       assertNotNull(model.lastAddedEvent);
       assertEquals(LocalDateTime.parse("2024-03-20T10:00"),
               model.lastAddedEvent.getStartDateTime());
@@ -545,7 +557,7 @@ public class CalendarControllerTest {
       if (command.contains("-private")) {
         assertTrue(model.lastAddedEvent.isPrivate());
       }
-      if(command.contains("--autoDecline")) {
+      if (command.contains("--autoDecline")) {
         assertTrue(model.lastAddedEvent.isAutoDecline());
       }
     }
@@ -558,7 +570,7 @@ public class CalendarControllerTest {
     List<String> commands = generateCommandCombinations(baseCommand, options);
     for (String command : commands) {
       model.lastAddedEvent = null;
-      testCommandInBothModes(mode,command);
+      testCommandInBothModes(mode, command);
       assertNotNull(model.lastAddedEvent);
       assertEquals(LocalDateTime.parse("2024-03-20T10:00"),
               model.lastAddedEvent.getStartDateTime());
@@ -582,7 +594,7 @@ public class CalendarControllerTest {
       if (command.contains("-private")) {
         assertTrue(model.lastAddedEvent.isPrivate());
       }
-      if(command.contains("--autoDecline")) {
+      if (command.contains("--autoDecline")) {
         assertTrue(model.lastAddedEvent.isAutoDecline());
       }
     }
@@ -595,7 +607,7 @@ public class CalendarControllerTest {
     List<String> commands = generateCommandCombinations(baseCommand, spacedOptions2);
     for (String command : commands) {
       model.lastAddedEvent = null;
-      testCommandInBothModes(mode,command);
+      testCommandInBothModes(mode, command);
       assertNotNull(model.lastAddedEvent);
       assertEquals(LocalDateTime.parse("2024-03-20T10:00"),
               model.lastAddedEvent.getStartDateTime());
@@ -619,7 +631,7 @@ public class CalendarControllerTest {
       if (command.contains("-private")) {
         assertTrue(model.lastAddedEvent.isPrivate());
       }
-      if(command.contains("--autoDecline")) {
+      if (command.contains("--autoDecline")) {
         assertTrue(model.lastAddedEvent.isAutoDecline());
       }
     }
@@ -632,7 +644,7 @@ public class CalendarControllerTest {
     List<String> commands = generateCommandCombinations(baseCommand, spacedOptions3);
     for (String command : commands) {
       model.lastAddedEvent = null;
-      testCommandInBothModes(mode,command);
+      testCommandInBothModes(mode, command);
       assertNotNull(model.lastAddedEvent);
       assertEquals(LocalDateTime.parse("2024-03-20T10:00"),
               model.lastAddedEvent.getStartDateTime());
@@ -642,7 +654,7 @@ public class CalendarControllerTest {
       assertTrue(model.lastAddedEvent.isRecurring());
       assertEquals(List.of(DayOfWeek.MONDAY, DayOfWeek.THURSDAY, DayOfWeek.SUNDAY),
               model.lastAddedEvent.getRecurrenceDays());
-      assertEquals(Integer.valueOf(0),model.lastAddedEvent.getRecurrenceCount());
+      assertEquals(Integer.valueOf(0), model.lastAddedEvent.getRecurrenceCount());
       assertEquals(LocalDateTime.parse("2024-04-20T10:00"),
               model.lastAddedEvent.getRecurrenceEndDate());
       assertTrue(model.lastAddedEvent.isRecurring());
@@ -656,19 +668,18 @@ public class CalendarControllerTest {
       if (command.contains("-private")) {
         assertTrue(model.lastAddedEvent.isPrivate());
       }
-      if(command.contains("--autoDecline")) {
+      if (command.contains("--autoDecline")) {
         assertTrue(model.lastAddedEvent.isAutoDecline());
       }
     }
   }
 
 
-
   //Tests for creating all day event
 
   @Test
   public void testCreateAllDayEvent() {
-    testCommandInBothModes(mode,"create event TeamMeeting on 2024-03-20");
+    testCommandInBothModes(mode, "create event TeamMeeting on 2024-03-20");
     assertNotNull(model.lastAddedEvent);
     assertEquals(LocalDateTime.parse("2024-03-20T00:00"),
             model.lastAddedEvent.getStartDateTime());
@@ -682,7 +693,7 @@ public class CalendarControllerTest {
     List<String> commands = generateCommandCombinations(baseCommand, options);
     for (String command : commands) {
       model.lastAddedEvent = null;
-      testCommandInBothModes(mode,command);
+      testCommandInBothModes(mode, command);
       assertNotNull(model.lastAddedEvent);
       assertEquals(LocalDateTime.parse("2024-03-20T00:00"),
               model.lastAddedEvent.getStartDateTime());
@@ -690,7 +701,7 @@ public class CalendarControllerTest {
               model.lastAddedEvent.getEndDateTime());
       assertEquals("TeamMeeting", model.lastAddedEvent.getEventName());
       assertFalse(model.lastAddedEvent.isRecurring());
-      assertTrue( model.lastAddedEvent.getRecurrenceDays().isEmpty());
+      assertTrue(model.lastAddedEvent.getRecurrenceDays().isEmpty());
       assertEquals(Integer.valueOf(0), model.lastAddedEvent.getRecurrenceCount());
       assertNull(model.lastAddedEvent.getRecurrenceEndDate());
 
@@ -703,7 +714,7 @@ public class CalendarControllerTest {
       if (command.contains("-private")) {
         assertTrue(model.lastAddedEvent.isPrivate());
       }
-      if(command.contains("--autoDecline")) {
+      if (command.contains("--autoDecline")) {
         assertTrue(model.lastAddedEvent.isAutoDecline());
       }
     }
@@ -715,7 +726,7 @@ public class CalendarControllerTest {
     List<String> commands = generateCommandCombinations(baseCommand, spacedOptions);
     for (String command : commands) {
       model.lastAddedEvent = null;
-      testCommandInBothModes(mode,command);
+      testCommandInBothModes(mode, command);
       assertNotNull(model.lastAddedEvent);
       assertEquals(LocalDateTime.parse("2024-03-20T00:00"),
               model.lastAddedEvent.getStartDateTime());
@@ -723,7 +734,7 @@ public class CalendarControllerTest {
               model.lastAddedEvent.getEndDateTime());
       assertEquals("Team Meeting", model.lastAddedEvent.getEventName());
       assertFalse(model.lastAddedEvent.isRecurring());
-      assertTrue( model.lastAddedEvent.getRecurrenceDays().isEmpty());
+      assertTrue(model.lastAddedEvent.getRecurrenceDays().isEmpty());
       assertEquals(Integer.valueOf(0), model.lastAddedEvent.getRecurrenceCount());
       assertNull(model.lastAddedEvent.getRecurrenceEndDate());
 
@@ -736,7 +747,7 @@ public class CalendarControllerTest {
       if (command.contains("-private")) {
         assertTrue(model.lastAddedEvent.isPrivate());
       }
-      if(command.contains("--autoDecline")) {
+      if (command.contains("--autoDecline")) {
         assertTrue(model.lastAddedEvent.isAutoDecline());
       }
     }
@@ -748,7 +759,7 @@ public class CalendarControllerTest {
     List<String> commands = generateCommandCombinations(baseCommand, options);
     for (String command : commands) {
       model.lastAddedEvent = null;
-      testCommandInBothModes(mode,command);
+      testCommandInBothModes(mode, command);
       assertNotNull(model.lastAddedEvent);
       assertEquals(LocalDateTime.parse("2024-03-20T00:00"),
               model.lastAddedEvent.getStartDateTime());
@@ -756,7 +767,7 @@ public class CalendarControllerTest {
               model.lastAddedEvent.getEndDateTime());
       assertEquals("Team Meeting", model.lastAddedEvent.getEventName());
       assertFalse(model.lastAddedEvent.isRecurring());
-      assertTrue( model.lastAddedEvent.getRecurrenceDays().isEmpty());
+      assertTrue(model.lastAddedEvent.getRecurrenceDays().isEmpty());
       assertEquals(Integer.valueOf(0), model.lastAddedEvent.getRecurrenceCount());
       assertNull(model.lastAddedEvent.getRecurrenceEndDate());
 
@@ -769,7 +780,7 @@ public class CalendarControllerTest {
       if (command.contains("-private")) {
         assertTrue(model.lastAddedEvent.isPrivate());
       }
-      if(command.contains("--autoDecline")) {
+      if (command.contains("--autoDecline")) {
         assertTrue(model.lastAddedEvent.isAutoDecline());
       }
     }
@@ -781,7 +792,7 @@ public class CalendarControllerTest {
     List<String> commands = generateCommandCombinations(baseCommand, spacedOptions2);
     for (String command : commands) {
       model.lastAddedEvent = null;
-      testCommandInBothModes(mode,command);
+      testCommandInBothModes(mode, command);
       assertNotNull(model.lastAddedEvent);
       assertEquals(LocalDateTime.parse("2024-03-20T00:00"),
               model.lastAddedEvent.getStartDateTime());
@@ -789,7 +800,7 @@ public class CalendarControllerTest {
               model.lastAddedEvent.getEndDateTime());
       assertEquals("Team Meeting", model.lastAddedEvent.getEventName());
       assertFalse(model.lastAddedEvent.isRecurring());
-      assertTrue( model.lastAddedEvent.getRecurrenceDays().isEmpty());
+      assertTrue(model.lastAddedEvent.getRecurrenceDays().isEmpty());
       assertEquals(Integer.valueOf(0), model.lastAddedEvent.getRecurrenceCount());
       assertNull(model.lastAddedEvent.getRecurrenceEndDate());
 
@@ -802,7 +813,7 @@ public class CalendarControllerTest {
       if (command.contains("-private")) {
         assertTrue(model.lastAddedEvent.isPrivate());
       }
-      if(command.contains("--autoDecline")) {
+      if (command.contains("--autoDecline")) {
         assertTrue(model.lastAddedEvent.isAutoDecline());
       }
     }
@@ -814,7 +825,7 @@ public class CalendarControllerTest {
     List<String> commands = generateCommandCombinations(baseCommand, spacedOptions3);
     for (String command : commands) {
       model.lastAddedEvent = null;
-      testCommandInBothModes(mode,command);
+      testCommandInBothModes(mode, command);
       assertNotNull(model.lastAddedEvent);
       assertNotNull(model.lastAddedEvent);
       assertEquals(LocalDateTime.parse("2024-03-20T00:00"),
@@ -823,7 +834,7 @@ public class CalendarControllerTest {
               model.lastAddedEvent.getEndDateTime());
       assertEquals("Team Meeting", model.lastAddedEvent.getEventName());
       assertFalse(model.lastAddedEvent.isRecurring());
-      assertTrue( model.lastAddedEvent.getRecurrenceDays().isEmpty());
+      assertTrue(model.lastAddedEvent.getRecurrenceDays().isEmpty());
       assertEquals(Integer.valueOf(0), model.lastAddedEvent.getRecurrenceCount());
       assertNull(model.lastAddedEvent.getRecurrenceEndDate());
 
@@ -836,7 +847,7 @@ public class CalendarControllerTest {
       if (command.contains("-private")) {
         assertTrue(model.lastAddedEvent.isPrivate());
       }
-      if(command.contains("--autoDecline")) {
+      if (command.contains("--autoDecline")) {
         assertTrue(model.lastAddedEvent.isAutoDecline());
       }
     }
@@ -847,7 +858,7 @@ public class CalendarControllerTest {
 
   @Test
   public void testCreateRecurringAllDayEventForNTimes() {
-    testCommandInBothModes(mode,"create event TeamMeeting on "
+    testCommandInBothModes(mode, "create event TeamMeeting on "
             + "2024-03-20 repeats MRU for 5 times");
     assertNotNull(model.lastAddedEvent);
     assertTrue(model.lastAddedEvent.isRecurring());
@@ -860,7 +871,7 @@ public class CalendarControllerTest {
     List<String> commands = generateCommandCombinations(baseCommand, options);
     for (String command : commands) {
       model.lastAddedEvent = null;
-      testCommandInBothModes(mode,command);
+      testCommandInBothModes(mode, command);
       assertNotNull(model.lastAddedEvent);
       assertEquals(LocalDateTime.parse("2024-03-20T00:00"),
               model.lastAddedEvent.getStartDateTime());
@@ -882,7 +893,7 @@ public class CalendarControllerTest {
       if (command.contains("-private")) {
         assertTrue(model.lastAddedEvent.isPrivate());
       }
-      if(command.contains("--autoDecline")) {
+      if (command.contains("--autoDecline")) {
         assertTrue(model.lastAddedEvent.isAutoDecline());
       }
     }
@@ -894,7 +905,7 @@ public class CalendarControllerTest {
     List<String> commands = generateCommandCombinations(baseCommand, spacedOptions);
     for (String command : commands) {
       model.lastAddedEvent = null;
-      testCommandInBothModes(mode,command);
+      testCommandInBothModes(mode, command);
       assertNotNull(model.lastAddedEvent);
       assertEquals(LocalDateTime.parse("2024-03-20T00:00"),
               model.lastAddedEvent.getStartDateTime());
@@ -916,19 +927,19 @@ public class CalendarControllerTest {
       if (command.contains("-private")) {
         assertTrue(model.lastAddedEvent.isPrivate());
       }
-      if(command.contains("--autoDecline")) {
+      if (command.contains("--autoDecline")) {
         assertTrue(model.lastAddedEvent.isAutoDecline());
       }
     }
   }
 
   @Test
-  public void testCreateRecurringAllDayEventForNTimesVariationsWithSpacedOptions1(){
+  public void testCreateRecurringAllDayEventForNTimesVariationsWithSpacedOptions1() {
     String baseCommand = "create event 'Team Meeting' on 2024-03-20 repeats MRU for 5 times";
     List<String> commands = generateCommandCombinations(baseCommand, options);
     for (String command : commands) {
       model.lastAddedEvent = null;
-      testCommandInBothModes(mode,command);
+      testCommandInBothModes(mode, command);
       assertNotNull(model.lastAddedEvent);
       assertEquals(LocalDateTime.parse("2024-03-20T00:00"),
               model.lastAddedEvent.getStartDateTime());
@@ -950,7 +961,7 @@ public class CalendarControllerTest {
       if (command.contains("-private")) {
         assertTrue(model.lastAddedEvent.isPrivate());
       }
-      if(command.contains("--autoDecline")) {
+      if (command.contains("--autoDecline")) {
         assertTrue(model.lastAddedEvent.isAutoDecline());
       }
     }
@@ -962,7 +973,7 @@ public class CalendarControllerTest {
     List<String> commands = generateCommandCombinations(baseCommand, spacedOptions2);
     for (String command : commands) {
       model.lastAddedEvent = null;
-      testCommandInBothModes(mode,command);
+      testCommandInBothModes(mode, command);
       assertNotNull(model.lastAddedEvent);
       assertEquals(LocalDateTime.parse("2024-03-20T00:00"),
               model.lastAddedEvent.getStartDateTime());
@@ -984,7 +995,7 @@ public class CalendarControllerTest {
       if (command.contains("-private")) {
         assertTrue(model.lastAddedEvent.isPrivate());
       }
-      if(command.contains("--autoDecline")) {
+      if (command.contains("--autoDecline")) {
         assertTrue(model.lastAddedEvent.isAutoDecline());
       }
     }
@@ -996,7 +1007,7 @@ public class CalendarControllerTest {
     List<String> commands = generateCommandCombinations(baseCommand, spacedOptions3);
     for (String command : commands) {
       model.lastAddedEvent = null;
-      testCommandInBothModes(mode,command);
+      testCommandInBothModes(mode, command);
       assertNotNull(model.lastAddedEvent);
       assertEquals(LocalDateTime.parse("2024-03-20T00:00"),
               model.lastAddedEvent.getStartDateTime());
@@ -1018,7 +1029,7 @@ public class CalendarControllerTest {
       if (command.contains("-private")) {
         assertTrue(model.lastAddedEvent.isPrivate());
       }
-      if(command.contains("--autoDecline")) {
+      if (command.contains("--autoDecline")) {
         assertTrue(model.lastAddedEvent.isAutoDecline());
       }
     }
@@ -1026,7 +1037,7 @@ public class CalendarControllerTest {
 
   @Test
   public void testCreateRecurringAllDayEventUntilDate() {
-    testCommandInBothModes(mode,"create event TeamMeeting on 2024-03-20 "
+    testCommandInBothModes(mode, "create event TeamMeeting on 2024-03-20 "
             + "repeats MRU until 2024-04-20");
     assertNotNull(model.lastAddedEvent);
     assertTrue(model.lastAddedEvent.isRecurring());
@@ -1035,12 +1046,12 @@ public class CalendarControllerTest {
   }
 
   @Test
-  public void testCreateRecurringAllDayEventForEventUntilDateVariations(){
+  public void testCreateRecurringAllDayEventForEventUntilDateVariations() {
     String baseCommand = "create event TeamMeeting on 2024-03-20 repeats MRU until 2024-04-20";
     List<String> commands = generateCommandCombinations(baseCommand, options);
     for (String command : commands) {
       model.lastAddedEvent = null;
-      testCommandInBothModes(mode,command);
+      testCommandInBothModes(mode, command);
       assertNotNull(model.lastAddedEvent);
       assertEquals(LocalDateTime.parse("2024-03-20T00:00"),
               model.lastAddedEvent.getStartDateTime());
@@ -1063,7 +1074,7 @@ public class CalendarControllerTest {
       if (command.contains("-private")) {
         assertTrue(model.lastAddedEvent.isPrivate());
       }
-      if(command.contains("--autoDecline")) {
+      if (command.contains("--autoDecline")) {
         assertTrue(model.lastAddedEvent.isAutoDecline());
       }
     }
@@ -1075,7 +1086,7 @@ public class CalendarControllerTest {
     List<String> commands = generateCommandCombinations(baseCommand, spacedOptions);
     for (String command : commands) {
       model.lastAddedEvent = null;
-      testCommandInBothModes(mode,command);
+      testCommandInBothModes(mode, command);
       assertNotNull(model.lastAddedEvent);
       assertEquals(LocalDateTime.parse("2024-03-20T00:00"),
               model.lastAddedEvent.getStartDateTime());
@@ -1098,19 +1109,19 @@ public class CalendarControllerTest {
       if (command.contains("-private")) {
         assertTrue(model.lastAddedEvent.isPrivate());
       }
-      if(command.contains("--autoDecline")) {
+      if (command.contains("--autoDecline")) {
         assertTrue(model.lastAddedEvent.isAutoDecline());
       }
     }
   }
 
   @Test
-  public void testCreateRecurringAllDayEventForEventUntilDateVariationsWithSpacedOptions1(){
+  public void testCreateRecurringAllDayEventForEventUntilDateVariationsWithSpacedOptions1() {
     String baseCommand = "create event 'Team Meeting' on 2024-03-20 repeats MRU until 2024-04-20";
     List<String> commands = generateCommandCombinations(baseCommand, options);
     for (String command : commands) {
       model.lastAddedEvent = null;
-      testCommandInBothModes(mode,command);
+      testCommandInBothModes(mode, command);
       assertNotNull(model.lastAddedEvent);
       assertEquals(LocalDateTime.parse("2024-03-20T00:00"),
               model.lastAddedEvent.getStartDateTime());
@@ -1133,7 +1144,7 @@ public class CalendarControllerTest {
       if (command.contains("-private")) {
         assertTrue(model.lastAddedEvent.isPrivate());
       }
-      if(command.contains("--autoDecline")) {
+      if (command.contains("--autoDecline")) {
         assertTrue(model.lastAddedEvent.isAutoDecline());
       }
     }
@@ -1145,7 +1156,7 @@ public class CalendarControllerTest {
     List<String> commands = generateCommandCombinations(baseCommand, spacedOptions2);
     for (String command : commands) {
       model.lastAddedEvent = null;
-      testCommandInBothModes(mode,command);
+      testCommandInBothModes(mode, command);
       assertNotNull(model.lastAddedEvent);
       assertEquals(LocalDateTime.parse("2024-03-20T00:00"),
               model.lastAddedEvent.getStartDateTime());
@@ -1168,7 +1179,7 @@ public class CalendarControllerTest {
       if (command.contains("-private")) {
         assertTrue(model.lastAddedEvent.isPrivate());
       }
-      if(command.contains("--autoDecline")) {
+      if (command.contains("--autoDecline")) {
         assertTrue(model.lastAddedEvent.isAutoDecline());
       }
     }
@@ -1180,7 +1191,7 @@ public class CalendarControllerTest {
     List<String> commands = generateCommandCombinations(baseCommand, spacedOptions3);
     for (String command : commands) {
       model.lastAddedEvent = null;
-      testCommandInBothModes(mode,command);
+      testCommandInBothModes(mode, command);
       assertNotNull(model.lastAddedEvent);
       assertEquals(LocalDateTime.parse("2024-03-20T00:00"),
               model.lastAddedEvent.getStartDateTime());
@@ -1203,7 +1214,7 @@ public class CalendarControllerTest {
       if (command.contains("-private")) {
         assertTrue(model.lastAddedEvent.isPrivate());
       }
-      if(command.contains("--autoDecline")) {
+      if (command.contains("--autoDecline")) {
         assertTrue(model.lastAddedEvent.isAutoDecline());
       }
     }
@@ -1230,7 +1241,7 @@ public class CalendarControllerTest {
   //Edit Command scenarios
   @Test
   public void testEditEventCallsModelWithCorrectParams() {
-    testCommandInBothModes(mode,"edit event name TeamMeeting from"
+    testCommandInBothModes(mode, "edit event name TeamMeeting from"
             + " 2024-03-20T10:00 to 2024-03-20T10:30 with UpdatedMeeting");
     assertEquals("name", model.lastEditEventProperty);
     assertEquals("TeamMeeting", model.lastEditEventName);
@@ -1245,7 +1256,7 @@ public class CalendarControllerTest {
             + " with UpdatedMeeting";
     testCommandInBothModes(mode, command);
     assertEquals("name", model.lastEditEventProperty);
-    assertEquals("UpdatedMeeting",  model.lastEditEventNewValue);
+    assertEquals("UpdatedMeeting", model.lastEditEventNewValue);
     assertEquals("TeamMeeting", model.lastEditEventName);
     assertEquals(LocalDateTime.parse("2024-03-20T10:00"), model.lastEditEventStartDateTime);
     assertEquals(LocalDateTime.parse("2024-03-20T10:30"), model.lastEditEventEndDateTime);
@@ -1265,7 +1276,7 @@ public class CalendarControllerTest {
   }
 
   @Test
-  public void testEditEventLocation(){
+  public void testEditEventLocation() {
     String command = "edit event location TeamMeeting from 2024-03-20T10:00 to"
             + " 2024-03-20T10:30 with 'New Location'";
     testCommandInBothModes(mode, command);
@@ -1315,7 +1326,7 @@ public class CalendarControllerTest {
   //Edit Events Scenarrio
   @Test
   public void testEditEventsCallsModelWithCorrectParams() {
-    testCommandInBothModes(mode,"edit events name TeamMeeting "
+    testCommandInBothModes(mode, "edit events name TeamMeeting "
             + "from 2024-03-20T10:00 with UpdatedMeeting");
     assertEquals("name", model.lastEditEventsProperty);
     assertEquals("TeamMeeting", model.lastEditEventsName);
@@ -1407,32 +1418,32 @@ public class CalendarControllerTest {
   // End of edit events function
   @Test
   public void testPrintEventsOnDateCallsModelWithCorrectParams() {
-    testCommandInBothModes(mode,"print events on 2024-03-20");
+    testCommandInBothModes(mode, "print events on 2024-03-20");
     assertEquals(LocalDate.parse("2024-03-20"), model.lastPrintDate);
   }
 
   @Test
   public void testExportCalendarCallsModelWithCorrectParams() {
-    testCommandInBothModes(mode,"export cal events.csv");
+    testCommandInBothModes(mode, "export cal events.csv");
     assertEquals("events.csv", model.lastExportFilename);
   }
 
   @Test
   public void testShowStatusCallsModelWithCorrectParams() {
-    testCommandInBothModes(mode,"show status on 2024-03-20T10:30");
+    testCommandInBothModes(mode, "show status on 2024-03-20T10:30");
     assertEquals(LocalDateTime.parse("2024-03-20T10:30"), model.lastShowStatusDateTime);
   }
 
   @Test
   public void testPrintEventsInSpecificRangeCallsModelWithCorrectParams() {
-    testCommandInBothModes(mode,"print events from 2024-03-20T10:00 to 2024-03-20T12:00");
+    testCommandInBothModes(mode, "print events from 2024-03-20T10:00 to 2024-03-20T12:00");
     assertEquals(LocalDateTime.parse("2024-03-20T10:00"), model.lastPrintStartDateTime);
     assertEquals(LocalDateTime.parse("2024-03-20T12:00"), model.lastPrintEndDateTime);
   }
 
   @Test
   public void testInvalidCommandDoesNotCallModel() {
-    testCommandInBothModes(mode,"invalid command format");
+    testCommandInBothModes(mode, "invalid command format");
     assertNull(model.lastAddedEvent);
     assertNull(model.lastEditEventName);
     assertNull(model.lastEditEventsName);
@@ -1561,7 +1572,7 @@ public class CalendarControllerTest {
 
     for (Map.Entry<String, String> entry : errorCases.entrySet()) {
       String modifiedCommand = baseCommand.replaceFirst("\\b" +
-              entry.getKey() + "\\b", "")
+                      entry.getKey() + "\\b", "")
               .replaceAll("\\s+", " ").trim();
       testCommandInBothModes(mode, modifiedCommand);
       assertEquals(entry.getValue(), view.getLastDisplayedMessage());
@@ -1614,7 +1625,7 @@ public class CalendarControllerTest {
 
     for (Map.Entry<String, String> entry : errorCases.entrySet()) {
       String modifiedCommand = baseCommand.replaceFirst("\\b" +
-              entry.getKey() + "\\b", "").
+                      entry.getKey() + "\\b", "").
               replaceAll("\\s+", " ").trim();
       testCommandInBothModes(mode, modifiedCommand);
       assertEquals(entry.getValue(), view.getLastDisplayedMessage());
@@ -1638,7 +1649,7 @@ public class CalendarControllerTest {
 
     for (Map.Entry<String, String> entry : errorCases.entrySet()) {
       String modifiedCommand = baseCommand.replaceFirst("\\b"
-              + entry.getKey() + "\\b", "")
+                      + entry.getKey() + "\\b", "")
               .replaceAll("\\s+", " ").trim();
       testCommandInBothModes(mode, modifiedCommand);
       assertEquals(entry.getValue(), view.getLastDisplayedMessage());
@@ -1658,13 +1669,12 @@ public class CalendarControllerTest {
 
     for (Map.Entry<String, String> entry : errorCases.entrySet()) {
       String modifiedCommand = baseCommand.replaceFirst("\\b"
-              + entry.getKey() + "\\b", "")
+                      + entry.getKey() + "\\b", "")
               .replaceAll("\\s+", " ").trim();
       testCommandInBothModes(mode, modifiedCommand);
       assertEquals(entry.getValue(), view.getLastDisplayedMessage());
     }
   }
-
 
 
   @Test
@@ -1699,7 +1709,7 @@ public class CalendarControllerTest {
     errorCases.put("2024-03-20T12:00", "Error: Missing end date and time.");
 
     for (Map.Entry<String, String> entry : errorCases.entrySet()) {
-      String modifiedCommand =baseCommand.replaceFirst("\\b" + entry.getKey()
+      String modifiedCommand = baseCommand.replaceFirst("\\b" + entry.getKey()
               + "\\b", "").replaceAll("\\s+", " ").trim();
       testCommandInBothModes(mode, modifiedCommand);
       assertEquals(entry.getValue(), view.getLastDisplayedMessage());
@@ -1742,8 +1752,8 @@ public class CalendarControllerTest {
   }
 
   @Test
-  public void testTest(){
-    testCommandInBothModes(mode,"create event TeamMeeting from 2024-03-20T10:00 "
+  public void testTest() {
+    testCommandInBothModes(mode, "create event TeamMeeting from 2024-03-20T10:00 "
             + "to 2024-03-20T10:30 repeats until 2024-04-20T10:30");
   }
 
@@ -1975,6 +1985,7 @@ public class CalendarControllerTest {
       public int read(char[] cbuf, int off, int len) throws IOException {
         throw new IOException("Simulated read error");
       }
+
       @Override
       public void close() throws IOException {
         throw new IOException("Simulated close error");
@@ -1993,6 +2004,7 @@ public class CalendarControllerTest {
       public int read(char[] cbuf, int off, int len) throws IOException {
         return -1; // Simulate successful read
       }
+
       @Override
       public void close() throws IOException {
         throw new IOException("Simulated close error");
@@ -2149,7 +2161,7 @@ public class CalendarControllerTest {
   @Test
   public void testReadQuotedValue_MissingClosingQuote() {
     testCommandInBothModes("interactive", "create event "
-            +"\"Hello World from 2024-03-20T10:00 to 2024-03-20T11:00");
+            + "\"Hello World from 2024-03-20T10:00 to 2024-03-20T11:00");
     assertTrue(view.getLastDisplayedMessage().contains("Error"));
   }
 

@@ -1,8 +1,10 @@
 package model;
 
 import static org.junit.Assert.*;
+
 import org.junit.Before;
 import org.junit.Test;
+
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.util.Arrays;

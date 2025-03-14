@@ -1,9 +1,10 @@
 package model;
+
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.util.List;
 
-class CalendarEventDTO implements ICalendarEventDTO{
+class CalendarEventDTO implements ICalendarEventDTO {
   private String eventName;
   private LocalDateTime startDateTime;
   private LocalDateTime endDateTime;
@@ -34,7 +35,7 @@ class CalendarEventDTO implements ICalendarEventDTO{
     this.isPrivate = builder.isPrivate;
   }
 
-  static class CalendarEventDTOBuilder implements ICalendarEventDTOBuilder<CalendarEventDTO>{
+  static class CalendarEventDTOBuilder implements ICalendarEventDTOBuilder<CalendarEventDTO> {
     private String eventName;
     private LocalDateTime startDateTime;
     private LocalDateTime endDateTime;
@@ -102,6 +103,7 @@ class CalendarEventDTO implements ICalendarEventDTO{
       this.isPrivate = isPrivate;
       return this;
     }
+
     @Override
     public CalendarEventDTO build() {
       return new CalendarEventDTO(this);
@@ -143,9 +145,11 @@ class CalendarEventDTO implements ICalendarEventDTO{
   public String getEventDescription() {
     return eventDescription;
   }
+
   public String getEventLocation() {
     return eventLocation;
   }
+
   public Boolean isPrivate() {
     return isPrivate;
   }
