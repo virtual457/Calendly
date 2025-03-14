@@ -1928,6 +1928,49 @@ public class CalendarControllerTest {
     assertEquals("class controller.CalendarController", controller.getClass().toString());
   }
 
+  //checks for quoted text
+  @Test
+  public void testReadQuotedValue_SingleQuotedString() {
+    testCommandInBothModes(mode, "create event 'Hello World' from 2024-03-20T10:00 to 2024-03-20T11:00");
+    assertEquals("Hello World", model.lastAddedEvent.getEventName());
+  }
+
+  @Test
+  public void testReadQuotedValue_DoubleQuotedString() {
+    testCommandInBothModes(mode, "create event \"Hello World\" from 2024-03-20T10:00 to 2024-03-20T11:00");
+    assertEquals("Hello World", model.lastAddedEvent.getEventName());
+  }
+
+  @Test
+  public void testReadQuotedValue_UnquotedString() {
+    testCommandInBothModes(mode, "create event HelloWorld from 2024-03-20T10:00 to 2024-03-20T11:00");
+    assertEquals("HelloWorld", model.lastAddedEvent.getEventName());
+  }
+
+  @Test
+  public void testReadQuotedValue_EmptyString() {
+    testCommandInBothModes(mode, "create event '' from 2024-03-20T10:00 to 2024-03-20T11:00");
+    assertTrue(view.getLastDisplayedMessage().contains("Error"));
+  }
+
+  @Test
+  public void testReadQuotedValue_MissingClosingQuote() {
+    testCommandInBothModes("interactive", "create event \"Hello World from 2024-03-20T10:00 to 2024-03-20T11:00");
+    assertTrue(view.getLastDisplayedMessage().contains("Error"));
+  }
+
+  @Test
+  public void testReadQuotedValue_SpaceWithinQuotes() {
+    testCommandInBothModes("interactive", "create event \"Hello   World\" from 2024-03-20T10:00 to 2024-03-20T11:00");
+    assertEquals("Hello World", model.lastAddedEvent.getEventName());
+  }
+
+  @Test
+  public void testReadQuotedValue_NoInput_ShouldReturnEmptyString() {
+    testCommandInBothModes("interactive", "create event from 2024-03-20T10:00 to 2024-03-20T11:00");
+    assertTrue(view.getLastDisplayedMessage().contains("Error"));
+  }
+
   private class TestCalendarModel implements ICalendarModel {
     ICalendarEventDTO lastAddedEvent;
     // Fields for edit event

@@ -11,6 +11,7 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 
 public class CalendarModel implements ICalendarModel {
   private List<CalendarEvent> events;
@@ -94,13 +95,16 @@ public class CalendarModel implements ICalendarModel {
           if (eventDTO.isAutoDecline() && doesEventConflict(occurrenceDTO)) {
             throw new IllegalStateException("Conflict detected on " + occurrenceStart + ", event not created");
           }
+          Boolean isPrivate = (eventDTO != null) ? eventDTO.isPrivate() : null;
+          Boolean isPublic = (isPrivate == null) ? true : !isPrivate;
+
           occurrences.add(new CalendarEvent(
                   eventDTO.getEventName(),
                   occurrenceStart,
                   occurrenceEnd,
                   eventDTO.getEventDescription(),
                   eventDTO.getEventLocation(),
-                  eventDTO.isPrivate() != null && !eventDTO.isPrivate(), // isPublic is the opposite of isPrivate
+                  Boolean.TRUE.equals(isPrivate), // isPublic is the opposite of isPrivate
                   true,                  // isRecurring
                   eventDTO.getRecurrenceDays(),
                   eventDTO.isAutoDecline()
@@ -121,13 +125,16 @@ public class CalendarModel implements ICalendarModel {
       if (eventDTO.isAutoDecline() && doesEventConflict(eventDTO)) {
         throw new IllegalStateException("Conflict detected, event not created");
       }
+      Boolean isPrivate = (eventDTO != null) ? eventDTO.isPrivate() : null;
+      Boolean isPublic = (isPrivate == null) ? true : !isPrivate;
+
       CalendarEvent event = new CalendarEvent(
               eventDTO.getEventName(),
               eventDTO.getStartDateTime(),
               eventDTO.getEndDateTime(),
               eventDTO.getEventDescription(),
               eventDTO.getEventLocation(),
-              eventDTO.isPrivate() != null && !eventDTO.isPrivate(),  // isPublic is the opposite of isPrivate
+              Boolean.TRUE.equals(isPublic),  // isPublic is the opposite of isPrivate
               false,                 // Not recurring
               null,
               eventDTO.isAutoDecline()
@@ -292,11 +299,10 @@ public class CalendarModel implements ICalendarModel {
                 && event.getEndDateTime().equals(event.getStartDateTime().toLocalDate().atTime(23, 59, 59));
         String allDay = isAllDay ? "True" : "False";
 
-        String description = (event.getDescription() == null) ? "" : event.getDescription();
-        String location = (event.getLocation() == null) ? "" : event.getLocation();
+        String description = (event.getDescription() == null) ? null : event.getDescription();
+        String location = (event.getLocation() == null) ? null : event.getLocation();
 
-        // isPrivate is determined by the event's public flag.
-        String isPrivate = event.isPublic() ? "False" : "True";
+        String isPrivate = (Objects.isNull(event.isPublic())) ? null : (event.isPublic() ? "False" : "True");
 
         writer.println(String.format("\"%s\",%s,%s,%s,%s,%s,\"%s\",\"%s\",%s",
                 subject, startDate, startTime, endDate, endTime, allDay, description, location, isPrivate));
