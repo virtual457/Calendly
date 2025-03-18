@@ -1,0 +1,387 @@
+package model;
+
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.PrintWriter;
+import java.io.IOException;
+import java.time.format.DateTimeFormatter;
+import java.util.Objects;
+
+public class CalendarModel implements ICalendarModel {
+  private List<CalendarEvent> events;
+
+  public CalendarModel() {
+    this.events = new ArrayList<>();
+  }
+
+  @Override
+  public boolean addEvent(ICalendarEventDTO eventDTO) {
+    // Check required fields.
+    if (eventDTO.getEventName() == null || eventDTO.getEventName().trim().isEmpty()) {
+      throw new IllegalArgumentException("Event name is required.");
+    }
+    if (eventDTO.getStartDateTime() == null) {
+      throw new IllegalArgumentException("Start date and time are required.");
+    }
+    if (eventDTO.getEndDateTime() == null) {
+      throw new IllegalArgumentException("End date and time are required.");
+    }
+
+    // Check that the event's end time is after its start time.
+    if (!eventDTO.getEndDateTime().isAfter(eventDTO.getStartDateTime())) {
+      throw new IllegalArgumentException("End date and time must be after start date and time.");
+    }
+
+    if (eventDTO.isRecurring()) {
+      // For recurring events, start and end must be on the same day.
+      if (!eventDTO.getStartDateTime()
+              .toLocalDate().equals(eventDTO.getEndDateTime().toLocalDate())) {
+        throw new IllegalArgumentException(
+                "Recurring events must have start and end on the same day.");
+      }
+
+      // Both recurrence count and recurrence end date cannot be provided together.
+      if (eventDTO.getRecurrenceCount() > 0 && eventDTO.getRecurrenceEndDate() != null) {
+        throw new IllegalArgumentException(
+                "Cannot define both recurrence count "
+                        +
+                        "and recurrence end date for a recurring event.");
+      }
+
+      // At least one must be provided (recurrenceCount > 0 OR recurrenceEndDate not null).
+      if (eventDTO.getRecurrenceCount() <= 0 && eventDTO.getRecurrenceEndDate() == null) {
+        throw new IllegalArgumentException("Either recurrence count or recurrence"
+                +
+                " end date must be defined for a recurring event.");
+      }
+
+      // Also, recurrenceDays must not be null.
+      if (eventDTO.getRecurrenceDays() == null) {
+        throw new IllegalArgumentException("Recurrence days must be provided for recurring events.");
+      }
+
+      List<CalendarEvent> occurrences = new ArrayList<>();
+      LocalDate startDate = eventDTO.getStartDateTime().toLocalDate();
+      LocalTime startTime = eventDTO.getStartDateTime().toLocalTime();
+      LocalTime endTime = eventDTO.getEndDateTime().toLocalTime();
+
+      int count = 0;
+      LocalDate currentDate = startDate;
+      LocalDate recurrenceEnd = (eventDTO.getRecurrenceEndDate() != null)
+              ? eventDTO.getRecurrenceEndDate().toLocalDate()
+              : null;
+
+      // Single loop handling both termination conditions.
+      while (true) {
+        if (eventDTO.getRecurrenceCount() > 0) { // termination by fixed count
+          if (count >= eventDTO.getRecurrenceCount()) {
+            break;
+          }
+        } else if (recurrenceEnd != null) { // termination by end date
+          if (currentDate.isAfter(recurrenceEnd)) {
+            break;
+          }
+        }
+
+        if (eventDTO.getRecurrenceDays().contains(currentDate.getDayOfWeek())) {
+          LocalDateTime occurrenceStart = LocalDateTime.of(currentDate, startTime);
+          LocalDateTime occurrenceEnd = LocalDateTime.of(currentDate, endTime);
+          // Create a temporary DTO for conflict checking.
+          CalendarEventDTO occurrenceDTO = CalendarEventDTO.builder()
+                  .setEventName(eventDTO.getEventName())
+                  .setStartDateTime(occurrenceStart)
+                  .setEndDateTime(occurrenceEnd)
+                  .setAutoDecline(eventDTO.isAutoDecline())
+                  .build();
+          if (eventDTO.isAutoDecline() && doesEventConflict(occurrenceDTO)) {
+            throw new IllegalStateException("Conflict detected on "
+                    + occurrenceStart + ", event not created");
+          }
+          Boolean isPrivate = (eventDTO != null) ? eventDTO.isPrivate() : null;
+          Boolean isPublic = (isPrivate == null) ? true : !isPrivate;
+
+          occurrences.add(new CalendarEvent(
+                  eventDTO.getEventName(),
+                  occurrenceStart,
+                  occurrenceEnd,
+                  eventDTO.getEventDescription(),
+                  eventDTO.getEventLocation(),
+                  Boolean.TRUE.equals(isPublic), // isPublic is the opposite of isPrivate
+                  true,                  // isRecurring
+                  eventDTO.getRecurrenceDays(),
+                  eventDTO.isAutoDecline()
+          ));
+          count++;
+        }
+        currentDate = getNextRecurrenceDate(currentDate, eventDTO.getRecurrenceDays());
+      }
+
+      events.addAll(occurrences);
+      return true;
+    } else {
+      // For non-recurring events, ensure no recurrence info is provided.
+      if (eventDTO.getRecurrenceCount() > 0 || eventDTO.getRecurrenceEndDate() != null) {
+        throw new IllegalArgumentException("Non-recurring event " +
+                "should not have recurrence count or recurrence end date.");
+      }
+      // Single event: check conflict if auto-decline is set.
+      if (eventDTO.isAutoDecline() && doesEventConflict(eventDTO)) {
+        throw new IllegalStateException("Conflict detected, event not created");
+      }
+      Boolean isPrivate = (eventDTO != null) ? eventDTO.isPrivate() : null;
+      Boolean isPublic = (isPrivate == null) ? true : !isPrivate;
+
+      CalendarEvent event = new CalendarEvent(
+              eventDTO.getEventName(),
+              eventDTO.getStartDateTime(),
+              eventDTO.getEndDateTime(),
+              eventDTO.getEventDescription(),
+              eventDTO.getEventLocation(),
+              Boolean.TRUE.equals(isPublic),  // isPublic is the opposite of isPrivate
+              false,                 // Not recurring
+              null,
+              eventDTO.isAutoDecline()
+      );
+      events.add(event);
+      return true;
+    }
+  }
+
+  @Override
+  public boolean editEvent(String property,
+                           String eventName, LocalDateTime fromDateTime,
+                           LocalDateTime toDateTime, String newValue) {
+    for (CalendarEvent event : events) {
+      if (event.getEventName().equals(eventName)
+              &&
+              event.getStartDateTime().equals(fromDateTime)
+              &&
+              event.getEndDateTime().equals(toDateTime)) {
+        switch (property.toLowerCase()) {
+          case "name":
+            event.setEventName(newValue);
+            return true;
+          case "start":
+            LocalDateTime newStart = LocalDateTime.parse(newValue);
+            if (!event.getEndDateTime().isAfter(newStart)) {
+              throw new IllegalArgumentException("New start must be before current end time.");
+            }
+            event.setStartDateTime(newStart);
+            return true;
+          case "end":
+            LocalDateTime newEnd = LocalDateTime.parse(newValue);
+            if (!newEnd.isAfter(event.getStartDateTime())) {
+              throw new IllegalArgumentException("New end must be after current start time.");
+            }
+            event.setEndDateTime(newEnd);
+            return true;
+          case "description":
+            event.setDescription(newValue);
+            return true;
+          case "location":
+            event.setLocation(newValue);
+            return true;
+          case "ispublic":
+            event.setPublic(Boolean.parseBoolean(newValue));
+            return true;
+          default:
+            throw new IllegalArgumentException("Unsupported property for edit: " + property);
+        }
+      }
+    }
+    throw new IllegalStateException("Event not found for editing: " + eventName);
+  }
+
+  @Override
+  public boolean editEvents(String property,
+                            String eventName, LocalDateTime fromDateTime,
+                            String newValue) {
+    boolean found = false;
+    for (CalendarEvent event : events) {
+      if (event.getEventName().equals(eventName)
+              &&
+              (fromDateTime == null || event.getStartDateTime().equals(fromDateTime))) {
+        switch (property.toLowerCase()) {
+          case "name":
+            event.setEventName(newValue);
+            found = true;
+            break;
+          case "start":
+            LocalDateTime newStart = LocalDateTime.parse(newValue);
+            if (!event.getEndDateTime().isAfter(newStart)) {
+              throw new IllegalArgumentException("New start must be before current end time.");
+            }
+            event.setStartDateTime(newStart);
+            found = true;
+            break;
+          case "end":
+            LocalDateTime newEnd = LocalDateTime.parse(newValue);
+            if (!newEnd.isAfter(event.getStartDateTime())) {
+              throw new IllegalArgumentException("New end must be after current start time.");
+            }
+            event.setEndDateTime(newEnd);
+            found = true;
+            break;
+          case "description":
+            event.setDescription(newValue);
+            found = true;
+            break;
+          case "location":
+            event.setLocation(newValue);
+            found = true;
+            break;
+          case "ispublic":
+            event.setPublic(Boolean.parseBoolean(newValue));
+            found = true;
+            break;
+          default:
+            throw new IllegalArgumentException("Unsupported property for edit: " + property);
+        }
+      }
+    }
+    if (!found) {
+      throw new IllegalStateException("No matching events found for editing: " + eventName);
+    }
+    return found;
+  }
+
+  @Override
+  public String printEventsOnSpecificDate(LocalDate date) {
+    if (date == null) {
+      throw new IllegalArgumentException("Date cannot be null.");
+    }
+    StringBuilder sb = new StringBuilder();
+    for (CalendarEvent event : events) {
+      if (event.getStartDateTime().toLocalDate().equals(date)) {
+        sb.append("- ").append(event.getEventName()).append(": ")
+                .append(event.getStartDateTime()).append(" to ")
+                .append(event.getEndDateTime());
+        if (event.getLocation() != null && !event.getLocation().isEmpty()) {
+          sb.append(" at ").append(event.getLocation());
+        }
+        sb.append("\n");
+      }
+    }
+    var a = sb.toString();
+    return sb.toString();
+  }
+
+  @Override
+  public String printEventsInSpecificRange(LocalDateTime fromDateTime, LocalDateTime toDateTime) {
+    if (fromDateTime == null || toDateTime == null) {
+      throw new IllegalArgumentException("Both start and end datetimes must be provided.");
+    }
+    if (toDateTime.isBefore(fromDateTime)) {
+      throw new IllegalArgumentException("Start datetime must not be after end datetime.");
+    }
+    StringBuilder sb = new StringBuilder();
+    for (CalendarEvent event : events) {
+      if ((event.getStartDateTime().equals(fromDateTime)
+              || event.getStartDateTime().isAfter(fromDateTime))
+              &&
+              (event.getStartDateTime().equals(toDateTime)
+                      || event.getStartDateTime().isBefore(toDateTime))) {
+        sb.append("- ").append(event.getEventName()).append(": ")
+                .append(event.getStartDateTime()).append(" to ")
+                .append(event.getEndDateTime());
+        if (event.getLocation() != null && !event.getLocation().isEmpty()) {
+          sb.append(" at ").append(event.getLocation());
+        }
+        sb.append("\n");
+      }
+    }
+    return sb.toString();
+  }
+
+  @Override
+  public String exportEvents(String filename) {
+    DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+    DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("hh:mm a");
+    try (PrintWriter writer = new PrintWriter(new FileWriter(filename))) {
+      writer.println("Subject,Start Date,Start Time," +
+              "End Date,End Time,All Day Event,Description,Location,Private");
+
+      for (CalendarEvent event : events) {
+        String subject = event.getEventName();
+        String startDate = event.getStartDateTime().format(dateFormatter);
+        String startTime = event.getStartDateTime().format(timeFormatter);
+        String endDate = event.getEndDateTime().format(dateFormatter);
+        String endTime = event.getEndDateTime().format(timeFormatter);
+
+        // Determine if this is an all-day event.
+        boolean isAllDay = event.getStartDateTime()
+                .equals(event.getStartDateTime().toLocalDate().atStartOfDay())
+                && event.getEndDateTime().equals(event.getStartDateTime()
+                .toLocalDate().atTime(23, 59, 59));
+        String allDay = isAllDay ? "True" : "False";
+
+        String description = (event.getDescription() == null) ? null : event.getDescription();
+        String location = (event.getLocation() == null) ? null : event.getLocation();
+
+        String isPrivate = (Objects.isNull(event.isPublic()))
+                ? null : (event.isPublic() ? "False" : "True");
+
+        writer.println(String.format("\"%s\",%s,%s,%s,%s,%s,\"%s\",\"%s\",%s",
+                subject, startDate, startTime,
+                endDate, endTime, allDay, description, location, isPrivate));
+      }
+
+      writer.flush();
+      File file = new File(filename);
+      return file.getAbsolutePath();
+    } catch (IOException e) {
+      throw new RuntimeException("Error exporting events: " + e.getMessage());
+    }
+  }
+
+  @Override
+  public String showStatus(LocalDateTime dateTime) {
+    if (dateTime == null) {
+      throw new IllegalArgumentException("Datetime cannot be null.");
+    }
+    if (checkStatus(dateTime)) {
+      return "Busy";
+    }
+    return "Available";
+  }
+
+  // Helper method for conflict checking using a CalendarEventDTO.
+  private Boolean doesEventConflict(ICalendarEventDTO eventDTO) {
+    LocalDateTime newStart = eventDTO.getStartDateTime();
+    LocalDateTime newEnd = eventDTO.getEndDateTime();
+    for (CalendarEvent event : events) {
+      if (newStart.isBefore(event.getEndDateTime()) && newEnd.isAfter(event.getStartDateTime())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Helper method to check if there is any event at the given time.
+  private Boolean checkStatus(LocalDateTime dateTime) {
+    for (CalendarEvent event : events) {
+      if (!dateTime.isBefore(event.getStartDateTime())
+              && !dateTime.isAfter(event.getEndDateTime())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private LocalDate getNextRecurrenceDate(LocalDate currentDate, List<DayOfWeek> recurrenceDays) {
+    if (recurrenceDays.isEmpty()) {
+      return currentDate.plusDays(1);
+    }
+    LocalDate nextDate = currentDate.plusDays(1);
+    while (!recurrenceDays.contains(nextDate.getDayOfWeek())) {
+      nextDate = nextDate.plusDays(1);
+    }
+    return nextDate;
+  }
+}
