@@ -1,0 +1,21 @@
+Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private
+"UpdatedName",03/08/2025,10:00 AM,03/08/2025,11:00 AM,False,"Adding Description","New Location",False
+"PDP Class",03/11/2025,03:00 PM,03/11/2025,04:30 PM,False,"New Recurring Event","Snell Room 108",False
+"Class",03/13/2025,03:00 PM,03/13/2025,04:30 PM,False,"RecurringEvent","Snell Room 108",False
+"Conference",03/10/2025,12:00 AM,03/10/2025,11:59 PM,True,"","",False
+"Conference",03/11/2025,12:00 AM,03/11/2025,11:59 PM,True,"","",False
+"Conference",03/12/2025,12:00 AM,03/12/2025,11:59 PM,True,"","",False
+"Conference",03/17/2025,12:00 AM,03/17/2025,11:59 PM,True,"","",False
+"Conference",03/18/2025,12:00 AM,03/18/2025,11:59 PM,True,"","",False
+"Conference",03/19/2025,12:00 AM,03/19/2025,11:59 PM,True,"","",False
+"Meeting",03/10/2025,12:00 AM,03/10/2025,11:59 PM,True,"","",False
+"Meeting",03/11/2025,12:00 AM,03/11/2025,11:59 PM,True,"","",False
+"Meeting",03/12/2025,12:00 AM,03/12/2025,11:59 PM,True,"","",False
+"All Day event",03/09/2025,12:00 AM,03/09/2025,11:59 PM,True,"","",False
+"DescriptionLocationEvent",03/10/2025,11:00 AM,03/10/2025,12:00 PM,False,"Initial meeting","New Room!!",False
+"Study Session",03/09/2025,07:00 PM,03/09/2025,08:00 PM,False,"DBMS" -location "Shillman Hall","",False
+"DBMS Class Section 1",03/10/2025,05:00 PM,03/10/2025,06:00 PM,False,"Recurring Event Creation","NEU",False
+"DBMS",03/12/2025,05:00 PM,03/12/2025,06:00 PM,False,"Recurring Event Creation","NEU",False
+"DBMS",03/14/2025,05:00 PM,03/14/2025,06:00 PM,False,"Recurring Event Creation","NEU",False
+"Billiards Time",03/14/2025,09:00 PM,03/14/2025,10:00 PM,False,"","Curry Center",False
+"Squash Game",03/12/2025,12:00 PM,03/12/2025,01:00 PM,False,"","Squash Busters",False
