@@ -38,16 +38,17 @@ public interface ICalendarModel {
 
   boolean createCalendar(String calName, String timezone);
 
-  boolean addEvent(ICalendarEventDTO event);
+  boolean addEvent(String calendarName, ICalendarEventDTO event);
 
-  boolean editEvents(String property, String eventName,
-                    LocalDateTime fromDateTime, LocalDateTime toDateTime,
-                    String newValue, boolean editAll);
+  boolean editEvents(String calendarName, String property, String eventName,
+                     LocalDateTime fromDateTime, LocalDateTime toDateTime,
+                     String newValue, boolean editAll);
+
   boolean isCalendarAvailable(String calName, LocalDate date);
 
   boolean deleteCalendar(String calName);
 
-  List<CalendarEvent> getEventsInRange(LocalDateTime fromDateTime, LocalDateTime toDateTime);
+  List<CalendarEvent> getEventsInRange(String calendarName, LocalDateTime fromDateTime, LocalDateTime toDateTime);
 
   boolean copyEvents(String sourceCalendarName,
                      LocalDateTime sourceStart, LocalDateTime sourceEnd,
