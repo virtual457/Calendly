@@ -38,6 +38,7 @@ public class CalendarModel implements ICalendarModel {
     }
 
     // Create a new Calendar and add it to the list.
+    // TODO can we use builder?
     Calendar newCalendar = new Calendar(calName, timezone);
     calendars.add(newCalendar);
     return true;
@@ -76,6 +77,7 @@ public class CalendarModel implements ICalendarModel {
       return true;
     } else {
       // For non-recurring events, ensure no recurrence info is provided.
+      // TODO anotehrr helperr herrre for validation?
       if (eventDTO.getRecurrenceCount() > 0 || eventDTO.getRecurrenceEndDate() != null) {
         throw new IllegalArgumentException("Non-recurring event should not have recurrence count or recurrence end date.");
       }

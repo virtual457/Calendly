@@ -7,7 +7,7 @@ import java.util.List;
  * Represents an individual calendar with a unique name, associated timezone,
  * and its own list of events.
  */
-public class Calendar {
+class Calendar {
   private String calendarName;
   private String timezone;
   private List<CalendarEvent> events;
@@ -25,7 +25,6 @@ public class Calendar {
   }
 
   // Getters and setters
-
   public String getCalendarName() {
     return calendarName;
   }
