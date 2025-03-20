@@ -1,4 +1,4 @@
-package calendarapp;
+package calendarApp;
 
 import java.io.IOException;
 

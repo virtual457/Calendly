@@ -2,7 +2,6 @@ package model;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 
 /**
  * Represents the data model interface for the Calendar application.
@@ -36,22 +35,18 @@ public interface ICalendarModel {
     }
   }
 
-  boolean createCalendar(String calName, String timezone);
-
   boolean addEvent(ICalendarEventDTO event);
 
-  boolean editEvents(String property, String eventName,
-                    LocalDateTime fromDateTime, LocalDateTime toDateTime,
-                    String newValue, boolean editAll);
-  boolean isCalendarAvailable(String calName, LocalDate date);
+  boolean editEvent(String property, String eventName, LocalDateTime fromDateTime, LocalDateTime toDateTime, String newValue);
 
-  boolean deleteCalendar(String calName);
+  boolean editEvents(String property, String eventName, LocalDateTime fromDateTime, String newValue);
 
-  List<CalendarEvent> getEventsInRange(LocalDateTime fromDateTime, LocalDateTime toDateTime);
+  String printEventsOnSpecificDate(LocalDate date);
 
-  boolean copyEvents(String sourceCalendarName,
-                     LocalDateTime sourceStart, LocalDateTime sourceEnd,
-                     String targetCalendarName,
-                     LocalDateTime targetStart);
+  String printEventsInSpecificRange(LocalDateTime fromDateTime, LocalDateTime toDateTime);
+
+  String exportEvents(String filename);
+
+  String showStatus(LocalDateTime dateTime);
 
 }

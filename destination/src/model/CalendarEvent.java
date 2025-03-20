@@ -4,25 +4,25 @@ import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public class CalendarEvent {
+class CalendarEvent {
   private String eventName;
   private LocalDateTime startDateTime;
   private LocalDateTime endDateTime;
-  private String eventDescription; // renamed from "description"
-  private String eventLocation;    // renamed from "location"
+  private String description;
+  private String location;
   private boolean isPublic;
   private boolean isRecurring;
   private List<DayOfWeek> recurrenceDays;
   private boolean autoDecline;
 
   public CalendarEvent(String eventName, LocalDateTime startDateTime, LocalDateTime endDateTime,
-                       String eventDescription, String eventLocation, boolean isPublic, boolean isRecurring,
+                       String description, String location, boolean isPublic, boolean isRecurring,
                        List<DayOfWeek> recurrenceDays, boolean autoDecline) {
     this.eventName = eventName;
     this.startDateTime = startDateTime;
     this.endDateTime = endDateTime;
-    this.eventDescription = eventDescription;
-    this.eventLocation = eventLocation;
+    this.description = description;
+    this.location = location;
     this.isPublic = isPublic;
     this.isRecurring = isRecurring;
     this.recurrenceDays = recurrenceDays;
@@ -41,12 +41,12 @@ public class CalendarEvent {
     return endDateTime;
   }
 
-  public String getEventDescription() {
-    return eventDescription;
+  public String getDescription() {
+    return description;
   }
 
-  public String getEventLocation() {
-    return eventLocation;
+  public String getLocation() {
+    return location;
   }
 
   public boolean isPublic() {
@@ -78,12 +78,12 @@ public class CalendarEvent {
     this.endDateTime = endDateTime;
   }
 
-  public void setEventDescription(String eventDescription) {
-    this.eventDescription = eventDescription;
+  public void setDescription(String description) {
+    this.description = description;
   }
 
-  public void setEventLocation(String eventLocation) {
-    this.eventLocation = eventLocation;
+  public void setLocation(String location) {
+    this.location = location;
   }
 
   public void setPublic(boolean isPublic) {
