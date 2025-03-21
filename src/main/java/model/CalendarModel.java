@@ -37,9 +37,11 @@ public class CalendarModel implements ICalendarModel {
       }
     }
 
-    // Create a new Calendar and add it to the list.
-    // TODO can we use builder?
-    Calendar newCalendar = new Calendar(calName, timezone);
+    // Create a new Calendar using a builder
+    Calendar newCalendar = Calendar.builder()
+            .setCalendarName(calName)
+            .setTimezone(timezone)
+            .build();
     calendars.add(newCalendar);
     return true;
   }
@@ -76,11 +78,8 @@ public class CalendarModel implements ICalendarModel {
       targetCalendar.addEvents(occurrences);
       return true;
     } else {
-      // For non-recurring events, ensure no recurrence info is provided.
-      // TODO anotehrr helperr herrre for validation?
-      if (eventDTO.getRecurrenceCount() > 0 || eventDTO.getRecurrenceEndDate() != null) {
-        throw new IllegalArgumentException("Non-recurring event should not have recurrence count or recurrence end date.");
-      }
+      // Validate that non-recurring events do not include recurrence info.
+      validateNonRecurringEvent(eventDTO);
       if (doesEventConflict(targetCalendar.getEvents(), eventDTO)) {
         throw new IllegalStateException("Conflict detected, event not created");
       }
@@ -285,6 +284,38 @@ public class CalendarModel implements ICalendarModel {
     return true;
   }
 
+  @Override
+  public boolean editCalendar(String calendarName, String property, String newValue) {
+    // Look up the target calendar by name.
+    Calendar targetCalendar = getCalendarByName(calendarName);
+    if (targetCalendar == null) {
+      throw new IllegalArgumentException("Calendar not found: " + calendarName);
+    }
+
+    switch(property.toLowerCase()) {
+      case "name":
+        // Check if another calendar already has the new name.
+        for (Calendar cal : calendars) {
+          if (cal.getCalendarName().equalsIgnoreCase(newValue)) {
+            throw new IllegalArgumentException("Calendar with name '" + newValue + "' already exists.");
+          }
+        }
+        targetCalendar.setCalendarName(newValue);
+        return true;
+      case "timezone":
+        // Validate the new timezone.
+        try {
+          ZoneId.of(newValue);
+        } catch (Exception e) {
+          throw new IllegalArgumentException("Invalid timezone: " + newValue, e);
+        }
+        targetCalendar.setTimezone(newValue);
+        return true;
+      default:
+        throw new IllegalArgumentException("Unsupported property for calendar edit: " + property);
+    }
+  }
+
   // Helper method to retrieve a calendar by its name.
   private Calendar getCalendarByName(String calName) {
     for (Calendar cal : calendars) {
@@ -324,6 +355,13 @@ public class CalendarModel implements ICalendarModel {
     }
     if (eventDTO.getRecurrenceDays() == null) {
       throw new IllegalArgumentException("Recurrence days must be provided for recurring events.");
+    }
+  }
+
+  // Helper method for non-recurring event validation.
+  private void validateNonRecurringEvent(ICalendarEventDTO eventDTO) {
+    if (eventDTO.getRecurrenceCount() > 0 || eventDTO.getRecurrenceEndDate() != null) {
+      throw new IllegalArgumentException("Non-recurring event should not have recurrence count or recurrence end date.");
     }
   }
 

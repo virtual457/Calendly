@@ -55,4 +55,6 @@ public interface ICalendarModel {
                      String targetCalendarName,
                      LocalDateTime targetStart);
 
+  boolean editCalendar(String calendarName, String property, String newValue);
+
 }
