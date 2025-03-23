@@ -78,6 +78,7 @@ public class CalendarModel implements ICalendarModel {
     } else {
       // For non-recurring events, ensure no recurrence info is provided.
       // TODO anotehrr helperr herrre for validation?
+      // Todo throws null pointer exception when called with null values for non recurring event
       if (eventDTO.getRecurrenceCount() > 0 || eventDTO.getRecurrenceEndDate() != null) {
         throw new IllegalArgumentException("Non-recurring event should not have recurrence count or recurrence end date.");
       }
@@ -283,6 +284,12 @@ public class CalendarModel implements ICalendarModel {
     }
 
     return true;
+  }
+
+  @Override
+  public boolean isCalendarPresent(String calName) {
+    return calendars.stream()
+            .anyMatch(cal -> calName != null && calName.equals(cal.getCalendarName()));
   }
 
   // Helper method to retrieve a calendar by its name.

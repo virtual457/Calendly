@@ -24,6 +24,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import model.CalendarEvent;
 import model.CalendarModel;
 import model.ICalendarEventDTO;
 import model.ICalendarModel;
@@ -2201,56 +2202,38 @@ public class CalendarControllerTest {
     LocalDateTime lastPrintEndDateTime;
 
     @Override
-    public boolean addEvent(ICalendarEventDTO event) {
-      this.lastAddedEvent = event;
-      return true;
+    public boolean createCalendar(String calName, String timezone) {
+      return false;
     }
 
     @Override
-    public boolean editEvent(String property, String eventName, LocalDateTime fromDateTime,
-                             LocalDateTime toDateTime, String newValue) {
-      this.lastEditEventProperty = property;
-      this.lastEditEventName = eventName;
-      this.lastEditEventStartDateTime = fromDateTime;
-      this.lastEditEventEndDateTime = toDateTime;
-      this.lastEditEventNewValue = newValue;
-      return true;
+    public boolean addEvent(String calendarName, ICalendarEventDTO event) {
+      return false;
     }
 
     @Override
-    public boolean editEvents(String property, String eventName, LocalDateTime fromDateTime,
-                              String newValue) {
-      this.lastEditEventsProperty = property;
-      this.lastEditEventsName = eventName;
-      this.lastEditEventsStartDateTime = fromDateTime;
-      this.lastEditEventsNewValue = newValue;
-      return true;
+    public boolean editEvents(String calendarName, String property, String eventName, LocalDateTime fromDateTime, LocalDateTime toDateTime, String newValue, boolean editAll) {
+      return false;
     }
 
     @Override
-    public String printEventsOnSpecificDate(LocalDate date) {
-      this.lastPrintDate = date;
-      return "Printed events.";
+    public boolean isCalendarAvailable(String calName, LocalDate date) {
+      return false;
     }
 
     @Override
-    public String printEventsInSpecificRange(LocalDateTime fromDateTime, LocalDateTime toDateTime) {
-      this.lastPrintStartDateTime = fromDateTime;
-      this.lastPrintEndDateTime = toDateTime;
-      return "Printed events in range.";
-    }
-
-
-    @Override
-    public String exportEvents(String filename) {
-      this.lastExportFilename = filename;
-      return "Exported events.";
+    public boolean deleteCalendar(String calName) {
+      return false;
     }
 
     @Override
-    public String showStatus(LocalDateTime dateTime) {
-      this.lastShowStatusDateTime = dateTime;
-      return "Status checked.";
+    public List<CalendarEvent> getEventsInRange(String calendarName, LocalDateTime fromDateTime, LocalDateTime toDateTime) {
+      return List.of();
+    }
+
+    @Override
+    public boolean copyEvents(String sourceCalendarName, LocalDateTime sourceStart, LocalDateTime sourceEnd, String targetCalendarName, LocalDateTime targetStart) {
+      return false;
     }
   }
 

@@ -99,34 +99,32 @@ public class CalendarAppTest {
     tempFile.delete();
   }
 
-  @Test
-  public void testCreateModel_ShouldNotReturnNull() throws Exception {
-    Method method = CalendarApp.class.getDeclaredMethod("createModel");
-    method.setAccessible(true);
-    ICalendarModel model = (ICalendarModel) method.invoke(null);
-    assertNotNull(model);
-  }
+
 
   //Integrration tests
 
-
-  private void runAppWithCommands(String[] commands) throws IOException {
-    if (mode.equals("headless")) {
-      File tempFile = File.createTempFile("commands", ".txt");
-      try (FileWriter writer = new FileWriter(tempFile)) {
-        for (String command : commands) {
-          writer.write(command + "\n");
+  private void runAppWithCommands(String[] commands) {
+    try {
+      if (mode.equals("headless")) {
+        File tempFile = File.createTempFile("commands", ".txt");
+        try (FileWriter writer = new FileWriter(tempFile)) {
+          for (String command : commands) {
+            writer.write(command + "\n");
+          }
         }
+        String[] args = {"--mode", mode, tempFile.getAbsolutePath()};
+        CalendarApp.main(args);
+        tempFile.delete();
+      } else {
+        ByteArrayInputStream inContent = new ByteArrayInputStream(String.join("\n",
+                commands).getBytes());
+        System.setIn(inContent);
+        String[] args = {"--mode", mode};
+        CalendarApp.main(args);
       }
-      String[] args = {"--mode", mode, tempFile.getAbsolutePath()};
-      CalendarApp.main(args);
-      tempFile.delete();
-    } else {
-      ByteArrayInputStream inContent = new ByteArrayInputStream(String.join("\n",
-              commands).getBytes());
-      System.setIn(inContent);
-      String[] args = {"--mode", mode};
-      CalendarApp.main(args);
+    }
+    catch (IOException e) {
+      fail("IOException occurred: " + e.getMessage());
     }
   }
 
@@ -136,6 +134,40 @@ public class CalendarAppTest {
             .replace("\r\n", "\n")
             .replace("\r", "\n");
   }
+  //Create calendarr command tests
+  @Test
+  public void testCreateCalendar_ValidInput_ShouldSucceed() {
+    runAppWithCommands(new String[]{"create calendar --name TestCal --timezone America/New_York", "exit"});
+    assertTrue(outContent.toString().contains("Calendar created successfully"));
+  }
+
+  @Test
+  public void testCreateCalendar_DuplicateName_ShouldFail() {
+    runAppWithCommands(new String[]{
+            "create calendar --name DuplicateCal --timezone America/New_York",
+            "create calendar --name DuplicateCal --timezone America/New_York",
+            "exit"});
+    assertTrue(outContent.toString().contains("already exists"));
+  }
+
+  @Test
+  public void testCreateCalendar_InvalidTimezone_ShouldFail() {
+    runAppWithCommands(new String[]{"create calendar --name InvalidTZ --timezone Invalid/Zone", "exit"});
+    assertTrue(outContent.toString().contains("Invalid timezone"));
+  }
+
+  @Test
+  public void testUseCalendar_ValidName_ShouldSucceed() {
+    runAppWithCommands(new String[]{"create calendar --name MyCal --timezone America/New_York", "use calendar --name MyCal", "exit"});
+    assertTrue(outContent.toString().contains("Using calendar: MyCal"));
+  }
+
+  @Test
+  public void testUseCalendar_InvalidName_ShouldFail() {
+    runAppWithCommands(new String[]{"use calendar --name NonExistent", "exit"});
+    assertTrue(outContent.toString().toLowerCase().contains("not found"));
+  }
+
 
   @Test
   public void testCreateAndExportSingleEvent() throws IOException {

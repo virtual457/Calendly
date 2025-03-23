@@ -55,4 +55,6 @@ public interface ICalendarModel {
                      String targetCalendarName,
                      LocalDateTime targetStart);
 
+  boolean isCalendarPresent(String calName);
+
 }
