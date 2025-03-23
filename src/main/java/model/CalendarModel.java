@@ -55,6 +55,7 @@ public class CalendarModel implements ICalendarModel {
    * @throws IllegalArgumentException if the calendar is not found or event validation fails
    * @throws IllegalStateException if a conflict is detected in the target calendar
    */
+
   @Override
   public boolean addEvent(String calendarName, ICalendarEventDTO eventDTO) {
     // Look up the target calendar by name.
@@ -78,7 +79,6 @@ public class CalendarModel implements ICalendarModel {
       targetCalendar.addEvents(occurrences);
       return true;
     } else {
-      // Todo throws null pointer exception when called with null values for non recurring event
       // Validate that non-recurring events do not include recurrence info.
       validateNonRecurringEvent(eventDTO);
       if (doesEventConflict(targetCalendar.getEvents(), eventDTO)) {
@@ -367,6 +367,7 @@ public class CalendarModel implements ICalendarModel {
 
   // Helper method for non-recurring event validation.
   private void validateNonRecurringEvent(ICalendarEventDTO eventDTO) {
+    Integer recCount = eventDTO.getRecurrenceCount();
     if (eventDTO.getRecurrenceCount() > 0 || eventDTO.getRecurrenceEndDate() != null) {
       throw new IllegalArgumentException("Non-recurring event should not have recurrence count or recurrence end date.");
     }
