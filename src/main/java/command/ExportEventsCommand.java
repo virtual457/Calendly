@@ -1,6 +1,6 @@
 package command;
 
-import model.CalendarEvent;
+import model.ICalendarEventDTO;
 import model.ICalendarModel;
 
 import java.io.BufferedWriter;
@@ -39,7 +39,7 @@ public class ExportEventsCommand implements ICommand {
     }
     LocalDateTime start = LocalDateTime.of(2000, 1, 1, 0, 0);
     LocalDateTime end = LocalDateTime.of(2100, 12, 31, 23, 59);
-    List<CalendarEvent> events = model.getEventsInRange(calendarName, start, end);
+    List<ICalendarEventDTO> events = model.getEventsInRange(calendarName, start, end);
 
     DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
     DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("hh:mm a");
@@ -58,7 +58,7 @@ public class ExportEventsCommand implements ICommand {
         writer.write("Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private");
         writer.newLine();
 
-        for (CalendarEvent event : events) {
+        for (ICalendarEventDTO event : events) {
           boolean isAllDay = event.getStartDateTime().toLocalTime().equals(java.time.LocalTime.MIDNIGHT)
                   && event.getEndDateTime().toLocalTime().equals(java.time.LocalTime.of(23, 59, 59));
 
@@ -69,8 +69,8 @@ public class ExportEventsCommand implements ICommand {
           String endTime = isAllDay ? "" : event.getEndDateTime().format(timeFormatter);
           String allDay = isAllDay ? "True" : "False";
 
-          String description = event.getDescription() != null ? escapeCSV(event.getDescription()) : "";
-          String location = event.getLocation() != null ? escapeCSV(event.getLocation()) : "";
+          String description = event.getEventDescription() != null ? escapeCSV(event.getEventDescription()) : "";
+          String location = event.getEventLocation() != null ? escapeCSV(event.getEventLocation()) : "";
           String isPrivate = event.isPrivate() ? "True" : "False";
 
           writer.write(String.join(",",

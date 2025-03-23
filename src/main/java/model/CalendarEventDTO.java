@@ -4,7 +4,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.util.List;
 
-class CalendarEventDTO implements ICalendarEventDTO {
+public class CalendarEventDTO implements ICalendarEventDTO {
   private String eventName;
   private LocalDateTime startDateTime;
   private LocalDateTime endDateTime;

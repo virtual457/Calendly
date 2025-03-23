@@ -8,6 +8,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * CalendarModel stores multiple calendars in a list.
@@ -190,7 +191,7 @@ public class CalendarModel implements ICalendarModel {
     return false;
   }
 
-  public List<CalendarEvent> getEventsInRange(String calendarName, LocalDateTime fromDateTime, LocalDateTime toDateTime) {
+  public List<ICalendarEventDTO> getEventsInRange(String calendarName, LocalDateTime fromDateTime, LocalDateTime toDateTime) {
     // Look up the target calendar by its name.
     Calendar targetCalendar = getCalendarByName(calendarName);
     if (targetCalendar == null) {
@@ -213,7 +214,7 @@ public class CalendarModel implements ICalendarModel {
         rangeEvents.add(event);
       }
     }
-    return rangeEvents;
+    return rangeEvents.stream().map(this::convertToDTO).collect(Collectors.toList());
   }
 
   public boolean copyEvents(String sourceCalendarName, LocalDateTime sourceStart, LocalDateTime sourceEnd,
