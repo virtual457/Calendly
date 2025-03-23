@@ -56,6 +56,52 @@ class Calendar {
   public void addEvent(CalendarEvent event) {
     this.events.add(event);
   }
+
+  /**
+   * Returns a new Builder instance for constructing a Calendar.
+   *
+   * @return a Builder for Calendar.
+   */
+  public static Builder builder() {
+    return new Builder();
+  }
+
+  /**
+   * Builder class for constructing Calendar instances.
+   */
+  public static class Builder {
+    private String calendarName;
+    private String timezone;
+
+    /**
+     * Sets the calendar name.
+     *
+     * @param calendarName the unique name of the calendar.
+     * @return the Builder instance.
+     */
+    public Builder setCalendarName(String calendarName) {
+      this.calendarName = calendarName;
+      return this;
+    }
+
+    /**
+     * Sets the timezone.
+     *
+     * @param timezone the IANA timezone string.
+     * @return the Builder instance.
+     */
+    public Builder setTimezone(String timezone) {
+      this.timezone = timezone;
+      return this;
+    }
+
+    /**
+     * Builds and returns a new Calendar instance.
+     *
+     * @return a new Calendar object.
+     */
+    public Calendar build() {
+      return new Calendar(calendarName, timezone);
+    }
+  }
 }
-
-

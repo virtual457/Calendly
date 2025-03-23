@@ -57,4 +57,6 @@ public interface ICalendarModel {
 
   boolean isCalendarPresent(String calName);
 
+  boolean editCalendar(String calendarName, String property, String newValue);
+
 }
