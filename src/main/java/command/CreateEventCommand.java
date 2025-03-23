@@ -82,6 +82,11 @@ public class CreateEventCommand implements ICommand {
           index++;
           if (index >= args.size()) throw new IllegalArgumentException("Missing recurrence count after 'for'");
           count = Integer.parseInt(args.get(index++));
+          if(args.get(index).equals("times")) {
+            index++;
+          } else {
+            throw new IllegalArgumentException("Missing times keyword 'times'");
+          }
         } else if (args.get(index).equals("until")) {
           index++;
           if (index >= args.size()) throw new IllegalArgumentException("Missing end date after 'until'");
@@ -102,19 +107,25 @@ public class CreateEventCommand implements ICommand {
 
   @Override
   public String execute() {
-    ICalendarEventDTO event = ICalendarEventDTO.builder()
-            .setEventName(eventName)
-            .setStartDateTime(startDateTime)
-            .setEndDateTime(endDateTime)
-            .setRecurring(isRecurring)
-            .setRecurrenceDays(recurrenceDays)
-            .setRecurrenceCount(recurrenceCount)
-            .setRecurrenceEndDate(recurrenceEndDate != null ? recurrenceEndDate.atStartOfDay() : null)
-            .setAutoDecline(autoDecline)
-            .build();
-     var a = model.addEvent(calendarName, event);
-     return  a ? "Event created successfully."
-            : "Error: Event creation failed.";
+    try {
+      ICalendarEventDTO event = ICalendarEventDTO.builder()
+              .setEventName(eventName)
+              .setStartDateTime(startDateTime)
+              .setEndDateTime(endDateTime)
+              .setRecurring(isRecurring)
+              .setRecurrenceDays(recurrenceDays)
+              .setRecurrenceCount(recurrenceCount)
+              .setRecurrenceEndDate(recurrenceEndDate != null ? recurrenceEndDate.atStartOfDay() : null)
+              .setAutoDecline(autoDecline)
+              .build();
+
+      boolean success = model.addEvent(calendarName, event);
+      return success ? "Event created successfully." : "Error: Event creation failed.";
+    } catch (IllegalArgumentException | IllegalStateException e) {
+      return "Error: " + e.getMessage();
+    } catch (Exception e) {
+      return "Unexpected error: " + e.getCause().getMessage();
+    }
   }
 
   private DayOfWeek mapDay(char day) {

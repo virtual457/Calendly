@@ -168,11 +168,14 @@ public class CalendarAppTest {
     assertTrue(outContent.toString().toLowerCase().contains("not found"));
   }
 
-
+  //Test Create and export methods
   @Test
   public void testCreateAndExportSingleEvent() throws IOException {
     String[] commands = {
-            "create event Meeting from 2025-04-10T10:00 to 2025-04-10T11:00",
+            "create calendar --name MyCal --timezone America/New_York",
+            "use calendar --name MyCal",
+            "create event Standup from 2025-03-21T09:00 to 2025-03-21T09:30 repeats MTWRF "
+                    + "for 10 times",
             "export cal " + OUTPUT_FILE,
             "exit"
     };

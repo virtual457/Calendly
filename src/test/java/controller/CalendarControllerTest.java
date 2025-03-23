@@ -2235,6 +2235,16 @@ public class CalendarControllerTest {
     public boolean copyEvents(String sourceCalendarName, LocalDateTime sourceStart, LocalDateTime sourceEnd, String targetCalendarName, LocalDateTime targetStart) {
       return false;
     }
+
+    @Override
+    public boolean isCalendarPresent(String calName) {
+      return false;
+    }
+
+    @Override
+    public boolean editCalendar(String calendarName, String property, String newValue) {
+      return false;
+    }
   }
 
   private class MockView implements IView {
