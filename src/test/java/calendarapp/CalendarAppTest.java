@@ -169,6 +169,54 @@ public class CalendarAppTest {
   }
 
   //Test Create and export methods
+
+  @Test
+  public void testCreateAndExportRecurringInstancesFor2Times() throws IOException {
+    String[] commands = {
+            "create calendar --name MyCal --timezone America/New_York",
+            "use calendar --name MyCal",
+            "create event Standup from 2025-03-21T09:00 to 2025-03-21T09:30 repeats MTWRF for 2 " +
+                    "times",
+            "export cal " + OUTPUT_FILE,
+            "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    String expected = String.join("\n",
+            "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+            "\"Standup\",03/21/2025,09:00 AM,03/21/2025,09:30 AM,False,\"\",\"\",False",
+            "\"Standup\",03/24/2025,09:00 AM,03/24/2025,09:30 AM,False,\"\",\"\",False"
+    );
+
+    assertEquals(expected.trim(), readExportedFile().trim());
+  }
+
+  @Test
+  public void testExportRecurringEventWithFiveOccurrences() throws IOException {
+    String[] commands = {
+            "create calendar --name MyCal --timezone America/New_York",
+            "use calendar --name MyCal",
+            "create event Standup from 2025-03-21T09:00 to 2025-03-21T09:30 repeats MTWRF for 5 " +
+                    "times",
+            "export cal " + OUTPUT_FILE,
+            "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    String expected = String.join("\n",
+            "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+            "\"Standup\",03/21/2025,09:00 AM,03/21/2025,09:30 AM,False,\"\",\"\",False",
+            "\"Standup\",03/24/2025,09:00 AM,03/24/2025,09:30 AM,False,\"\",\"\",False",
+            "\"Standup\",03/25/2025,09:00 AM,03/25/2025,09:30 AM,False,\"\",\"\",False",
+            "\"Standup\",03/26/2025,09:00 AM,03/26/2025,09:30 AM,False,\"\",\"\",False",
+            "\"Standup\",03/27/2025,09:00 AM,03/27/2025,09:30 AM,False,\"\",\"\",False"
+    );
+
+    assertEquals(expected.trim(), readExportedFile().trim());
+  }
+
   @Test
   public void testCreateAndExportSingleEvent() throws IOException {
     String[] commands = {

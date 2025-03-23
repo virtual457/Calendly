@@ -23,9 +23,6 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-import model.CalendarEvent;
-import model.CalendarModel;
 import model.ICalendarEventDTO;
 import model.ICalendarModel;
 import view.IView;
@@ -2227,7 +2224,7 @@ public class CalendarControllerTest {
     }
 
     @Override
-    public List<CalendarEvent> getEventsInRange(String calendarName, LocalDateTime fromDateTime, LocalDateTime toDateTime) {
+    public List<ICalendarEventDTO> getEventsInRange(String calendarName, LocalDateTime fromDateTime, LocalDateTime toDateTime) {
       return List.of();
     }
 

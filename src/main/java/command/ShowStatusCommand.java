@@ -3,7 +3,7 @@ package command;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Scanner;
-import model.CalendarEvent;
+import model.ICalendarEventDTO;
 import model.ICalendarModel;
 
 /**
@@ -31,7 +31,7 @@ public class ShowStatusCommand implements ICommand {
 
   @Override
   public String execute() {
-    List<CalendarEvent> events = model.getEventsInRange(calendarName, dateTime, dateTime);
+    List<ICalendarEventDTO> events = model.getEventsInRange(calendarName, dateTime, dateTime);
     return events.isEmpty() ? "Available" : "Busy";
   }
 }
