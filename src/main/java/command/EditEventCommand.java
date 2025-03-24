@@ -1,7 +1,7 @@
 package command;
 
 import java.time.LocalDateTime;
-import java.util.Scanner;
+import java.util.List;
 import model.ICalendarModel;
 
 /**
@@ -17,48 +17,60 @@ public class EditEventCommand implements ICommand {
   private final String newValue;
   private final boolean editAll;
 
-  public EditEventCommand(Scanner parts, ICalendarModel model, String currentCalendar) {
+  public EditEventCommand(List<String> parts, ICalendarModel model, String currentCalendar) {
     this.model = model;
     this.calendarName = currentCalendar;
 
-    if (!parts.hasNext()) {
-      throw new IllegalArgumentException("Missing 'property'.");
-    }
-    this.property = parts.next();
-
-    if (!parts.hasNext()) {
-      throw new IllegalArgumentException("Missing event name.");
-    }
-    this.eventName = parts.next();
-
-    if (parts.hasNext("from")) {
-      parts.next(); // consume "from"
-      if (!parts.hasNext()) {
-        throw new IllegalArgumentException("Missing 'from' datetime.");
-      }
-      this.fromDateTime = LocalDateTime.parse(parts.next());
+    if (parts.size() < 3) {
+      throw new IllegalArgumentException("Insufficient arguments for edit event command.");
     }
 
-    if (parts.hasNext("to")) {
-      parts.next();
-      if (!parts.hasNext()) {
-        throw new IllegalArgumentException("Missing 'to' datetime.");
+    this.property = parts.get(0);
+    this.eventName = parts.get(1);
+
+    int index = 2;
+    String fromValue = null;
+    String toValue = null;
+    String withValue = null;
+
+    while (index < parts.size()) {
+      String token = parts.get(index);
+
+      if (token.equals("from")) {
+        index++;
+        if (index >= parts.size()) {
+          throw new IllegalArgumentException("Missing 'from' datetime.");
+        }
+        fromValue = parts.get(index++);
+      } else if (token.equals("to")) {
+        index++;
+        if (index >= parts.size()) {
+          throw new IllegalArgumentException("Missing 'to' datetime.");
+        }
+        toValue = parts.get(index++);
+      } else if (token.equals("with")) {
+        index++;
+        if (index >= parts.size()) {
+          throw new IllegalArgumentException("Missing value after 'with'.");
+        }
+        withValue = parts.get(index++);
+      } else {
+        // Fallback for commands like: edit events name Meeting NewName
+        if (index == parts.size() - 1) {
+          withValue = parts.get(index);
+          index++;
+        } else {
+          throw new IllegalArgumentException("Unexpected token: '" + token + "'");
+        }
       }
-      this.toDateTime = LocalDateTime.parse(parts.next());
     }
 
-    if (parts.hasNext("with")) {
-      parts.next();
-      if (!parts.hasNext()) {
-        throw new IllegalArgumentException("Missing new value after 'with'.");
-      }
-      this.newValue = parts.next();
-    } else {
-      // fallback: assume last token is new value (e.g., edit events <property> <eventName> <newValue>)
-      if (!parts.hasNext()) {
-        throw new IllegalArgumentException("Missing new property value.");
-      }
-      this.newValue = parts.next();
+    this.fromDateTime = fromValue != null ? LocalDateTime.parse(fromValue) : null;
+    this.toDateTime = toValue != null ? LocalDateTime.parse(toValue) : null;
+    this.newValue = withValue;
+
+    if (this.newValue == null) {
+      throw new IllegalArgumentException("Missing new property value.");
     }
 
     this.editAll = this.fromDateTime == null || this.toDateTime == null;

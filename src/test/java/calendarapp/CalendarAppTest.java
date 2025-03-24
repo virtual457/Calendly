@@ -8,7 +8,6 @@ import org.junit.runners.Parameterized;
 
 
 import java.io.*;
-import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.DayOfWeek;
@@ -16,7 +15,6 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collection;
 
-import model.ICalendarModel;
 
 @RunWith(Parameterized.class)
 /**
@@ -28,7 +26,6 @@ import model.ICalendarModel;
  * different conditions.
  * </p>
  */
-
 public class CalendarAppTest {
 
   private static final String OUTPUT_FILE = "events.csv";
@@ -157,7 +154,7 @@ public class CalendarAppTest {
   }
 
   @Test
-  public void testUseCalendar_ValidName_ShouldSucceed() {
+  public void testUseCalendar_ValidName_ShouldSucceed2() {
     runAppWithCommands(new String[]{"create calendar --name MyCal --timezone America/New_York", "use calendar --name MyCal", "exit"});
     assertTrue(outContent.toString().contains("Using calendar: MyCal"));
   }
@@ -168,15 +165,305 @@ public class CalendarAppTest {
     assertTrue(outContent.toString().toLowerCase().contains("not found"));
   }
 
+  //
+  @Test
+  public void testCreateCalendar_MissingName_ShouldFail() {
+    String[] commands = {
+            "create calendar --timezone America/New_York",
+            "exit"
+    };
+    runAppWithCommands(commands);
+    assertTrue(outContent.toString().contains("Error Executing command: Usage: create calendar --name <name> --timezone <timezone>"));
+  }
+
+  @Test
+  public void testCreateCalendar_MissingTimezone_ShouldFail() {
+    String[] commands = {
+            "create calendar --name MyCal",
+            "exit"
+    };
+    runAppWithCommands(commands);
+    assertTrue(outContent.toString().contains("Error Executing command: Usage: create calendar --name <name> --timezone <timezone>"));
+  }
+
+
+  @Test
+  public void testUseCalendar_BeforeCreate_ShouldFail() {
+    String[] commands = {
+            "use calendar --name NotCreated",
+            "exit"
+    };
+    runAppWithCommands(commands);
+    assertTrue(outContent.toString().contains("Error: calendar not found"));
+  }
+
+  @Test
+  public void testCreateCalendar_CaseInsensitiveTimezone_ShouldFail() {
+    String[] commands = {
+            "create calendar --name TZCal --timezone america/new_york",
+            "exit"
+    };
+    runAppWithCommands(commands);
+    assertTrue(outContent.toString().contains("Error Executing command: Invalid timezone: america/new_york"));
+  }
+
+  @Test
+  public void testUseCalendar_ValidName_ShouldSucceed() {
+    String[] commands = {
+            "create calendar --name MyCal --timezone America/New_York",
+            "use calendar --name MyCal",
+            "exit"
+    };
+    runAppWithCommands(commands);
+    assertTrue(outContent.toString().contains("Using calendar: MyCal"));
+  }
+
+  @Test
+  public void testCreateCalendar_ExtraArgs_ShouldFail() {
+    String[] commands = {
+            "create calendar --name ExtraCal --timezone America/New_York extra",
+            "exit"
+    };
+    runAppWithCommands(commands);
+    assertTrue(outContent.toString().contains("Unrecognized extra arguments"));
+  }
+
+  @Test
+  public void testUseCalendar_ExtraArgs_ShouldFail() {
+    String[] commands = {
+            "create calendar --name MyCal --timezone America/New_York",
+            "use calendar --name MyCal extra",
+            "exit"
+    };
+    runAppWithCommands(commands);
+    assertTrue(outContent.toString().contains("Unrecognized extra arguments"));
+  }
+
+  @Test
+  public void testCreateCalendar_QuotedName_ShouldSucceed() {
+    String[] commands = {
+            "create calendar --name \"Work Calendar\" --timezone America/New_York",
+            "use calendar --name \"Work Calendar\"",
+            "exit"
+    };
+    runAppWithCommands(commands);
+    assertTrue(outContent.toString().contains("Using calendar: Work Calendar"));
+  }
+
+  @Test
+  public void testCreateCalendar_MixedCaseFlag_ShouldFail() {
+    String[] commands = {
+            "create calendar --Name WrongFlag --timezone America/New_York",
+            "exit"
+    };
+    runAppWithCommands(commands);
+    assertTrue(outContent.toString().contains("Expected --name flag."));
+  }
+
+  @Test
+  public void testCreateCalendar_MissingNameFlag_ShouldFail() {
+    String[] commands = {
+            "create calendar TestCal --timezone America/New_York",
+            "exit"
+    };
+    runAppWithCommands(commands);
+    assertTrue(outContent.toString().contains("Error Executing command: Usage: create calendar --name <name> --timezone <timezone>"));
+  }
+
+  @Test
+  public void testUseCalendar_MissingNameFlag_ShouldFail() {
+    String[] commands = {
+            "use calendar TestCal",
+            "exit"
+    };
+    runAppWithCommands(commands);
+    assertTrue(outContent.toString().contains("Expected usage: use calendar --name <calendarName>"));
+  }
+
+  @Test
+  public void testCreateCalendar_QuotedTimezone_ShouldSucceed() {
+    String[] commands = {
+            "create calendar --name TimeCal --timezone \"America/New_York\"",
+            "exit"
+    };
+    runAppWithCommands(commands);
+    assertTrue(outContent.toString().contains("Calendar created successfully"));
+  }
+
+  @Test
+  public void testCreateCalendar_IncompleteTimezone_ShouldFail() {
+    String[] commands = {
+            "create calendar --name IncompleteTZ --timezone America/",
+            "exit"
+    };
+    runAppWithCommands(commands);
+    assertTrue(outContent.toString().toLowerCase().contains("invalid timezone"));
+  }
+
+  @Test
+  public void testUseCalendar_CaseSensitiveName_ShouldFail() {
+    String[] commands = {
+            "create calendar --name MyCalendar --timezone America/New_York",
+            "use calendar --name mycalendar",
+            "exit"
+    };
+    runAppWithCommands(commands);
+    assertTrue(outContent.toString().contains("Error: calendar not found"));
+  }
+
+  @Test
+  public void testCreateAndUseMultipleCalendars_ShouldSucceed() {
+    String[] commands = {
+            "create calendar --name Cal1 --timezone America/New_York",
+            "create calendar --name Cal2 --timezone Asia/Kolkata",
+            "use calendar --name Cal2",
+            "exit"
+    };
+    runAppWithCommands(commands);
+    assertTrue(outContent.toString().contains("Using calendar: Cal2"));
+  }
+
+  @Test
+  public void testCreateCalendar_WithSpecialCharacters_ShouldSucceed() {
+    String[] commands = {
+            "create calendar --name \"Team@2025!\" --timezone America/New_York",
+            "use calendar --name \"Team@2025!\"",
+            "exit"
+    };
+    runAppWithCommands(commands);
+    assertTrue(outContent.toString().contains("Using calendar: Team@2025!"));
+  }
+
   //Test Create and export methods
+
+  @Test
+  public void testCreateSingleEvent_ShouldExportCorrectly() throws IOException {
+    String[] commands = {
+            "create calendar --name TestCal --timezone America/New_York",
+            "use calendar --name TestCal",
+            "create event Meeting from 2025-04-20T10:00 to 2025-04-20T11:00",
+            "export cal " + OUTPUT_FILE,
+            "exit"
+    };
+    runAppWithCommands(commands);
+
+    String expected = String.join("\n",
+            "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+            "\"Meeting\",04/20/2025,10:00 AM,04/20/2025,11:00 AM,False,\"\",\"\",False"
+    );
+
+    assertEquals(expected, readExportedFile());
+  }
+  @Test
+  public void testCreateSingleAllDayEvent_ShouldExportCorrectly() throws IOException {
+    String[] commands = {
+            "create calendar --name TestCal --timezone America/New_York",
+            "use calendar --name TestCal",
+            "create event Holiday on 2025-04-22",
+            "export cal " + OUTPUT_FILE,
+            "exit"
+    };
+    runAppWithCommands(commands);
+
+    String expected = String.join("\n",
+            "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+            "\"Holiday\",04/22/2025,,04/22/2025,,True,\"\",\"\",False"
+    );
+
+            assertEquals(expected, readExportedFile());
+  }
+
+  @Test
+  public void testCreateRecurringAllDayEventWithUntil_ShouldExportCorrectly() throws IOException {
+    String[] commands = {
+            "create calendar --name AllDayUntilCal --timezone America/New_York",
+            "use calendar --name AllDayUntilCal",
+            "create event Seminar on 2025-04-24 repeats FR until 2025-05-03",
+            "export cal " + OUTPUT_FILE,
+            "exit"
+    };
+    runAppWithCommands(commands);
+
+    String expectedStart = "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private";
+    String[] dates = {"04/24/2025", "04/25/2025", "05/01/2025", "05/02/2025"};
+    StringBuilder builder = new StringBuilder(expectedStart);
+    for (String date : dates) {
+      builder.append("\n\"Seminar\"," + date + ",," + date + ",,True,\"\",\"\",False");
+    }
+
+    assertEquals(builder.toString(), readExportedFile());
+  }
+
+  @Test
+  public void testCreateRecurringTimedEventWithUntil_ShouldExportCorrectly() throws IOException {
+    String[] commands = {
+            "create calendar --name UntilCal --timezone America/New_York",
+            "use calendar --name UntilCal",
+            "create event Sync from 2025-04-22T09:00 to 2025-04-22T10:00 repeats TR until 2025-05-01",
+            "export cal " + OUTPUT_FILE,
+            "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    String expected = String.join("\n",
+            "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+            "\"Sync\",04/22/2025,09:00 AM,04/22/2025,10:00 AM,False,\"\",\"\",False",
+            "\"Sync\",04/24/2025,09:00 AM,04/24/2025,10:00 AM,False,\"\",\"\",False",
+            "\"Sync\",04/29/2025,09:00 AM,04/29/2025,10:00 AM,False,\"\",\"\",False",
+            "\"Sync\",05/01/2025,09:00 AM,05/01/2025,10:00 AM,False,\"\",\"\",False"
+    );
+
+    assertEquals(expected, readExportedFile());
+  }
+
+  @Test
+  public void testCreateSingleAllDayEventWithAutoDecline_ShouldExportCorrectly() throws IOException {
+    String[] commands = {
+            "create calendar --name AutoDeclineCal --timezone America/New_York",
+            "use calendar --name AutoDeclineCal",
+            "create event --autoDecline Conference on 2025-05-05",
+            "export cal " + OUTPUT_FILE,
+            "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    String expected = String.join("\n",
+            "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+            "\"Conference\",05/05/2025,,05/05/2025,,True,\"\",\"\",False"
+    );
+
+    assertEquals(expected, readExportedFile());
+  }
+
+  @Test
+  public void testCreateRecurringAllDayEventWithCount_ShouldExportCorrectly() throws IOException {
+    String[] commands = {
+            "create calendar --name AllDayCountCal --timezone America/New_York",
+            "use calendar --name AllDayCountCal",
+            "create event Holiday on 2025-04-26 repeats SU for 2 times",
+            "export cal " + OUTPUT_FILE,
+            "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    String expected = String.join("\n",
+            "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+            "\"Holiday\",04/26/2025,,04/26/2025,,True,\"\",\"\",False",
+            "\"Holiday\",04/27/2025,,04/27/2025,,True,\"\",\"\",False"
+    );
+
+    assertEquals(expected, readExportedFile());
+  }
 
   @Test
   public void testCreateAndExportRecurringInstancesFor2Times() throws IOException {
     String[] commands = {
             "create calendar --name MyCal --timezone America/New_York",
             "use calendar --name MyCal",
-            "create event Standup from 2025-03-21T09:00 to 2025-03-21T09:30 repeats MTWRF for 2 " +
-                    "times",
+            "create event Standup from 2025-03-21T09:00 to 2025-03-21T09:30 repeats MTWRF for 2 times",
             "export cal " + OUTPUT_FILE,
             "exit"
     };
@@ -189,8 +476,9 @@ public class CalendarAppTest {
             "\"Standup\",03/24/2025,09:00 AM,03/24/2025,09:30 AM,False,\"\",\"\",False"
     );
 
-    assertEquals(expected.trim(), readExportedFile().trim());
+    assertEquals(expected, readExportedFile());
   }
+
 
   @Test
   public void testExportRecurringEventWithFiveOccurrences() throws IOException {
@@ -214,262 +502,99 @@ public class CalendarAppTest {
             "\"Standup\",03/27/2025,09:00 AM,03/27/2025,09:30 AM,False,\"\",\"\",False"
     );
 
-    assertEquals(expected.trim(), readExportedFile().trim());
+    assertEquals(expected, readExportedFile());
   }
 
   @Test
-  public void testCreateAndExportSingleEvent() throws IOException {
+  public void testCreateRecurringTimedEventWithUntil_ShouldExportCorrectly2() throws IOException {
     String[] commands = {
             "create calendar --name MyCal --timezone America/New_York",
             "use calendar --name MyCal",
-            "create event Standup from 2025-03-21T09:00 to 2025-03-21T09:30 repeats MTWRF "
-                    + "for 10 times",
+            "create event Standup from 2025-03-21T09:00 to 2025-03-21T09:30 repeats MTWRF for 10 times",
             "export cal " + OUTPUT_FILE,
             "exit"
     };
+
     runAppWithCommands(commands);
-    assertEquals("Subject,Start Date,Start Time,End Date,End Time,All Day Event,"
-                    + "Description,Location,Private\n" +
-                    "\"Meeting\",04/10/2025,10:00 AM,04/10/2025,11:00 AM,False,\"\",\"\",False",
-            readExportedFile());
+
+    String expected = String.join("\n",
+            "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+            "\"Standup\",03/21/2025,09:00 AM,03/21/2025,09:30 AM,False,\"\",\"\",False",
+            "\"Standup\",03/24/2025,09:00 AM,03/24/2025,09:30 AM,False,\"\",\"\",False",
+            "\"Standup\",03/25/2025,09:00 AM,03/25/2025,09:30 AM,False,\"\",\"\",False",
+            "\"Standup\",03/26/2025,09:00 AM,03/26/2025,09:30 AM,False,\"\",\"\",False",
+            "\"Standup\",03/27/2025,09:00 AM,03/27/2025,09:30 AM,False,\"\",\"\",False",
+            "\"Standup\",03/28/2025,09:00 AM,03/28/2025,09:30 AM,False,\"\",\"\",False",
+            "\"Standup\",03/31/2025,09:00 AM,03/31/2025,09:30 AM,False,\"\",\"\",False",
+            "\"Standup\",04/01/2025,09:00 AM,04/01/2025,09:30 AM,False,\"\",\"\",False",
+            "\"Standup\",04/02/2025,09:00 AM,04/02/2025,09:30 AM,False,\"\",\"\",False",
+            "\"Standup\",04/03/2025,09:00 AM,04/03/2025,09:30 AM,False,\"\",\"\",False"
+    );
+
+    assertEquals(expected, readExportedFile());
   }
 
+  //tests for edit functionality
 
   @Test
-  public void testCreateSingleEvent() throws IOException {
+  public void testEditSpecificEventPropertyAndExport() throws IOException {
     String[] commands = {
-            "create event Meeting from 2025-03-20T10:00 to 2025-03-20T11:00",
-            "print events on 2025-03-20",
-            "exit"
-    };
-    runAppWithCommands(commands);
-    assertTrue(outContent.toString().contains("Event created successfully."));
-    assertTrue(outContent.toString().contains("Meeting: 2025-03-20T10:00 to 2025-03-20T11:00"));
-  }
-
-  @Test
-  public void testCreateRecurringEvent() throws IOException {
-    String[] commands = {
-            "create event Standup from 2025-03-21T09:00 to 2025-03-21T09:30 repeats MTWRF "
-                    + "for 10 times",
-            "print events on 2025-03-21",
-            "exit"
-    };
-    runAppWithCommands(commands);
-    assertTrue(outContent.toString().contains("Event created successfully."));
-    assertTrue(outContent.toString().contains("Standup: 2025-03-21T09:00 to 2025-03-21T09:30"));
-  }
-
-  @Test
-  public void testCreateRecurringEventUntil() throws IOException {
-    String[] commands = {
-            "create event Yoga from 2025-03-21T07:00 to 2025-03-21T08:00 repeats MW "
-                    + "until 2025-04-21T09:30",
-            "print events on 2025-03-24",
-            "exit"
-    };
-    runAppWithCommands(commands);
-    assertTrue(outContent.toString().contains("Event created successfully."));
-    assertTrue(outContent.toString().contains("Yoga: 2025-03-24T07:00 to 2025-03-24T08:00"));
-  }
-
-  @Test
-  public void testCreateAllDayEvent() throws IOException {
-    String[] commands = {
-            "create event Conference on 2025-03-25",
-            "print events on 2025-03-25",
-            "exit"
-    };
-    runAppWithCommands(commands);
-    assertTrue(outContent.toString().contains("Event created successfully."));
-    assertTrue(outContent.toString().contains("Conference: 2025-03-25T00:00 to "
-            + "2025-03-25T23:59:59"));
-  }
-
-  @Test
-  public void testCreateRecurringAllDayEvent() throws IOException {
-    String[] commands = {
-            "create event Holiday on 2025-03-20 repeats SU for 5 times",
-            "print events on 2025-03-23",
-            "exit"
-    };
-    runAppWithCommands(commands);
-    assertTrue(outContent.toString().contains("Event created successfully."
-    ));
-    assertTrue(outContent.toString().contains("Holiday: 2025-03-23T00:00 to "
-            + "2025-03-23T23:59:59"));
-  }
-
-  @Test
-  public void testCreateRecurringAllDayEvent2() throws IOException {
-    String[] commands = {
-            "create event Holiday on 2025-03-20 repeats SU for 5 times",
-            "print events on 2025-03-20",
-            "exit"
-    };
-    runAppWithCommands(commands);
-    assertTrue(outContent.toString().contains("Event created successfully."));
-    if (LocalDate.of(2025, 3, 20).getDayOfWeek() == DayOfWeek.SUNDAY) {
-      assertTrue(outContent.toString().contains("Holiday: 2025-03-20T00:00 to"
-              + " 2025-03-20T23:59:59"));
-    } else {
-      assertFalse(outContent.toString().contains("Holiday: 2025-03-20T00:00 to "
-              + "2025-03-20T23:59:59"));
-    }
-  }
-
-  @Test
-  public void testCreateAndExportSingleEvent2() throws IOException {
-    String[] commands = {
-            "create event Meeting from 2025-04-10T10:00 to 2025-04-10T11:00",
-            "export cal " + OUTPUT_FILE,
-            "exit"
-    };
-    runAppWithCommands(commands);
-    assertEquals("Subject,Start Date,Start Time,End Date,End Time,All Day Event,"
-                    + "Description,Location,Private\n"
-                    + "\"Meeting\",04/10/2025,10:00 AM,04/10/2025,11:00 AM,False,\"\",\"\",False",
-            readExportedFile());
-  }
-
-  @Test
-  public void testCreatePrivateEventAndExport() throws IOException {
-    String[] commands = {
-            "create event OneOnOne from 2025-04-11T14:00 to 2025-04-11T14:30 -private",
-            "export cal " + OUTPUT_FILE,
-            "exit"
-    };
-    runAppWithCommands(commands);
-    assertEquals("Subject,Start Date,Start Time,End Date,End Time," +
-                    "All Day Event,Description,Location,Private\n" +
-                    "\"OneOnOne\",04/11/2025,02:00 PM,04/11/2025,02:30 PM,False,\"\",\"\",True",
-            readExportedFile());
-  }
-
-  @Test
-  public void testCreateRecurringEventAndExport() throws IOException {
-    String[] commands = {
-            "create event Workout from 2025-04-15T07:00 to 2025-04-15T08:00 repeats MW for 2 times",
-            "export cal " + OUTPUT_FILE,
-            "exit"
-    };
-    runAppWithCommands(commands);
-    assertEquals("Subject,Start Date,Start Time,End Date,End Time," +
-                    "All Day Event,Description,Location,Private\n" +
-                    "\"Workout\",04/16/2025,07:00 AM,04/16/2025,08:00 AM,False,\"\",\"\",False\n"
-                    + "\"Workout\",04/21/2025,07:00 AM,04/21/2025,08:00 AM,False,\"\",\"\",False",
-            readExportedFile());
-  }
-
-  @Test
-  public void testEditEventName() throws IOException {
-    String[] commands = {
-            "create event Meeting from 2025-04-10T10:00 to 2025-04-10T11:00",
-            "edit event name Meeting from 2025-04-10T10:00 to 2025-04-10T11:00 "
-                    + "with UpdatedMeeting",
-            "export cal " + OUTPUT_FILE,
-            "exit"
-    };
-    runAppWithCommands(commands);
-    assertEquals("Subject,Start Date,Start Time,End Date,End Time,All Day Event,"
-                    + "Description,Location,Private\n" +
-                    "\"UpdatedMeeting\",04/10/2025,10:00 AM,04/10/2025,11:00 AM,False,\"\",\"\",False",
-            readExportedFile());
-  }
-
-  @Test
-  public void testEditEventTime() throws IOException {
-    String[] commands = {
-            "create event Meeting from 2025-04-10T10:00 to 2025-04-10T11:00",
-            "edit event start Meeting from 2025-04-10T10:00 to 2025-04-10T11:00 with"
-                    + " 2025-04-10T09:30",
-            "edit event end Meeting from 2025-04-10T09:30 to 2025-04-10T11:00 with "
-                    + "2025-04-10T10:30",
-            "export cal " + OUTPUT_FILE,
-            "exit"
-    };
-    runAppWithCommands(commands);
-    assertEquals("Subject,Start Date,Start Time,End Date,End Time,All Day Event,"
-                    + "Description,Location,Private\n" +
-                    "\"Meeting\",04/10/2025,09:30 AM,04/10/2025,10:30 AM,False,\"\",\"\",False",
-            readExportedFile());
-  }
-
-  @Test
-  public void testEditEventDescription() throws IOException {
-    String[] commands = {
-            "create event Workshop from 2025-04-15T14:00 to 2025-04-15T16:00",
-            "edit event description Workshop from 2025-04-15T14:00 to " +
-                    "2025-04-15T16:00 with TechnicalTraining",
-            "export cal " + OUTPUT_FILE,
-            "exit"
-    };
-    runAppWithCommands(commands);
-    assertEquals("Subject,Start Date,Start Time,End Date,End Time,All Day Event,"
-            + "Description,Location,Private\n" +
-            "\"Workshop\",04/15/2025,02:00 PM,04/15/2025,04:00 PM,False," +
-            "\"TechnicalTraining\",\"\",False", readExportedFile());
-  }
-
-  @Test
-  public void testEditEventLocation() throws IOException {
-    String[] commands = {
-            "create event Workshop from 2025-04-15T14:00 to 2025-04-15T16:00",
-            "edit event location Workshop from 2025-04-15T14:00 to 2025-04-15T16:00 with RoomA",
-            "export cal " + OUTPUT_FILE,
-            "exit"
-    };
-    runAppWithCommands(commands);
-    assertEquals("Subject,Start Date,Start Time,End Date,End Time,All Day Event,"
-                    + "Description,Location,Private\n" +
-                    "\"Workshop\",04/15/2025,02:00 PM,04/15/2025,04:00 PM,False,\"\",\"RoomA\",False",
-            readExportedFile());
-  }
-
-  @Test
-  public void testPrintEventsOnSpecificDate() throws IOException {
-    String[] commands = {
+            "create calendar --name TestCal --timezone America/New_York",
+            "use calendar --name TestCal",
             "create event Meeting from 2025-05-01T10:00 to 2025-05-01T11:00",
-            "print events on 2025-05-01",
-            "exit"
+            "edit event name Meeting from 2025-05-01T10:00 to 2025-05-01T11:00 with TeamSync",
+            "export cal " + OUTPUT_FILE
     };
     runAppWithCommands(commands);
-    assertTrue(outContent.toString().contains("Meeting: 2025-05-01T10:00 to 2025-05-01T11:00"));
+
+    String expected = String.join("\n",
+            "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+            "\"TeamSync\",05/01/2025,10:00 AM,05/01/2025,11:00 AM,False,\"\",\"\",False"
+    );
+
+    assertEquals(expected, readExportedFile());
   }
 
   @Test
-  public void testPrintEventsInRange() throws IOException {
+  public void testCreateTimedEventWithAutoDecline_ShouldExportCorrectly() throws IOException {
     String[] commands = {
-            "create event Workshop from 2025-05-01T14:00 to 2025-05-01T16:00",
-            "create event Seminar from 2025-05-02T09:00 to 2025-05-02T11:00",
-            "print events from 2025-05-01T12:00 to 2025-05-02T12:00",
-            "exit"
-    };
-    runAppWithCommands(commands);
-    assertTrue(outContent.toString().contains("Workshop: 2025-05-01T14:00 to 2025-05-01T16:00"));
-    assertTrue(outContent.toString().contains("Seminar: 2025-05-02T09:00 to 2025-05-02T11:00"));
-  }
-
-  @Test
-  public void testExportCalendar() throws IOException {
-    String[] commands = {
-            "create event Conference from 2025-06-10T09:00 to 2025-06-10T17:00",
+            "create calendar --name AutoDeclineTimed --timezone America/New_York",
+            "use calendar --name AutoDeclineTimed",
+            "create event --autoDecline Review from 2025-05-10T13:00 to 2025-05-10T14:00",
             "export cal " + OUTPUT_FILE,
             "exit"
     };
+
     runAppWithCommands(commands);
-    assertTrue(Files.exists(Paths.get(OUTPUT_FILE)));
+
+    String expected = String.join("\n",
+            "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+            "\"Review\",05/10/2025,01:00 PM,05/10/2025,02:00 PM,False,\"\",\"\",False"
+    );
+
+    assertEquals(expected, readExportedFile());
   }
 
   @Test
-  public void testShowStatus() throws IOException {
+  public void testCreateRecurringTimedEventWithAutoDecline_ShouldExportCorrectly() throws IOException {
     String[] commands = {
-            "create event Lunch from 2025-07-15T12:00 to 2025-07-15T13:00",
-            "show status on 2025-07-15T12:30",
+            "create calendar --name AutoRecurring --timezone America/New_York",
+            "use calendar --name AutoRecurring",
+            "create event --autoDecline CheckIn from 2025-06-01T09:00 to 2025-06-01T09:30 repeats MT for 2 times",
+            "export cal " + OUTPUT_FILE,
             "exit"
     };
+
     runAppWithCommands(commands);
-    assertTrue(outContent.toString().contains("Busy"));
+
+    String expected = String.join("\n",
+            "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+            "\"CheckIn\",06/03/2025,09:00 AM,06/03/2025,09:30 AM,False,\"\",\"\",False",
+            "\"CheckIn\",06/04/2025,09:00 AM,06/04/2025,09:30 AM,False,\"\",\"\",False"
+    );
+
+    assertEquals(expected, readExportedFile());
   }
+
 
 }
