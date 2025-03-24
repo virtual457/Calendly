@@ -352,15 +352,28 @@ public class CalendarModel implements ICalendarModel {
 
   // Validates properties specific to recurring events.
   private void validateRecurringEvent(ICalendarEventDTO eventDTO) {
+    // Ensure the event's start and end occur on the same day.
     if (!eventDTO.getStartDateTime().toLocalDate().equals(eventDTO.getEndDateTime().toLocalDate())) {
       throw new IllegalArgumentException("Recurring events must have start and end on the same day.");
     }
-    if (eventDTO.getRecurrenceCount() > 0 && eventDTO.getRecurrenceEndDate() != null) {
-      throw new IllegalArgumentException("Cannot define both recurrence count and recurrence end date for a recurring event.");
-    }
-    if (eventDTO.getRecurrenceCount() <= 0 && eventDTO.getRecurrenceEndDate() == null) {
+
+    // Retrieve recurrence count and recurrence end date.
+    Integer recCount = eventDTO.getRecurrenceCount();
+    LocalDateTime recEndDate = eventDTO.getRecurrenceEndDate();
+
+    // Either recurrence count or recurrence end date must be defined, but not both.
+    if (recCount == null && recEndDate == null) {
       throw new IllegalArgumentException("Either recurrence count or recurrence end date must be defined for a recurring event.");
     }
+    if (recCount != null && recEndDate != null) {
+      throw new IllegalArgumentException("Cannot define both recurrence count and recurrence end date for a recurring event.");
+    }
+    // If recurrence count is provided, it must be greater than 0.
+    if (recCount != null && recCount <= 0) {
+      throw new IllegalArgumentException("Recurrence count must be greater than 0.");
+    }
+
+    // Recurrence days must be provided.
     if (eventDTO.getRecurrenceDays() == null) {
       throw new IllegalArgumentException("Recurrence days must be provided for recurring events.");
     }
@@ -369,10 +382,11 @@ public class CalendarModel implements ICalendarModel {
   // Helper method for non-recurring event validation.
   private void validateNonRecurringEvent(ICalendarEventDTO eventDTO) {
     Integer recCount = eventDTO.getRecurrenceCount();
-    if (eventDTO.getRecurrenceCount() > 0 || eventDTO.getRecurrenceEndDate() != null) {
+    if ((recCount != null && recCount > 0) || eventDTO.getRecurrenceEndDate() != null) {
       throw new IllegalArgumentException("Non-recurring event should not have recurrence count or recurrence end date.");
     }
   }
+
 
   // Generates recurring event occurrences based on the eventDTO.
   private List<CalendarEvent> generateRecurringOccurrences(ICalendarEventDTO eventDTO) {
