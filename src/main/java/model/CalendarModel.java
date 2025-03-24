@@ -166,14 +166,15 @@ public class CalendarModel implements ICalendarModel {
         if (date == null) {
           return true;
         }
-        // If a date is provided, check if at least one event occurs on that date.
+        // If a date is provided, check if there are any events on that date.
+        // If at least one event exists, the calendar is busy (not available).
         for (CalendarEvent event : cal.getEvents()) {
           if (event.getStartDateTime().toLocalDate().equals(date)) {
-            return true;
+            return false; // busy, not available
           }
         }
-        // Calendar exists but no events on the given date.
-        return false;
+        // No events on the given date, so the calendar is available (free).
+        return true;
       }
     }
     // No calendar with the given name exists.
@@ -402,7 +403,7 @@ public class CalendarModel implements ICalendarModel {
 
     // Loop until termination condition (by count or recurrence end date) is met.
     while (true) {
-      if (eventDTO.getRecurrenceCount() > 0) {
+      if (eventDTO.getRecurrenceCount() != null && eventDTO.getRecurrenceCount() > 0) {
         if (count >= eventDTO.getRecurrenceCount()) break;
       } else if (recurrenceEnd != null) {
         if (currentDate.isAfter(recurrenceEnd)) break;
@@ -459,6 +460,8 @@ public class CalendarModel implements ICalendarModel {
             .setEventName(event.getEventName())
             .setStartDateTime(event.getStartDateTime())
             .setEndDateTime(event.getEndDateTime())
+            .setEventLocation(event.getEventLocation())
+            .setEventDescription(event.getEventDescription())
             .setAutoDecline(true)
             .build();
   }
