@@ -2,7 +2,8 @@ package command;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Scanner;
+import java.util.List;
+import model.ICalendarEventDTO;
 import model.ICalendarModel;
 
 /**
@@ -15,45 +16,55 @@ public class PrintEventsCommand implements ICommand {
   private final LocalDateTime toDateTime;
   private final boolean isRange;
 
-  public PrintEventsCommand(Scanner parts, ICalendarModel model, String currentCalendar) {
+  public PrintEventsCommand(List<String> parts, ICalendarModel model, String currentCalendar) {
     this.model = model;
     this.calendarName = currentCalendar;
 
-    if (parts.hasNext("on")) {
-      parts.next(); // Consume "on"
-      if (!parts.hasNext()) {
-        throw new IllegalArgumentException("Missing date.");
+    if (parts.size() < 2) {
+      throw new IllegalArgumentException("Expected 'on <date>' or 'from <datetime> to <datetime>' after print events.");
+    }
+
+    if (parts.get(0).equals("on")) {
+      if (parts.size() != 2) {
+        throw new IllegalArgumentException("Invalid format. Expected: print events on <date>");
       }
-      LocalDate date = LocalDate.parse(parts.next());
+      LocalDate date = LocalDate.parse(parts.get(1));
       this.fromDateTime = date.atStartOfDay();
       this.toDateTime = date.atTime(23, 59, 59);
       this.isRange = false;
-    } else if (parts.hasNext("from")) {
-      parts.next(); // Consume "from"
-      if (!parts.hasNext()) {
-        throw new IllegalArgumentException("Missing start date and time.");
+    } else if (parts.get(0).equals("from")) {
+      if (parts.size() != 4 || !parts.get(2).equals("to")) {
+        throw new IllegalArgumentException("Invalid format. Expected: print events from <datetime> to <datetime>");
       }
-      this.fromDateTime = LocalDateTime.parse(parts.next());
-      if (!parts.hasNext("to")) {
-        throw new IllegalArgumentException("Missing 'to' keyword.");
-      }
-      parts.next(); // Consume "to"
-      if (!parts.hasNext()) {
-        throw new IllegalArgumentException("Missing end date and time.");
-      }
-      this.toDateTime = LocalDateTime.parse(parts.next());
+      this.fromDateTime = LocalDateTime.parse(parts.get(1));
+      this.toDateTime = LocalDateTime.parse(parts.get(3));
       this.isRange = true;
     } else {
-      throw new IllegalArgumentException("Invalid print command format.");
+      throw new IllegalArgumentException("Expected 'on' or 'from' at start of print events command.");
     }
   }
 
   @Override
   public String execute() {
-    if (isRange) {
-      return model.getEventsInRange(calendarName, fromDateTime, toDateTime).toString();
-    } else {
-      return model.getEventsInRange(calendarName, fromDateTime, toDateTime).toString();
+    List<ICalendarEventDTO> events = model.getEventsInRange(calendarName, fromDateTime, toDateTime);
+    if (events.isEmpty()) {
+      return "No events found.";
     }
+
+    StringBuilder sb = new StringBuilder();
+    for (ICalendarEventDTO event : events) {
+      sb.append("- ")
+              .append(event.getEventName())
+              .append(" [")
+              .append(event.getStartDateTime())
+              .append(" to ")
+              .append(event.getEndDateTime())
+              .append("]");
+      if (event.getEventLocation() != null && !event.getEventLocation().isEmpty()) {
+        sb.append(" at ").append(event.getEventLocation());
+      }
+      sb.append(System.lineSeparator());
+    }
+    return sb.toString().trim();
   }
 }

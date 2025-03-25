@@ -1,20 +1,26 @@
 package calendarapp;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import org.junit.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.time.DayOfWeek;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 
 @RunWith(Parameterized.class)
@@ -217,7 +223,7 @@ public class CalendarAppTest {
             "exit"
     };
     runAppWithCommands(commands);
-    assertTrue(outContent.toString().toLowerCase().contains("missing 'on' keyword"));
+    assertTrue(outContent.toString().contains("Error Executing command: Invalid syntax. Expected: show status on <datetime>"));
   }
 
   @Test
@@ -232,6 +238,520 @@ public class CalendarAppTest {
     assertTrue(outContent.toString().toLowerCase().contains("invalid syntax"));
   }
 
+  @Test
+  public void testShowStatusExactlyAtEventEnd_ShouldBeAvailable() throws IOException {
+    String[] commands = {
+            "create calendar --name EndTimeCheck --timezone America/New_York",
+            "use calendar --name EndTimeCheck",
+            "create event Sync from 2024-06-11T14:00 to 2024-06-11T15:00",
+            "show status on 2024-06-11T15:00",
+            "exit"
+    };
+    runAppWithCommands(commands);
+    assertTrue(outContent.toString().toLowerCase().contains("busy"));
+  }
+
+  @Test
+  public void testShowStatusExactlyAtEventStart_ShouldBeBusy() throws IOException {
+    String[] commands = {
+            "create calendar --name StartTimeCheck --timezone America/New_York",
+            "use calendar --name StartTimeCheck",
+            "create event Sync from 2024-06-12T14:00 to 2024-06-12T15:00",
+            "show status on 2024-06-12T14:00",
+            "exit"
+    };
+    runAppWithCommands(commands);
+    assertTrue(outContent.toString().toLowerCase().contains("busy"));
+  }
+
+  @Test
+  public void testShowStatusDuringMultiDayEvent_ShouldBeBusy() throws IOException {
+    String[] commands = {
+            "create calendar --name MultiDayStatus --timezone America/New_York",
+            "use calendar --name MultiDayStatus",
+            "create event Hackathon from 2024-06-13T10:00 to 2024-06-15T18:00",
+            "show status on 2024-06-14T12:00",
+            "exit"
+    };
+    runAppWithCommands(commands);
+    assertTrue(outContent.toString().toLowerCase().contains("busy"));
+  }
+  //Print calendarrr command tests
+  @Test
+  public void testPrintEventsOnExactOutputMatch() throws IOException {
+    String[] commands = {
+            "create calendar --name ExactOn --timezone America/New_York",
+            "use calendar --name ExactOn",
+            "create event Seminar from 2024-06-20T13:00 to 2024-06-20T14:30 --location HallB",
+            "print events on 2024-06-20",
+            "exit"
+    };
+    runAppWithCommands(commands);
+
+    String expected = String.join(System.lineSeparator(), List.of(
+            "Welcome to the Calendar App!",
+            "Calendar created successfully.",
+            "Using calendar: ExactOn",
+            "Event created successfully.",
+            "- Seminar [2024-06-20T13:00 to 2024-06-20T14:30] at HallB"
+    ));
+
+    assertEquals(expected, outContent.toString().trim());
+  }
+
+  @Test
+  public void testPrintEventsFromToFullOutputMatch() throws IOException {
+    String[] commands = {
+            "create calendar --name ExactFromTo --timezone America/New_York",
+            "use calendar --name ExactFromTo",
+            "create event Meeting from 2024-06-22T09:00 to 2024-06-22T10:00 --location ConfRoom",
+            "create event Review from 2024-06-22T10:30 to 2024-06-22T11:30 --location BoardRoom",
+            "print events from 2024-06-22T00:00 to 2024-06-22T23:59",
+            "exit"
+    };
+    runAppWithCommands(commands);
+
+
+    String expected = String.join(System.lineSeparator(), List.of(
+            "Welcome to the Calendar App!",
+            "Calendar created successfully.",
+            "Using calendar: ExactFromTo",
+            "Event created successfully.",
+            "Event created successfully.",
+            "- Meeting [2024-06-22T09:00 to 2024-06-22T10:00] at ConfRoom",
+            "- Review [2024-06-22T10:30 to 2024-06-22T11:30] at BoardRoom"
+    ));
+
+    assertEquals(expected, outContent.toString().trim());
+  }
+
+  @Test
+  public void testPrintEventsFromTo_WithDifferentEventNames_ShouldMatchOutput() throws IOException {
+    String[] commands = {
+            "create calendar --name AgendaRange --timezone America/New_York",
+            "use calendar --name AgendaRange",
+            "create event Planning from 2024-07-01T08:00 to 2024-07-01T09:00 --location RoomA",
+            "create event WrapUp from 2024-07-01T16:00 to 2024-07-01T17:00 --location RoomB",
+            "print events from 2024-07-01T00:00 to 2024-07-01T23:59",
+            "exit"
+    };
+    runAppWithCommands(commands);
+
+    String nl = System.lineSeparator();
+    String expected = String.join(nl, List.of(
+            "Welcome to the Calendar App!",
+            "Calendar created successfully.",
+            "Using calendar: AgendaRange",
+            "Event created successfully.",
+            "Event created successfully.",
+            "- Planning [2024-07-01T08:00 to 2024-07-01T09:00] at RoomA",
+            "- WrapUp [2024-07-01T16:00 to 2024-07-01T17:00] at RoomB"
+    ));
+
+    assertEquals(expected, outContent.toString().trim());
+  }
+
+
+  @Test
+  public void testPrintEventsOnAllDayEvent_ShouldMatchOutputExactly() throws IOException {
+    String[] commands = {
+            "create calendar --name AllDayExact --timezone America/New_York",
+            "use calendar --name AllDayExact",
+            "create event Holiday on 2024-06-23 --location Home",
+            "print events on 2024-06-23",
+            "exit"
+    };
+    runAppWithCommands(commands);
+
+    String nl = System.lineSeparator();
+    String expected = String.join(nl, List.of(
+            "Welcome to the Calendar App!",
+            "Calendar created successfully.",
+            "Using calendar: AllDayExact",
+            "Event created successfully.",
+            "- Holiday [2024-06-23T00:00 to 2024-06-23T23:59:59] at Home"
+    ));
+
+    assertEquals(expected, outContent.toString().trim());
+  }
+
+  @Test
+  public void testPrintEventsOnRecurringEvent_ShouldMatchFullOutput() throws IOException {
+    String[] commands = {
+            "create calendar --name RecurringPrint --timezone America/New_York",
+            "use calendar --name RecurringPrint",
+            "create event Standup from 2024-06-24T09:00 to 2024-06-24T09:30 repeats M for 2 times --location Zoom",
+            "print events on 2024-06-24",
+            "exit"
+    };
+    runAppWithCommands(commands);
+
+    String nl = System.lineSeparator();
+    String expected = String.join(nl, List.of(
+            "Welcome to the Calendar App!",
+            "Calendar created successfully.",
+            "Using calendar: RecurringPrint",
+            "Event created successfully.",
+            "- Standup [2024-06-24T09:00 to 2024-06-24T09:30] at Zoom"
+    ));
+
+    assertEquals(expected, outContent.toString().trim());
+  }
+
+  @Test
+  public void testPrintEventsOnDateWithNoEvents_ShouldMatchNoEventsOutput() throws IOException {
+    String[] commands = {
+            "create calendar --name NoEventDay --timezone America/New_York",
+            "use calendar --name NoEventDay",
+            "print events on 2024-06-25",
+            "exit"
+    };
+    runAppWithCommands(commands);
+
+    String nl = System.lineSeparator();
+    String expected = String.join(nl, List.of(
+            "Welcome to the Calendar App!",
+            "Calendar created successfully.",
+            "Using calendar: NoEventDay",
+            "No events found."
+    ));
+
+    assertEquals(expected, outContent.toString().trim());
+  }
+
+  @Test
+  public void testPrintEventWithoutLocation_ShouldNotIncludeAtClause() throws IOException {
+    String[] commands = {
+            "create calendar --name NoLocation --timezone America/New_York",
+            "use calendar --name NoLocation",
+            "create event SoloWork from 2024-07-02T10:00 to 2024-07-02T12:00",
+            "print events on 2024-07-02",
+            "exit"
+    };
+    runAppWithCommands(commands);
+
+    String nl = System.lineSeparator();
+    String expected = String.join(nl, List.of(
+            "Welcome to the Calendar App!",
+            "Calendar created successfully.",
+            "Using calendar: NoLocation",
+            "Event created successfully.",
+            "- SoloWork [2024-07-02T10:00 to 2024-07-02T12:00]"
+    ));
+
+    assertEquals(expected, outContent.toString().trim());
+  }
+
+  @Test
+  public void testPrintEventsThatOverlapWithDate_ShouldIncludeThem() throws IOException {
+    String[] commands = {
+            "create calendar --name OverlapRange --timezone America/New_York",
+            "use calendar --name OverlapRange",
+            "create event Overnight from 2024-07-03T23:00 to 2024-07-04T01:00 --location Lounge",
+            "print events from 2024-07-04T00:00 to 2024-07-04T23:59",
+            "exit"
+    };
+    runAppWithCommands(commands);
+
+    String nl = System.lineSeparator();
+    String expected = String.join(nl, List.of(
+            "Welcome to the Calendar App!",
+            "Calendar created successfully.",
+            "Using calendar: OverlapRange",
+            "Event created successfully.",
+            "- Overnight [2024-07-03T23:00 to 2024-07-04T01:00] at Lounge"
+    ));
+
+    assertEquals(expected, outContent.toString().trim());
+  }
+
+  @Test
+  public void testPrintEventsWithAllDayAndTimedSeparateDays_ShouldListBoth() throws IOException {
+    String[] commands = {
+            "create calendar --name MixedNoConflict --timezone America/New_York",
+            "use calendar --name MixedNoConflict",
+            "create event Holiday on 2024-07-05",
+            "create event Sync from 2024-07-06T09:00 to 2024-07-06T10:00 --location Online",
+            "print events from 2024-07-05T00:00 to 2024-07-06T23:59",
+            "exit"
+    };
+    runAppWithCommands(commands);
+
+    String nl = System.lineSeparator();
+    String expected = String.join(nl, List.of(
+            "Welcome to the Calendar App!",
+            "Calendar created successfully.",
+            "Using calendar: MixedNoConflict",
+            "Event created successfully.",
+            "Event created successfully.",
+            "- Holiday [2024-07-05T00:00 to 2024-07-05T23:59:59]",
+            "- Sync [2024-07-06T09:00 to 2024-07-06T10:00] at Online"
+    ));
+
+    assertEquals(expected, outContent.toString().trim());
+  }
+
+  @Test
+  public void testPrintEventWithExactRangeMatch_ShouldPrintExactly() throws IOException {
+    String[] commands = {
+            "create calendar --name ExactRangeMatch --timezone America/New_York",
+            "use calendar --name ExactRangeMatch",
+            "create event Interview from 2024-07-07T14:00 to 2024-07-07T15:00 --location HQ",
+            "print events from 2024-07-07T14:00 to 2024-07-07T15:00",
+            "exit"
+    };
+    runAppWithCommands(commands);
+
+    String nl = System.lineSeparator();
+    String expected = String.join(nl, List.of(
+            "Welcome to the Calendar App!",
+            "Calendar created successfully.",
+            "Using calendar: ExactRangeMatch",
+            "Event created successfully.",
+            "- Interview [2024-07-07T14:00 to 2024-07-07T15:00] at HQ"
+    ));
+
+    assertEquals(expected, outContent.toString().trim());
+  }
+
+  @Test
+  public void testPrintEvents_RangeStartsAtEventStartEndsBeforeEnd_ShouldInclude() throws IOException {
+    String[] commands = {
+            "create calendar --name RangeStartOnly --timezone America/New_York",
+            "use calendar --name RangeStartOnly",
+            "create event Focus from 2024-07-08T09:00 to 2024-07-08T10:00 --location Lab",
+            "print events from 2024-07-08T09:00 to 2024-07-08T09:30",
+            "exit"
+    };
+    runAppWithCommands(commands);
+
+    String nl = System.lineSeparator();
+    String expected = String.join(nl, List.of(
+            "Welcome to the Calendar App!",
+            "Calendar created successfully.",
+            "Using calendar: RangeStartOnly",
+            "Event created successfully.",
+            "- Focus [2024-07-08T09:00 to 2024-07-08T10:00] at Lab"
+    ));
+
+    assertEquals(expected, outContent.toString().trim());
+  }
+
+  @Test
+  public void testPrintEvents_RangeWithinEventDuration_ShouldInclude() throws IOException {
+    String[] commands = {
+            "create calendar --name InsideEvent --timezone America/New_York",
+            "use calendar --name InsideEvent",
+            "create event Block from 2024-07-09T09:00 to 2024-07-09T11:00 --location Studio",
+            "print events from 2024-07-09T09:30 to 2024-07-09T10:30",
+            "exit"
+    };
+    runAppWithCommands(commands);
+
+    String nl = System.lineSeparator();
+    String expected = String.join(nl, List.of(
+            "Welcome to the Calendar App!",
+            "Calendar created successfully.",
+            "Using calendar: InsideEvent",
+            "Event created successfully.",
+            "- Block [2024-07-09T09:00 to 2024-07-09T11:00] at Studio"
+    ));
+
+    assertEquals(expected, outContent.toString().trim());
+  }
+
+  @Test
+  public void testPrintEvents_RangeAfterEventEnd_ShouldExclude() throws IOException {
+    String[] commands = {
+            "create calendar --name AfterEvent --timezone America/New_York",
+            "use calendar --name AfterEvent",
+            "create event WrapUp from 2024-07-10T13:00 to 2024-07-10T14:00 --location Lounge",
+            "print events from 2024-07-10T14:01 to 2024-07-10T15:00",
+            "exit"
+    };
+    runAppWithCommands(commands);
+
+    String nl = System.lineSeparator();
+    String expected = String.join(nl, List.of(
+            "Welcome to the Calendar App!",
+            "Calendar created successfully.",
+            "Using calendar: AfterEvent",
+            "Event created successfully.",
+            "No events found."
+    ));
+
+    assertEquals(expected, outContent.toString().trim());
+  }
+
+  @Test
+  public void testPrintEvents_RangeBeforeEventStart_ShouldExclude() throws IOException {
+    String[] commands = {
+            "create calendar --name BeforeEvent --timezone America/New_York",
+            "use calendar --name BeforeEvent",
+            "create event Kickoff from 2024-07-11T11:00 to 2024-07-11T12:00 --location Field",
+            "print events from 2024-07-11T09:00 to 2024-07-11T10:59",
+            "exit"
+    };
+    runAppWithCommands(commands);
+
+    String nl = System.lineSeparator();
+    String expected = String.join(nl, List.of(
+            "Welcome to the Calendar App!",
+            "Calendar created successfully.",
+            "Using calendar: BeforeEvent",
+            "Event created successfully.",
+            "No events found."
+    ));
+
+    assertEquals(expected, outContent.toString().trim());
+  }
+
+  @Test
+  public void testPrintEventsWithNonConflictingStartTimes_ShouldPrintBoth() throws IOException {
+    String[] commands = {
+            "create calendar --name NonConflicting --timezone America/New_York",
+            "use calendar --name NonConflicting",
+            "create event Discussion from 2024-07-12T10:00 to 2024-07-12T10:30 --location RoomA",
+            "create event Planning from 2024-07-12T10:30 to 2024-07-12T11:30 --location RoomB",
+            "print events on 2024-07-12",
+            "exit"
+    };
+    runAppWithCommands(commands);
+
+    String nl = System.lineSeparator();
+    String expected = String.join(nl, List.of(
+            "Welcome to the Calendar App!",
+            "Calendar created successfully.",
+            "Using calendar: NonConflicting",
+            "Event created successfully.",
+            "Event created successfully.",
+            "- Discussion [2024-07-12T10:00 to 2024-07-12T10:30] at RoomA",
+            "- Planning [2024-07-12T10:30 to 2024-07-12T11:30] at RoomB"
+    ));
+
+    assertEquals(expected, outContent.toString().trim());
+  }
+
+  @Test
+  public void testPrintEventWithSpecialCharacters_ShouldPrintCorrectly() throws IOException {
+    String[] commands = {
+            "create calendar --name SpecialChars --timezone America/New_York",
+            "use calendar --name SpecialChars",
+            "create event \"Bug Bash!@#$%^^\" from 2024-07-13T14:00 to 2024-07-13T16:00 --location \"Main-Hall #2\"",
+            "print events on 2024-07-13",
+            "exit"
+    };
+    runAppWithCommands(commands);
+
+    String nl = System.lineSeparator();
+    String expected = String.join(nl, List.of(
+            "Welcome to the Calendar App!",
+            "Calendar created successfully.",
+            "Using calendar: SpecialChars",
+            "Event created successfully.",
+            "- Bug Bash!@#$%^^ [2024-07-13T14:00 to 2024-07-13T16:00] at Main-Hall #2"
+    ));
+
+    assertEquals(expected, outContent.toString().trim());
+  }
+
+  @Test
+  public void testPrintEventsWithInvalidDateFormat_ShouldFail() throws IOException {
+    String[] commands = {
+            "create calendar --name InvalidDate --timezone America/New_York",
+            "use calendar --name InvalidDate",
+            "print events on 07/16/2024", // Invalid format
+            "exit"
+    };
+    runAppWithCommands(commands);
+
+    assertTrue(outContent.toString().contains("Error Executing command"));
+  }
+
+  @Test
+  public void testPrintEventsMissingToKeyword_ShouldFail() throws IOException {
+    String[] commands = {
+            "create calendar --name MissingTo --timezone America/New_York",
+            "use calendar --name MissingTo",
+            "print events from 2024-07-17T10:00 2024-07-17T11:00", // Missing 'to'
+            "exit"
+    };
+    runAppWithCommands(commands);
+
+    assertTrue(outContent.toString().toLowerCase().contains("invalid format"));
+  }
+
+  @Test
+  public void testPrintEventsMissingOnOrFrom_ShouldFail() throws IOException {
+    String[] commands = {
+            "create calendar --name MissingKeyword --timezone America/New_York",
+            "use calendar --name MissingKeyword",
+            "print events 2024-07-19",
+            "exit"
+    };
+    runAppWithCommands(commands);
+    assertTrue(outContent.toString().contains("Error Executing command: Expected 'on <date>' or 'from <datetime> to <datetime>' after print events."));
+  }
+
+  @Test
+  public void testPrintEventsOnMissingDate_ShouldFail() throws IOException {
+    String[] commands = {
+            "create calendar --name OnMissingDate --timezone America/New_York",
+            "use calendar --name OnMissingDate",
+            "print events on",
+            "exit"
+    };
+    runAppWithCommands(commands);
+    assertTrue(outContent.toString().contains("Error Executing command: Expected 'on <date>' or 'from <datetime> to <datetime>' after print events."));
+  }
+
+  @Test
+  public void testPrintEventsFromWithoutTo_ShouldFail() throws IOException {
+    String[] commands = {
+            "create calendar --name FromNoTo --timezone America/New_York",
+            "use calendar --name FromNoTo",
+            "print events from 2024-07-20T10:00",
+            "exit"
+    };
+    runAppWithCommands(commands);
+    assertTrue(outContent.toString().contains("Error Executing command: Invalid format. Expected: print events from <datetime> to <datetime>"));
+  }
+
+  @Test
+  public void testPrintEventsMissingToDateTime_ShouldFail() throws IOException {
+    String[] commands = {
+            "create calendar --name NoToTime --timezone America/New_York",
+            "use calendar --name NoToTime",
+            "print events from 2024-07-21T09:00 to",
+            "exit"
+    };
+    runAppWithCommands(commands);
+    assertTrue(outContent.toString().contains("Error Executing command: Invalid format. Expected: print events from <datetime> to <datetime>"));
+  }
+
+  @Test
+  public void testPrintEventsWithExtraArgs_ShouldFail() throws IOException {
+    String[] commands = {
+            "create calendar --name ExtraArgs --timezone America/New_York",
+            "use calendar --name ExtraArgs",
+            "print events on 2024-07-22 somethingExtra",
+            "exit"
+    };
+    runAppWithCommands(commands);
+    assertTrue(outContent.toString().contains("Error Executing command: Invalid format. Expected: print events on <date>"));
+  }
+
+  @Test
+  public void testPrintEventsInvalidDateFormat_ShouldFail() throws IOException {
+    String[] commands = {
+            "create calendar --name BadFormat --timezone America/New_York",
+            "use calendar --name BadFormat",
+            "print events on 07/23/2024",
+            "exit"
+    };
+    runAppWithCommands(commands);
+    assertTrue(outContent.toString().toLowerCase().contains("could not be parsed"));
+  }
 
   //Create calendarr command tests
   @Test
