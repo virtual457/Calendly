@@ -348,8 +348,9 @@ public class CalendarModel implements ICalendarModel {
     return rangeEvents.stream().map(this::convertToDTO).collect(Collectors.toList());
   }
 
+  @Override
   public boolean copyEvents(String sourceCalendarName, LocalDateTime sourceStart, LocalDateTime sourceEnd,
-                            String targetCalendarName, LocalDateTime targetStart) {
+                            String targetCalendarName, LocalDateTime ignoredTargetStart) {
     // Find the source calendar.
     Calendar sourceCal = getCalendarByName(sourceCalendarName);
     if (sourceCal == null) {
@@ -362,8 +363,8 @@ public class CalendarModel implements ICalendarModel {
     }
 
     // Validate the date-time parameters.
-    if (sourceStart == null || sourceEnd == null || targetStart == null) {
-      throw new IllegalArgumentException("Source start, source end, and target start times must be provided.");
+    if (sourceStart == null || sourceEnd == null) {
+      throw new IllegalArgumentException("Source start and source end times must be provided.");
     }
     if (sourceEnd.isBefore(sourceStart)) {
       throw new IllegalArgumentException("Source end time must not be before source start time.");
@@ -383,19 +384,28 @@ public class CalendarModel implements ICalendarModel {
       return false;
     }
 
-    // *** New: Sort events by their start time to ensure chronological processing.
+    // Sort events by start time.
     eventsToCopy.sort((e1, e2) -> e1.getStartDateTime().compareTo(e2.getStartDateTime()));
 
-    // For each event to be copied, calculate the offset and create a new event.
-    for (CalendarEvent event : eventsToCopy) {
-      // Calculate how far after the sourceStart this event begins.
-      java.time.Duration offset = java.time.Duration.between(sourceStart, event.getStartDateTime());
-      LocalDateTime newStart = targetStart.plus(offset);
-      // Keep the original event duration.
-      java.time.Duration duration = java.time.Duration.between(event.getStartDateTime(), event.getEndDateTime());
-      LocalDateTime newEnd = newStart.plus(duration);
+    // Get the ZoneIds for the source and target calendars.
+    java.time.ZoneId sourceZone = java.time.ZoneId.of(sourceCal.getTimezone());
+    java.time.ZoneId targetZone = java.time.ZoneId.of(targetCal.getTimezone());
 
-      // Create a new event with the same details but adjusted times.
+    // For each event to be copied, convert its start and end times from the source to the target timezone.
+    for (CalendarEvent event : eventsToCopy) {
+      // Convert the event's start time from source zone to target zone.
+      java.time.ZonedDateTime zEventStart = event.getStartDateTime().atZone(sourceZone);
+      java.time.ZonedDateTime zEventEnd = event.getEndDateTime().atZone(sourceZone);
+
+      // Convert to the target calendar's timezone, keeping the same instant.
+      java.time.ZonedDateTime zNewEventStart = zEventStart.withZoneSameInstant(targetZone);
+      java.time.ZonedDateTime zNewEventEnd = zEventEnd.withZoneSameInstant(targetZone);
+
+      // Convert back to LocalDateTime.
+      LocalDateTime newStart = zNewEventStart.toLocalDateTime();
+      LocalDateTime newEnd = zNewEventEnd.toLocalDateTime();
+
+      // Create a new event with the converted times.
       CalendarEvent newEvent = new CalendarEvent(
               event.getEventName(),
               newStart,
