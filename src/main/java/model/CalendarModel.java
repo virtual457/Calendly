@@ -155,12 +155,12 @@ public class CalendarModel implements ICalendarModel {
             event.setEventLocation(newValue);
             found = true;
             break;
-          case "ispublic":
+          case "isprivate":
             // If newValue is not exactly "true" or "false" (ignoring case), throw an exception.
             if (!newValue.equalsIgnoreCase("true") && !newValue.equalsIgnoreCase("false")) {
               throw new IllegalArgumentException("For input string: \"" + newValue + "\"");
             }
-            event.setPublic(Boolean.parseBoolean(newValue));
+            event.setPublic(!Boolean.parseBoolean(newValue));
             found = true;
             break;
           default:

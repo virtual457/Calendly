@@ -2404,29 +2404,41 @@ public class CalendarAppTest {
   // ---------- Error Cases for editEvents (plural) ----------
 
   @Test
-  public void testEditEvents_UnsupportedProperty_ShouldFail() {
+  public void testEditEvents_UnsupportedProperty_ShouldFail() throws IOException {
     String[] commands = {
             "create calendar --name UnsupportedNR --timezone America/New_York",
             "use calendar --name UnsupportedNR",
             "create event Update from 2025-06-25T10:00 to 2025-06-25T11:00",
             "edit events color Update from 2025-06-25T10:00 with \"Blue\"",
+            "export cal " + OUTPUT_FILE,
             "exit"
     };
     runAppWithCommands(commands);
     assertTrue(outContent.toString().toLowerCase().contains("unsupported property"));
+    String expected = String.join("\n",
+            "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+            "\"Update\",06/25/2025,10:00 AM,06/25/2025,11:00 AM,False,\"\",\"\",False"
+    );
+    assertEquals(expected, readExportedFile());
   }
 
   @Test
-  public void testEditEvents_NullNewValue_ShouldFail() {
+  public void testEditEvents_NullNewValue_ShouldSucceed() throws IOException {
     String[] commands = {
             "create calendar --name NullValueNR --timezone America/New_York",
             "use calendar --name NullValueNR",
             "create event Update from 2025-06-25T10:00 to 2025-06-25T11:00",
             "edit events location Update from 2025-06-25T10:00 with null",
+            "export cal " + OUTPUT_FILE,
             "exit"
     };
     runAppWithCommands(commands);
-    assertTrue(outContent.toString().toLowerCase().contains("error executing command"));
+    assertTrue(outContent.toString().contains("Events updated successfully."));
+    String expected = String.join("\n",
+            "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+            "\"Update\",06/25/2025,10:00 AM,06/25/2025,11:00 AM,False,\"\",\"null\",False"
+    );
+    assertEquals(expected, readExportedFile());
   }
 
   @Test
@@ -2564,7 +2576,7 @@ public class CalendarAppTest {
             "use calendar --name RecurrLateNR",
             "create event Standup from 2025-07-06T09:00 to 2025-07-06T09:30 repeats M for 2 times",
             // Provide a fromDateTime that is later than any occurrence.
-            "edit events location Standup from 2025-07-07T09:00 with \"Room X\"",
+            "edit events location Standup from 2026-07-07T09:00 with \"Room X\"",
             "exit"
     };
     runAppWithCommands(commands);
@@ -2894,7 +2906,7 @@ public class CalendarAppTest {
             "create calendar --name RecurrBoolCal --timezone America/New_York",
             "use calendar --name RecurrBoolCal",
             "create event Standup from 2025-08-11T09:00 to 2025-08-11T09:30 repeats W for 2 times",
-            "edit events ispublic Standup from 2025-08-11T09:00 with \"false\"",
+            "edit events isPrivate Standup from 2025-08-11T09:00 with \"false\"",
             "export cal " + OUTPUT_FILE,
             "exit"
     };
@@ -2902,8 +2914,8 @@ public class CalendarAppTest {
     // When ispublic is set to false, Private becomes true for all occurrences.
     String expected = String.join("\n",
             "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
-            "\"Standup\",08/11/2025,09:00 AM,08/11/2025,09:30 AM,False,\"\",\"\",True",
-            "\"Standup\",08/18/2025,09:00 AM,08/18/2025,09:30 AM,False,\"\",\"\",True"
+            "\"Standup\",08/13/2025,09:00 AM,08/13/2025,09:30 AM,False,\"\",\"\",False",
+            "\"Standup\",08/20/2025,09:00 AM,08/20/2025,09:30 AM,False,\"\",\"\",False"
     );
     assertEquals(expected, readExportedFile());
   }
@@ -2923,9 +2935,9 @@ public class CalendarAppTest {
     runAppWithCommands(commands);
     String expected = String.join("\n",
             "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
-            "\"Standup\",09/01/2025,08:45 AM,09/01/2025,09:30 AM,False,\"\",\"\",False",
-            "\"Standup\",09/08/2025,08:45 AM,09/08/2025,09:30 AM,False,\"\",\"\",False",
-            "\"Standup\",09/15/2025,08:45 AM,09/15/2025,09:30 AM,False,\"\",\"\",False"
+            "\"Standup\",09/03/2025,08:45 AM,09/03/2025,09:30 AM,False,\"\",\"\",False",
+            "\"Standup\",09/10/2025,08:45 AM,09/10/2025,09:30 AM,False,\"\",\"\",False",
+            "\"Standup\",09/17/2025,08:45 AM,09/17/2025,09:30 AM,False,\"\",\"\",False"
     );
     assertEquals(expected, readExportedFile());
   }

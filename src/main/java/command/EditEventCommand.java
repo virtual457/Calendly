@@ -21,59 +21,37 @@ public class EditEventCommand implements ICommand {
     this.model = model;
     this.calendarName = currentCalendar;
 
-    if (parts.size() < 3) {
-      throw new IllegalArgumentException("Insufficient arguments for edit event command.");
+    if (parts.size() != 8) {
+      throw new IllegalArgumentException("Invalid number of arguments for edit event command.");
     }
 
     this.property = parts.get(0);
     this.eventName = parts.get(1);
 
-    int index = 2;
-    String fromValue = null;
-    String toValue = null;
-    String withValue = null;
-
-    while (index < parts.size()) {
-      String token = parts.get(index);
-
-      if (token.equals("from")) {
-        index++;
-        if (index >= parts.size()) {
-          throw new IllegalArgumentException("Missing 'from' datetime.");
-        }
-        fromValue = parts.get(index++);
-      } else if (token.equals("to")) {
-        index++;
-        if (index >= parts.size()) {
-          throw new IllegalArgumentException("Missing 'to' datetime.");
-        }
-        toValue = parts.get(index++);
-      } else if (token.equals("with")) {
-        index++;
-        if (index >= parts.size()) {
-          throw new IllegalArgumentException("Missing value after 'with'.");
-        }
-        withValue = parts.get(index++);
-      } else {
-        if (index == parts.size() - 1) {
-          withValue = parts.get(index);
-          index++;
-        } else {
-          throw new IllegalArgumentException("Unexpected token: '" + token + "'");
-        }
-      }
+    if (!parts.get(2).equalsIgnoreCase("from")) {
+      throw new IllegalArgumentException("Expected 'from' keyword at position 3.");
     }
 
-    this.fromDateTime = fromValue != null ? LocalDateTime.parse(fromValue) : null;
-    this.toDateTime = toValue != null ? LocalDateTime.parse(toValue) : null;
+    String fromValue = parts.get(3);
+
+    if (!parts.get(4).equalsIgnoreCase("to")) {
+      throw new IllegalArgumentException("Expected 'to' keyword at position 5.");
+    }
+
+    String toValue = parts.get(5);
+
+    if (!parts.get(6).equalsIgnoreCase("with")) {
+      throw new IllegalArgumentException("Expected 'with' keyword at position 7.");
+    }
+
+    String withValue = parts.get(7);
+
+    this.fromDateTime = LocalDateTime.parse(fromValue);
+    this.toDateTime = LocalDateTime.parse(toValue);
     this.newValue = withValue;
-
-    if (this.newValue == null) {
-      throw new IllegalArgumentException("Missing new property value.");
-    }
-
-    this.editAll = this.fromDateTime == null || this.toDateTime == null;
+    this.editAll = false;
   }
+
 
   @Override
   public String execute() {
