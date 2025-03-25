@@ -54,7 +54,7 @@ public class CalendarModel implements ICalendarModel {
    * @param eventDTO     the event data transfer object containing event details
    * @return true if the event is successfully added
    * @throws IllegalArgumentException if the calendar is not found or event validation fails
-   * @throws IllegalStateException if a conflict is detected in the target calendar
+   * @throws IllegalStateException    if a conflict is detected in the target calendar
    */
 
   @Override
@@ -291,20 +291,21 @@ public class CalendarModel implements ICalendarModel {
       throw new IllegalArgumentException("Calendar not found: " + calendarName);
     }
 
-    if (dateTime == null ) {
+    if (dateTime == null) {
       throw new IllegalArgumentException("date time cannot be null");
     }
 
     List<CalendarEvent> rangeEvents = new ArrayList<>();
     for (CalendarEvent event : targetCalendar.getEvents()) {
-      if (event.getStartDateTime().isBefore(dateTime) &&
-              event.getEndDateTime().isAfter(dateTime)) {
+      if ((event.getStartDateTime().isBefore(dateTime) || event.getStartDateTime().equals(dateTime)) &&
+              (event.getEndDateTime().isAfter(dateTime) || event.getEndDateTime().equals(dateTime))) {
         rangeEvents.add(event);
       }
     }
     return rangeEvents.stream().map(this::convertToDTO).collect(Collectors.toList());
   }
 
+  @Override
   public List<ICalendarEventDTO> getEventsInRange(String calendarName, LocalDateTime fromDateTime, LocalDateTime toDateTime) {
     // Look up the target calendar by its name.
     Calendar targetCalendar = getCalendarByName(calendarName);
@@ -323,8 +324,8 @@ public class CalendarModel implements ICalendarModel {
     // Iterate over the events in the target calendar.
     for (CalendarEvent event : targetCalendar.getEvents()) {
       // Check if the event's start time falls within the specified range (inclusive).
-      if (!event.getStartDateTime().isBefore(fromDateTime) &&
-              !event.getStartDateTime().isAfter(toDateTime)) {
+      if ((!event.getStartDateTime().isBefore(fromDateTime) &&
+              !event.getStartDateTime().isAfter(toDateTime)) || (event.getEndDateTime().isAfter(fromDateTime) && event.getEndDateTime().isBefore(toDateTime))) {
         rangeEvents.add(event);
       }
     }
@@ -478,7 +479,7 @@ public class CalendarModel implements ICalendarModel {
       throw new IllegalArgumentException("Calendar not found: " + calendarName);
     }
 
-    switch(property.toLowerCase()) {
+    switch (property.toLowerCase()) {
       case "name":
         // Check if another calendar already has the new name.
         for (Calendar cal : calendars) {
