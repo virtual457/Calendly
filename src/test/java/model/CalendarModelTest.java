@@ -6,6 +6,9 @@ import java.lang.reflect.Method;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -800,6 +803,65 @@ public class CalendarModelTest {
   }
 
   //check if the event is not created in an unspecified calender
+
+  @Test
+  public void testCopyEvents_success2() {
+    ICalendarModel calendarModel = new CalendarModel();
+
+    // Create source and target calendars
+    calendarModel.createCalendar("SourceCal", "America/New_York");
+    calendarModel.createCalendar("TargetCal", "Asia/Kolkata");
+
+    // Add events to source calendar
+    LocalDateTime start1 = LocalDateTime.of(2025, 3, 25, 10, 0);
+    LocalDateTime end1 = LocalDateTime.of(2025, 3, 25, 11, 0);
+    ICalendarEventDTO eventDTO1 = CalendarEventDTO.builder()
+            .setEventName("Meeting A")
+            .setStartDateTime(start1)
+            .setEndDateTime(end1)
+            .setEventDescription("First meeting")
+            .setEventLocation("Room A")
+            .setAutoDecline(true)
+            .setPrivate(false)
+            .build();
+
+    calendarModel.addEvent("SourceCal", eventDTO1);
+
+    // Another event
+    LocalDateTime start2 = LocalDateTime.of(2025, 3, 25, 14, 0);
+    LocalDateTime end2 = LocalDateTime.of(2025, 3, 25, 15, 30);
+    ICalendarEventDTO eventDTO2 = CalendarEventDTO.builder()
+            .setEventName("Meeting B")
+            .setStartDateTime(start2)
+            .setEndDateTime(end2)
+            .setEventDescription("Second meeting")
+            .setEventLocation("Room B")
+            .setAutoDecline(true)
+            .setPrivate(false)
+            .build();
+
+    calendarModel.addEvent("SourceCal", eventDTO2);
+    LocalDateTime sourceStart = LocalDateTime.of(2025, 3, 25, 0, 0);
+    LocalDateTime sourceEnd = LocalDateTime.of(2025, 3, 25, 23, 59);
+    LocalDateTime targetStart = LocalDateTime.of(2025, 3, 26, 0, 0);
+
+    boolean result = calendarModel.copyEvents("SourceCal", sourceStart, sourceEnd, "TargetCal", targetStart);
+
+    assertTrue(result);
+
+    // Ensure the target calendar now has the copied events
+    var copiedEvents = calendarModel.getEventsInRange("TargetCal",
+            LocalDateTime.of(2025, 3, 26, 0, 0),
+            LocalDateTime.of(2025, 3, 27, 0, 0));
+
+    assertEquals(2, copiedEvents.size());
+
+    ICalendarEventDTO copiedEvent1 = copiedEvents.get(0);
+    ICalendarEventDTO copiedEvent2 = copiedEvents.get(1);
+
+    assertEquals("Meeting A", copiedEvent1.getEventName());
+    assertEquals("Meeting B", copiedEvent2.getEventName());
+  }
 
   @Test
   public void testCopyEventAtSourceBoundary() {
@@ -1660,6 +1722,9 @@ public class CalendarModelTest {
             targetStart.minusMinutes(1), targetStart.plusHours(2));
     assertEquals(2, targetEvents.size());
   }
+
+
+
 
 }
 

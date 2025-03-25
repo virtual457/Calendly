@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -350,7 +351,9 @@ public class CalendarModel implements ICalendarModel {
 
   @Override
   public boolean copyEvents(String sourceCalendarName, LocalDateTime sourceStart, LocalDateTime sourceEnd,
-                            String targetCalendarName, LocalDateTime ignoredTargetStart) {
+                            String targetCalendarName, LocalDateTime targetStart) {
+
+    //TODO: move these validations to another controller
     // Find the source calendar.
     Calendar sourceCal = getCalendarByName(sourceCalendarName);
     if (sourceCal == null) {
@@ -378,7 +381,7 @@ public class CalendarModel implements ICalendarModel {
         eventsToCopy.add(event);
       }
     }
-
+    //TODO: Throw exception
     // If no events found in the interval, return false.
     if (eventsToCopy.isEmpty()) {
       return false;
@@ -393,18 +396,12 @@ public class CalendarModel implements ICalendarModel {
 
     // For each event to be copied, convert its start and end times from the source to the target timezone.
     for (CalendarEvent event : eventsToCopy) {
-      // Convert the event's start time from source zone to target zone.
-      java.time.ZonedDateTime zEventStart = event.getStartDateTime().atZone(sourceZone);
-      java.time.ZonedDateTime zEventEnd = event.getEndDateTime().atZone(sourceZone);
 
-      // Convert to the target calendar's timezone, keeping the same instant.
-      java.time.ZonedDateTime zNewEventStart = zEventStart.withZoneSameInstant(targetZone);
-      java.time.ZonedDateTime zNewEventEnd = zEventEnd.withZoneSameInstant(targetZone);
 
-      // Convert back to LocalDateTime.
-      LocalDateTime newStart = zNewEventStart.toLocalDateTime();
-      LocalDateTime newEnd = zNewEventEnd.toLocalDateTime();
+      LocalDateTime newStart = convertTimeToTargetDate(event.getStartDateTime(),sourceCal.getTimezone(), targetStart.toLocalDate(), targetCal.getTimezone());
+      java.time.Duration duration = java.time.Duration.between(event.getStartDateTime(), event.getEndDateTime());
 
+      LocalDateTime newEnd = newStart.plus(duration);
       // Create a new event with the converted times.
       CalendarEvent newEvent = new CalendarEvent(
               event.getEventName(),
@@ -709,5 +706,19 @@ public class CalendarModel implements ICalendarModel {
       }
     }
     return false;
+  }
+
+  public static LocalDateTime convertTimeToTargetDate(
+          LocalDateTime sourceDateTime,
+          String sourceZone,
+          LocalDate targetDate,
+          String targetZone
+  ) {
+    ZonedDateTime sourceZoned = sourceDateTime.atZone(ZoneId.of(sourceZone));
+    ZonedDateTime targetZoned = sourceZoned.withZoneSameInstant(ZoneId.of(targetZone));
+    LocalTime targetTime = targetZoned.toLocalTime();
+    int dayShift = targetZoned.toLocalDate().compareTo(sourceZoned.toLocalDate());
+    LocalDate adjustedDate = targetDate.plusDays(dayShift);
+    return LocalDateTime.of(adjustedDate, targetTime);
   }
 }
