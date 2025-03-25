@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -593,6 +594,203 @@ public class CalendarAppTest {
             "\"CheckIn\",06/04/2025,09:00 AM,06/04/2025,09:30 AM,False,\"\",\"\",False"
     );
 
+    assertEquals(expected, readExportedFile());
+  }
+
+  @Test
+  public void testEditSingleEvent_ShouldExportCorrectly() throws IOException {
+    String[] commands = {
+            "create calendar --name EditCal --timezone America/New_York",
+            "use calendar --name EditCal",
+            "create event Meeting from 2025-04-22T09:00 to 2025-04-22T10:00",
+            "edit events location Meeting from 2025-04-22T09:00 to 2025-04-22T10:00 with \"Room B\"",
+            "export cal " + OUTPUT_FILE,
+            "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    String expected = String.join("\n",
+            "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+            "\"Meeting\",04/22/2025,09:00 AM,04/22/2025,10:00 AM,False,\"\",\"Room B\",False"
+    );
+
+    assertEquals(expected, readExportedFile());
+  }
+
+  @Test
+  public void testEditRecurringEvent_ShouldExportCorrectly() throws IOException {
+    String[] commands = {
+            "create calendar --name EditRecurrCal --timezone America/New_York",
+            "use calendar --name EditRecurrCal",
+            "create event Standup from 2025-04-24T09:00 to 2025-04-24T10:00 repeats T for 3 times",
+            "edit events location Standup from 2025-04-24T09:00 to 2025-04-24T10:00 with \"Room C\"",
+            "export cal " + OUTPUT_FILE,
+            "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    String expected = String.join("\n",
+            "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+            // Assuming the recurring event generates occurrences on 04/24/2025, 04/30/2025, and 05/07/2025.
+            "\"Standup\",04/24/2025,09:00 AM,04/24/2025,10:00 AM,False,\"\",\"Room C\",False",
+            "\"Standup\",04/30/2025,09:00 AM,04/30/2025,10:00 AM,False,\"\",\"Room C\",False",
+            "\"Standup\",05/07/2025,09:00 AM,05/07/2025,10:00 AM,False,\"\",\"Room C\",False"
+    );
+
+    assertEquals(expected, readExportedFile());
+  }
+
+  @Test
+  public void testEditEvent_NullNewValue_ShouldFail() {
+    // This test uses commands to attempt editing an event with a null new value.
+    String[] commands = {
+            "create calendar --name EditNullCal --timezone America/New_York",
+            "use calendar --name EditNullCal",
+            "create event Meeting from 2025-05-01T10:00 to 2025-05-01T11:00",
+            "edit events location Meeting from 2025-05-01T10:00 to 2025-05-01T11:00 with null",
+            "exit"
+    };
+    runAppWithCommands(commands);
+    // Expect output to contain an error message about missing new value.
+    assertTrue(outContent.toString().toLowerCase().contains("error executing command"));
+  }
+
+  @Test
+  public void testEditEvent_UnsupportedProperty_ShouldFail() {
+    String[] commands = {
+            "create calendar --name EditCal --timezone America/New_York",
+            "use calendar --name EditCal",
+            "create event Meeting from 2025-05-01T10:00 to 2025-05-01T11:00",
+            "edit events color Meeting from 2025-05-01T10:00 to 2025-05-01T11:00 with Red",
+            "exit"
+    };
+    runAppWithCommands(commands);
+    // Expect output to mention "Unsupported property"
+    assertTrue(outContent.toString().toLowerCase().contains("unsupported property"));
+  }
+
+  @Test
+  public void testEditEvent_NoMatchingEvent_ShouldFail() {
+    String[] commands = {
+            "create calendar --name EditCal --timezone America/New_York",
+            "use calendar --name EditCal",
+            // No event is created.
+            "edit events location NonExistent from 2025-05-01T10:00 to 2025-05-01T11:00 with \"Room X\"",
+            "exit"
+    };
+    runAppWithCommands(commands);
+    // Expect output to mention "No matching event found"
+    assertTrue(outContent.toString().toLowerCase().contains("no matching event found"));
+  }
+
+  @Test
+  public void testEditEvent_InvalidStartTime_ShouldFail() {
+    String[] commands = {
+            "create calendar --name EditInvalidStart --timezone America/New_York",
+            "use calendar --name EditInvalidStart",
+            "create event Meeting from 2025-06-10T10:00 to 2025-06-10T11:00",
+            // Attempt to edit start time to 11:00 which is equal to the current end time.
+            "edit events start Meeting from 2025-06-10T10:00 to 2025-06-10T11:00 with \"2025-06-10T11:00:00\"",
+            "exit"
+    };
+    runAppWithCommands(commands);
+    // Expect output to mention an error about the new start time.
+    assertTrue(outContent.toString().toLowerCase().contains("new start must be before current end time"));
+  }
+
+  // Test: Editing an event's end time to an invalid time (new end is not after current start)
+  @Test
+  public void testEditEvent_InvalidEndTime_ShouldFail() {
+    String[] commands = {
+            "create calendar --name EditInvalidEnd --timezone America/New_York",
+            "use calendar --name EditInvalidEnd",
+            "create event Meeting from 2025-06-10T10:00 to 2025-06-10T11:00",
+            // Attempt to edit end time to 10:00 which is equal to the current start time.
+            "edit events end Meeting from 2025-06-10T10:00 to 2025-06-10T11:00 with \"2025-06-10T10:00:00\"",
+            "exit"
+    };
+    runAppWithCommands(commands);
+    assertTrue(outContent.toString().toLowerCase().contains("new end must be after current start time"));
+  }
+
+  // Test: Editing an event's name works correctly.
+  @Test
+  public void testEditEvent_UpdateName_ShouldExportCorrectly() throws IOException {
+    String[] commands = {
+            "create calendar --name EditNameCal --timezone America/New_York",
+            "use calendar --name EditNameCal",
+            "create event Meeting from 2025-06-10T10:00 to 2025-06-10T11:00",
+            "edit events name Meeting from 2025-06-10T10:00 to 2025-06-10T11:00 with \"TeamSync\"",
+            "export cal " + OUTPUT_FILE,
+            "exit"
+    };
+    runAppWithCommands(commands);
+    String expected = String.join("\n",
+            "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+            "\"TeamSync\",06/10/2025,10:00 AM,06/10/2025,11:00 AM,False,\"\",\"\",False"
+    );
+    assertEquals(expected, readExportedFile());
+  }
+
+  // Test: Editing an event's description works correctly.
+  @Test
+  public void testEditEvent_UpdateDescription_ShouldExportCorrectly() throws IOException {
+    String[] commands = {
+            "create calendar --name EditDescCal --timezone America/New_York",
+            "use calendar --name EditDescCal",
+            "create event Meeting from 2025-06-10T10:00 to 2025-06-10T11:00",
+            "edit events description Meeting from 2025-06-10T10:00 to 2025-06-10T11:00 with \"Weekly meeting\"",
+            "export cal " + OUTPUT_FILE,
+            "exit"
+    };
+    runAppWithCommands(commands);
+    String expected = String.join("\n",
+            "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+            "\"Meeting\",06/10/2025,10:00 AM,06/10/2025,11:00 AM,False,\"Weekly meeting\",\"\",False"
+    );
+    assertEquals(expected, readExportedFile());
+  }
+
+  // Test: Editing a recurring event with editAll = false should update only the first occurrence.
+  @Test
+  public void testEditRecurringEvent_SingleOccurrenceEdit_ShouldExportCorrectly() throws IOException {
+    String[] commands = {
+            "create calendar --name EditRecurrSingleCal --timezone America/New_York",
+            "use calendar --name EditRecurrSingleCal",
+            "create event Standup from 2025-07-06T09:00 to 2025-07-06T09:30 repeats M for 2 times",
+            "edit events location Standup from 2025-07-06T09:00 to 2025-07-06T09:30 with \"Room Z\"",
+            "export cal " + OUTPUT_FILE,
+            "exit"
+    };
+    runAppWithCommands(commands);
+    String expected = String.join("\n",
+            "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+            "\"Standup\",07/06/2025,09:00 AM,07/06/2025,09:30 AM,False,\"\",\"Room Z\",False",
+            "\"Standup\",07/13/2025,09:00 AM,07/13/2025,09:30 AM,False,\"\",\"\",False"
+    );
+    assertEquals(expected, readExportedFile());
+  }
+
+  // Test: Editing a recurring event with editAll = true should update all occurrences.
+  @Test
+  public void testEditRecurringEvent_UpdateAllOccurrences_ShouldExportCorrectly() throws IOException {
+    String[] commands = {
+            "create calendar --name EditRecurrCal --timezone America/New_York",
+            "use calendar --name EditRecurrCal",
+            "create event Standup from 2025-04-24T09:00 to 2025-04-24T10:00 repeats T for 3 times",
+            "edit events location Standup from 2025-04-24T09:00 to 2025-04-24T10:00 with \"Room C\"",
+            "export cal " + OUTPUT_FILE,
+            "exit"
+    };
+    runAppWithCommands(commands);
+    String expected = String.join("\n",
+            "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+            "\"Standup\",04/24/2025,09:00 AM,04/24/2025,10:00 AM,False,\"\",\"Room C\",False",
+            "\"Standup\",04/30/2025,09:00 AM,04/30/2025,10:00 AM,False,\"\",\"Room C\",False",
+            "\"Standup\",05/07/2025,09:00 AM,05/07/2025,10:00 AM,False,\"\",\"Room C\",False"
+    );
     assertEquals(expected, readExportedFile());
   }
 

@@ -48,13 +48,17 @@ public interface ICalendarModel {
 
   boolean deleteCalendar(String calName);
 
-  //TODO I guess you must send events in calendarDTO format as calendarEvent class will not be accessible by the model class
+
   List<ICalendarEventDTO> getEventsInRange(String calendarName, LocalDateTime fromDateTime, LocalDateTime toDateTime);
 
   boolean copyEvents(String sourceCalendarName,
                      LocalDateTime sourceStart, LocalDateTime sourceEnd,
                      String targetCalendarName,
                      LocalDateTime targetStart);
+
+  boolean copyEvent(String sourceCalendarName,LocalDateTime sourceStart, String eventName,
+                    String targetCalendarName,
+                    LocalDateTime targetStart);
 
   boolean isCalendarPresent(String calName);
 

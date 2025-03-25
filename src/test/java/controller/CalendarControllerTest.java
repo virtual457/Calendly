@@ -2234,6 +2234,13 @@ public class CalendarControllerTest {
     }
 
     @Override
+    public boolean copyEvent(String sourceCalendarName,LocalDateTime sourceStart, String eventName,
+                             String targetCalendarName,
+                             LocalDateTime targetStart) {
+      return false;
+    }
+
+    @Override
     public boolean isCalendarPresent(String calName) {
       return false;
     }

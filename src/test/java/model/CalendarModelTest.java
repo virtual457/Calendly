@@ -462,7 +462,6 @@ public class CalendarModelTest {
             .build();
     assertTrue(model.addEvent("SourceCal", sourceEvent));
 
-    // Now add a conflicting event in the target calendar.
     ICalendarEventDTO conflictEvent = CalendarEventDTO.builder()
             .setEventName("ConflictEvent")
             .setStartDateTime(LocalDateTime.of(2025, 1, 8, 10, 0))
@@ -692,6 +691,448 @@ public class CalendarModelTest {
     // Verify that location and description were copied.
     assertEquals("RoomX", dto.getEventLocation());
     assertEquals("Desc", dto.getEventDescription());
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testRecurringEventMissingCountAndEndDate() {
+    model.createCalendar("RecurrCal", "America/New_York");
+    LocalDateTime start = LocalDateTime.of(2025, 5, 1, 9, 0);
+    LocalDateTime end = LocalDateTime.of(2025, 5, 1, 10, 0);
+
+    // Neither recurrence count nor recurrence end date provided.
+    ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
+            .setEventName("RecurringEvent")
+            .setStartDateTime(start)
+            .setEndDateTime(end)
+            .setAutoDecline(true)
+            .setRecurring(true)
+            .setRecurrenceCount(null)
+            .setRecurrenceEndDate(null)
+            .setRecurrenceDays(Arrays.asList(DayOfWeek.FRIDAY))
+            .setEventDescription("Recurring event test")
+            .setEventLocation("Room A")
+            .setPrivate(false)
+            .build();
+
+    model.addEvent("RecurrCal", eventDTO);
+  }
+
+  @Test
+  public void testRecurringEventCountOne() {
+    model.createCalendar("RecurrCal", "America/New_York");
+    LocalDateTime start = LocalDateTime.of(2025, 5, 1, 9, 0); // assume this is a Friday
+    LocalDateTime end = LocalDateTime.of(2025, 5, 1, 10, 0);
+
+    ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
+            .setEventName("SingleOccurrence")
+            .setStartDateTime(start)
+            .setEndDateTime(end)
+            .setAutoDecline(true)
+            .setRecurring(true)
+            .setRecurrenceCount(1)
+            .setRecurrenceDays(Arrays.asList(DayOfWeek.FRIDAY))
+            .setEventDescription("Occurs only once")
+            .setEventLocation("Room C")
+            .setPrivate(false)
+            .build();
+
+    assertTrue(model.addEvent("RecurrCal", eventDTO));
+    List<ICalendarEventDTO> events = model.getEventsInRange("RecurrCal", start.minusDays(1), end.plusDays(1));
+    assertEquals(1, events.size());
+  }
+
+  // --- 5. Deletion and subsequent operations ---
+  @Test(expected = IllegalArgumentException.class)
+  public void testDeleteCalendarThenAddEvent() {
+    model.createCalendar("TempCal", "America/New_York");
+    assertTrue(model.deleteCalendar("TempCal"));
+    // Now try to add an event to the deleted calendar.
+    LocalDateTime start = LocalDateTime.of(2025, 10, 1, 9, 0);
+    LocalDateTime end = LocalDateTime.of(2025, 10, 1, 10, 0);
+    ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
+            .setEventName("TestEvent")
+            .setStartDateTime(start)
+            .setEndDateTime(end)
+            .setAutoDecline(true)
+            .setRecurring(false)
+            .setEventDescription("Should fail")
+            .setEventLocation("Room X")
+            .setPrivate(false)
+            .build();
+    model.addEvent("TempCal", eventDTO);
+  }
+
+  @Test(expected = IllegalStateException.class)
+  public void testEditEventToOverlap() {
+    model.createCalendar("OverlapCal", "America/New_York");
+    LocalDateTime start1 = LocalDateTime.of(2025, 11, 1, 9, 0);
+    LocalDateTime end1 = LocalDateTime.of(2025, 11, 1, 10, 0);
+    LocalDateTime start2 = LocalDateTime.of(2025, 11, 1, 10, 0);
+    LocalDateTime end2 = LocalDateTime.of(2025, 11, 1, 11, 0);
+
+    ICalendarEventDTO event1 = CalendarEventDTO.builder()
+            .setEventName("Event1")
+            .setStartDateTime(start1)
+            .setEndDateTime(end1)
+            .setAutoDecline(true)
+            .setRecurring(false)
+            .setEventDescription("First event")
+            .setEventLocation("Room 1")
+            .setPrivate(false)
+            .build();
+    ICalendarEventDTO event2 = CalendarEventDTO.builder()
+            .setEventName("Event2")
+            .setStartDateTime(start2)
+            .setEndDateTime(end2)
+            .setAutoDecline(true)
+            .setRecurring(false)
+            .setEventDescription("Second event")
+            .setEventLocation("Room 2")
+            .setPrivate(false)
+            .build();
+
+    assertTrue(model.addEvent("OverlapCal", event1));
+    assertTrue(model.addEvent("OverlapCal", event2));
+
+    // Now attempt to edit Event2 so that it overlaps with Event1.
+    // For example, change its start time to 9:30, which overlaps with Event1.
+    model.editEvents("OverlapCal", "start", "Event2", start2, end2, "2025-11-01T09:30:00", false);
+  }
+
+  //check if the event is not created in an unspecified calender
+
+  @Test
+  public void testCopyEventAtSourceBoundary() {
+    model.createCalendar("SourceCal", "America/New_York");
+    model.createCalendar("TargetCal", "America/New_York");
+
+    LocalDateTime start = LocalDateTime.of(2025, 12, 1, 10, 0);
+    LocalDateTime end = LocalDateTime.of(2025, 12, 1, 11, 0);
+    ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
+            .setEventName("BoundaryEvent")
+            .setStartDateTime(start)
+            .setEndDateTime(end)
+            .setAutoDecline(true)
+            .setRecurring(false)
+            .setEventDescription("Event at boundary")
+            .setEventLocation("Room Boundary")
+            .setPrivate(false)
+            .build();
+    assertTrue(model.addEvent("SourceCal", eventDTO));
+
+    // Use a source interval that exactly starts at the event's start time.
+    boolean copied = model.copyEvents("SourceCal", start, end, "TargetCal", start.plusDays(1));
+    assertTrue(copied);
+    List<ICalendarEventDTO> copiedEvents = model.getEventsInRange("TargetCal", start.plusDays(1).minusHours(1), start.plusDays(1).plusHours(1));
+    assertEquals(1, copiedEvents.size());
+  }
+
+  @Test
+  public void testCalendarEventDTOBuilderMissingEventName() {
+    ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
+            .setEventName(null)  // explicitly setting eventName to null
+            .setStartDateTime(LocalDateTime.of(2025, 10, 1, 9, 0))
+            .setEndDateTime(LocalDateTime.of(2025, 10, 1, 10, 0))
+            .setAutoDecline(true)
+            .setRecurring(false)
+            .setEventDescription("Missing event name")
+            .setEventLocation("Room X")
+            .setPrivate(false)
+            .build();
+
+    assertNull("Expected event name to be null", eventDTO.getEventName());
+  }
+
+  @Test
+  public void testCopyEventSuccess() {
+    // Create source and target calendars.
+    model.createCalendar("SourceCal", "America/New_York");
+    model.createCalendar("TargetCal", "America/New_York");
+
+    // Create a non-recurring event in the source calendar.
+    LocalDateTime sourceStart = LocalDateTime.of(2025, 1, 1, 9, 0);
+    LocalDateTime sourceEnd = LocalDateTime.of(2025, 1, 1, 10, 0);
+    ICalendarEventDTO sourceEvent = CalendarEventDTO.builder()
+            .setEventName("Meeting")
+            .setStartDateTime(sourceStart)
+            .setEndDateTime(sourceEnd)
+            .setAutoDecline(true)
+            .setRecurring(false)
+            .setEventDescription("Team meeting")
+            .setEventLocation("Room 101")
+            .setPrivate(false)
+            .build();
+    assertTrue(model.addEvent("SourceCal", sourceEvent));
+
+    // Copy the event from SourceCal to TargetCal.
+    // In the copy, the event should start at targetStart.
+    LocalDateTime targetStart = LocalDateTime.of(2025, 2, 1, 11, 0);
+    boolean copied = model.copyEvent("SourceCal", sourceStart, "Meeting", "TargetCal", targetStart);
+    assertTrue(copied);
+
+    // Verify that the event in the target calendar has the correct new start and end times.
+    List<ICalendarEventDTO> targetEvents = model.getEventsInRange("TargetCal",
+            targetStart.minusMinutes(1), targetStart.plusHours(1));
+    assertEquals(1, targetEvents.size());
+    ICalendarEventDTO copiedEvent = targetEvents.get(0);
+    // The new event's start should equal targetStart.
+    assertEquals(targetStart, copiedEvent.getStartDateTime());
+    // The duration should be the same as the original (1 hour).
+    assertEquals(targetStart.plusHours(1), copiedEvent.getEndDateTime());
+    // The event name, description, and location should be the same.
+    assertEquals("Meeting", copiedEvent.getEventName());
+    assertEquals("Team meeting", copiedEvent.getEventDescription());
+    assertEquals("Room 101", copiedEvent.getEventLocation());
+  }
+
+  // Test 2: Attempt to copy an event that does not exist in the source calendar.
+  @Test(expected = IllegalStateException.class)
+  public void testCopyEventNotFound() {
+    model.createCalendar("SourceCal", "America/New_York");
+    model.createCalendar("TargetCal", "America/New_York");
+
+    // There is no event in SourceCal starting at this time with the given name.
+    LocalDateTime eventTime = LocalDateTime.of(2025, 1, 1, 9, 0);
+    LocalDateTime targetStart = LocalDateTime.of(2025, 2, 1, 11, 0);
+    model.copyEvent("SourceCal", eventTime, "NonExistentEvent", "TargetCal", targetStart);
+  }
+
+  // Test 3: Attempt to copy an event when the target calendar already has a conflicting event.
+  @Test(expected = IllegalStateException.class)
+  public void testCopyEventConflict() {
+    model.createCalendar("SourceCal", "America/New_York");
+    model.createCalendar("TargetCal", "America/New_York");
+
+    // Add a non-recurring event in the source calendar.
+    LocalDateTime sourceStart = LocalDateTime.of(2025, 1, 1, 9, 0);
+    LocalDateTime sourceEnd = LocalDateTime.of(2025, 1, 1, 10, 0);
+    ICalendarEventDTO sourceEvent = CalendarEventDTO.builder()
+            .setEventName("Meeting")
+            .setStartDateTime(sourceStart)
+            .setEndDateTime(sourceEnd)
+            .setAutoDecline(true)
+            .setRecurring(false)
+            .setEventDescription("Team meeting")
+            .setEventLocation("Room 101")
+            .setPrivate(false)
+            .build();
+    assertTrue(model.addEvent("SourceCal", sourceEvent));
+
+    // Add an event in the target calendar that conflicts with the copied event.
+    // For example, the target event occupies the time slot we want to copy into.
+    LocalDateTime targetStart = LocalDateTime.of(2025, 2, 1, 11, 0);
+    ICalendarEventDTO conflictingEvent = CalendarEventDTO.builder()
+            .setEventName("ConflictingEvent")
+            .setStartDateTime(targetStart)
+            .setEndDateTime(targetStart.plusHours(1))
+            .setAutoDecline(true)
+            .setRecurring(false)
+            .setEventDescription("Conflicting event")
+            .setEventLocation("Room X")
+            .setPrivate(false)
+            .build();
+    assertTrue(model.addEvent("TargetCal", conflictingEvent));
+
+    // Attempt to copy the event from SourceCal to TargetCal.
+    model.copyEvent("SourceCal", sourceStart, "Meeting", "TargetCal", targetStart);
+  }
+
+  // Test 4: Attempt to copy an event with invalid (null) parameters.
+  @Test(expected = IllegalArgumentException.class)
+  public void testCopyEventNullParameters() {
+    // If any parameter is null, the method should throw an exception.
+    model.copyEvent(null, LocalDateTime.now(), "Meeting", "TargetCal", LocalDateTime.now());
+  }
+
+  @Test
+  public void testCopyEventWithinSameCalendar() {
+    model.createCalendar("SameCal", "America/New_York");
+
+    LocalDateTime originalStart = LocalDateTime.of(2025, 3, 1, 9, 0);
+    LocalDateTime originalEnd = LocalDateTime.of(2025, 3, 1, 10, 0);
+    ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
+            .setEventName("Team Meeting")
+            .setStartDateTime(originalStart)
+            .setEndDateTime(originalEnd)
+            .setAutoDecline(true)
+            .setRecurring(false)
+            .setEventDescription("Monthly team sync")
+            .setEventLocation("Conference Room 1")
+            .setPrivate(false)
+            .build();
+    assertTrue(model.addEvent("SameCal", eventDTO));
+
+    // Copy the event within the same calendar, moving it one day later.
+    LocalDateTime newStart = LocalDateTime.of(2025, 3, 2, 9, 0);
+    boolean copied = model.copyEvent("SameCal", originalStart, "Team Meeting", "SameCal", newStart);
+    assertTrue(copied);
+
+    // Verify new event exists in SameCal at the new time.
+    List<ICalendarEventDTO> events = model.getEventsInRange("SameCal", newStart.minusMinutes(1), newStart.plusHours(1));
+    assertEquals(1, events.size());
+    assertEquals("Team Meeting", events.get(0).getEventName());
+    assertEquals(newStart, events.get(0).getStartDateTime());
+  }
+
+  @Test
+  public void testCopyEventCaseInsensitiveName() {
+    model.createCalendar("SourceCal", "America/New_York");
+    model.createCalendar("TargetCal", "America/New_York");
+
+    LocalDateTime sourceStart = LocalDateTime.of(2025, 4, 1, 14, 0);
+    LocalDateTime sourceEnd = LocalDateTime.of(2025, 4, 1, 15, 0);
+    ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
+            .setEventName("Workshop")
+            .setStartDateTime(sourceStart)
+            .setEndDateTime(sourceEnd)
+            .setAutoDecline(true)
+            .setRecurring(false)
+            .setEventDescription("Technical workshop")
+            .setEventLocation("Lab 1")
+            .setPrivate(false)
+            .build();
+    assertTrue(model.addEvent("SourceCal", eventDTO));
+
+    // Use a different case for eventName parameter.
+    LocalDateTime targetStart = LocalDateTime.of(2025, 5, 1, 14, 0);
+    boolean copied = model.copyEvent("SourceCal", sourceStart, "workshop", "TargetCal", targetStart);
+    assertTrue(copied);
+  }
+
+  @Test(expected = IllegalStateException.class)
+  public void testCopyEventBoundaryConflict() {
+    model.createCalendar("SourceCal", "America/New_York");
+    model.createCalendar("TargetCal", "America/New_York");
+
+    LocalDateTime sourceStart = LocalDateTime.of(2025, 6, 1, 9, 0);
+    LocalDateTime sourceEnd = LocalDateTime.of(2025, 6, 1, 10, 0);
+    ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
+            .setEventName("Seminar")
+            .setStartDateTime(sourceStart)
+            .setEndDateTime(sourceEnd)
+            .setAutoDecline(true)
+            .setRecurring(false)
+            .setEventDescription("Educational seminar")
+            .setEventLocation("Auditorium")
+            .setPrivate(false)
+            .build();
+    assertTrue(model.addEvent("SourceCal", eventDTO));
+
+    // In TargetCal, add an event that starts exactly at the target time.
+    LocalDateTime conflictStart = LocalDateTime.of(2025, 7, 1, 11, 0);
+    ICalendarEventDTO conflictEvent = CalendarEventDTO.builder()
+            .setEventName("ExistingEvent")
+            .setStartDateTime(conflictStart)
+            .setEndDateTime(conflictStart.plusHours(1))
+            .setAutoDecline(true)
+            .setRecurring(false)
+            .setEventDescription("Already scheduled")
+            .setEventLocation("Room Z")
+            .setPrivate(false)
+            .build();
+    assertTrue(model.addEvent("TargetCal", conflictEvent));
+
+    // Attempt to copy the "Seminar" event so that its new start equals conflictStart.
+    model.copyEvent("SourceCal", sourceStart, "Seminar", "TargetCal", conflictStart);
+  }
+
+  @Test
+  public void testCopyRecurringEventOccurrence() {
+    model.createCalendar("SourceCal", "America/New_York");
+    model.createCalendar("TargetCal", "America/New_York");
+
+    // Create a recurring event in SourceCal.
+    LocalDateTime start = LocalDateTime.of(2025, 8, 4, 10, 0); // Assume this is a Monday.
+    LocalDateTime end = LocalDateTime.of(2025, 8, 4, 11, 0);
+    ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
+            .setEventName("Weekly Meeting")
+            .setStartDateTime(start)
+            .setEndDateTime(end)
+            .setAutoDecline(true)
+            .setRecurring(true)
+            .setRecurrenceCount(3)
+            .setRecurrenceDays(Arrays.asList(DayOfWeek.MONDAY))
+            .setEventDescription("Recurring meeting")
+            .setEventLocation("Room 101")
+            .setPrivate(false)
+            .build();
+    assertTrue(model.addEvent("SourceCal", eventDTO));
+
+    // Assume we want to copy the occurrence that starts on the first Monday (start).
+    LocalDateTime targetStart = LocalDateTime.of(2025, 9, 1, 10, 0); // New start time for the copied occurrence.
+    boolean copied = model.copyEvent("SourceCal", start, "Weekly Meeting", "TargetCal", targetStart);
+    assertTrue(copied);
+
+    // Verify that the target calendar now has an event with the same details.
+    List<ICalendarEventDTO> targetEvents = model.getEventsInRange("TargetCal", targetStart.minusMinutes(1), targetStart.plusHours(1));
+    assertEquals(1, targetEvents.size());
+    ICalendarEventDTO copiedEvent = targetEvents.get(0);
+    assertEquals("Weekly Meeting", copiedEvent.getEventName());
+    assertEquals(targetStart, copiedEvent.getStartDateTime());
+    assertEquals(targetStart.plusHours(1), copiedEvent.getEndDateTime());
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testCopyEventNullParametersforEvent() {
+    model.copyEvent(null, LocalDateTime.now(), "Event", "TargetCal", LocalDateTime.now());
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testCopyEventSourceCalendarNotFound() {
+    // Attempt to copy an event from a non-existing source calendar.
+    LocalDateTime eventTime = LocalDateTime.of(2025, 1, 1, 9, 0);
+    LocalDateTime targetStart = LocalDateTime.of(2025, 2, 1, 11, 0);
+    // "NonExistentSource" does not exist.
+    model.copyEvent("NonExistentSource", eventTime, "SomeEvent", "TargetCal", targetStart);
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testCopyEventTargetCalendarNotFound() {
+    // Create a source calendar and add an event.
+    model.createCalendar("SourceCal", "America/New_York");
+    LocalDateTime sourceStart = LocalDateTime.of(2025, 1, 1, 9, 0);
+    LocalDateTime sourceEnd = LocalDateTime.of(2025, 1, 1, 10, 0);
+    ICalendarEventDTO sourceEvent = CalendarEventDTO.builder()
+            .setEventName("Meeting")
+            .setStartDateTime(sourceStart)
+            .setEndDateTime(sourceEnd)
+            .setAutoDecline(true)
+            .setRecurring(false)
+            .setEventDescription("Team meeting")
+            .setEventLocation("Room 101")
+            .setPrivate(false)
+            .build();
+    assertTrue(model.addEvent("SourceCal", sourceEvent));
+
+    // Attempt to copy into a non-existing target calendar.
+    LocalDateTime targetStart = LocalDateTime.of(2025, 2, 1, 11, 0);
+    model.copyEvent("SourceCal", sourceStart, "Meeting", "NonExistentTarget", targetStart);
+  }
+
+  @Test(expected = IllegalStateException.class)
+  public void testCopyEventNameMismatch() {
+    // Create source and target calendars.
+    model.createCalendar("SourceCal", "America/New_York");
+    model.createCalendar("TargetCal", "America/New_York");
+
+    // Add an event to the source calendar.
+    LocalDateTime sourceStart = LocalDateTime.of(2025, 1, 1, 9, 0);
+    LocalDateTime sourceEnd = LocalDateTime.of(2025, 1, 1, 10, 0);
+    ICalendarEventDTO sourceEvent = CalendarEventDTO.builder()
+            .setEventName("Meeting")
+            .setStartDateTime(sourceStart)
+            .setEndDateTime(sourceEnd)
+            .setAutoDecline(true)
+            .setRecurring(false)
+            .setEventDescription("Team meeting")
+            .setEventLocation("Room 101")
+            .setPrivate(false)
+            .build();
+    assertTrue(model.addEvent("SourceCal", sourceEvent));
+
+    // Attempt to copy with a name that doesn't match (even though the time is correct).
+    LocalDateTime targetStart = LocalDateTime.of(2025, 2, 1, 11, 0);
+    model.copyEvent("SourceCal", sourceStart, "NonMatchingName", "TargetCal", targetStart);
   }
 
 }
