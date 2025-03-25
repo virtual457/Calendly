@@ -101,12 +101,18 @@ public class CalendarModel implements ICalendarModel {
       throw new IllegalArgumentException("Calendar not found: " + calendarName);
     }
 
+    // For properties other than "name", require a non-empty value.
+    if (newValue == null || (newValue.trim().isEmpty() && !property.equalsIgnoreCase("name"))) {
+      throw new IllegalArgumentException("Missing value for property update.");
+    }
+
     boolean found = false;
     // Iterate through the events in the target calendar.
     for (CalendarEvent event : targetCalendar.getEvents()) {
       // Check if the event matches the criteria.
       if (event.getEventName().equals(eventName)
-              && (event.getStartDateTime().isAfter(fromDateTime) || event.getStartDateTime().equals(fromDateTime))) {
+              && (event.getStartDateTime().isAfter(fromDateTime)
+              || event.getStartDateTime().equals(fromDateTime))) {
 
         // Save original values for rollback.
         LocalDateTime originalStart = event.getStartDateTime();
@@ -119,7 +125,10 @@ public class CalendarModel implements ICalendarModel {
             found = true;
             break;
           case "start":
-            LocalDateTime newStart = LocalDateTime.parse(newValue);
+            // Parse new value and update only the time portion, preserving the original date.
+            LocalDateTime parsedNewStart = LocalDateTime.parse(newValue);
+            LocalDateTime newStart = LocalDateTime.of(event.getStartDateTime().toLocalDate(),
+                    parsedNewStart.toLocalTime());
             if (!event.getEndDateTime().isAfter(newStart)) {
               throw new IllegalArgumentException("New start must be before current end time.");
             }
@@ -127,7 +136,10 @@ public class CalendarModel implements ICalendarModel {
             found = true;
             break;
           case "end":
-            LocalDateTime newEnd = LocalDateTime.parse(newValue);
+            // Parse new value and update only the time portion, preserving the original date.
+            LocalDateTime parsedNewEnd = LocalDateTime.parse(newValue);
+            LocalDateTime newEnd = LocalDateTime.of(event.getEndDateTime().toLocalDate(),
+                    parsedNewEnd.toLocalTime());
             if (!newEnd.isAfter(event.getStartDateTime())) {
               throw new IllegalArgumentException("New end must be after current start time.");
             }
@@ -143,6 +155,10 @@ public class CalendarModel implements ICalendarModel {
             found = true;
             break;
           case "ispublic":
+            // If newValue is not exactly "true" or "false" (ignoring case), throw an exception.
+            if (!newValue.equalsIgnoreCase("true") && !newValue.equalsIgnoreCase("false")) {
+              throw new IllegalArgumentException("For input string: \"" + newValue + "\"");
+            }
             event.setPublic(Boolean.parseBoolean(newValue));
             found = true;
             break;
@@ -365,6 +381,9 @@ public class CalendarModel implements ICalendarModel {
     if (eventsToCopy.isEmpty()) {
       return false;
     }
+
+    // *** New: Sort events by their start time to ensure chronological processing.
+    eventsToCopy.sort((e1, e2) -> e1.getStartDateTime().compareTo(e2.getStartDateTime()));
 
     // For each event to be copied, calculate the offset and create a new event.
     for (CalendarEvent event : eventsToCopy) {
