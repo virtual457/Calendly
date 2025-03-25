@@ -79,7 +79,7 @@ public class EditEventCommand implements ICommand {
   @Override
   public String execute() {
     boolean success = model.editEvents(calendarName, property, eventName,
-            fromDateTime, toDateTime, newValue, editAll);
+            fromDateTime, newValue, editAll);
     return success ? "Event(s) edited successfully." : "Error editing event(s).";
   }
 }

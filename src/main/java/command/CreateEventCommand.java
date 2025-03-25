@@ -10,7 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Command to create single or recurring events, all-day or timed.
+ * Command to create single or recurring events, all-day or timed,
+ * with support for optional fields: description, location, and privacy.
  */
 public class CreateEventCommand implements ICommand {
   private final ICalendarModel model;
@@ -23,6 +24,9 @@ public class CreateEventCommand implements ICommand {
   private final List<DayOfWeek> recurrenceDays;
   private final Integer recurrenceCount;
   private final LocalDate recurrenceEndDate;
+  private final String description;
+  private final String location;
+  private final boolean isPrivate;
 
   public CreateEventCommand(List<String> args, ICalendarModel model, String calendarName) {
     this.model = model;
@@ -32,6 +36,13 @@ public class CreateEventCommand implements ICommand {
     LocalDate until = null;
     boolean recurring = false;
     boolean autoDeclineFlag = false;
+
+    String tempDescription = "";
+    String tempLocation = "";
+    boolean tempIsPrivate = false;
+    boolean descSet = false;
+    boolean locSet = false;
+    boolean privateSet = false;
 
     int index = 0;
     if (index < args.size() && args.get(index).equals("--autoDecline")) {
@@ -82,11 +93,10 @@ public class CreateEventCommand implements ICommand {
           index++;
           if (index >= args.size()) throw new IllegalArgumentException("Missing recurrence count after 'for'");
           count = Integer.parseInt(args.get(index++));
-          if(args.get(index).equals("times")) {
-            index++;
-          } else {
-            throw new IllegalArgumentException("Missing times keyword 'times'");
+          if (index >= args.size() || !args.get(index).equals("times")) {
+            throw new IllegalArgumentException("Missing keyword 'times'");
           }
+          index++;
         } else if (args.get(index).equals("until")) {
           index++;
           if (index >= args.size()) throw new IllegalArgumentException("Missing end date after 'until'");
@@ -95,14 +105,44 @@ public class CreateEventCommand implements ICommand {
       }
     }
 
-    if (index != args.size()) {
-      throw new IllegalArgumentException("Unrecognized extra arguments: " + String.join(" ", args.subList(index, args.size())));
+    while (index < args.size()) {
+      String keyword = args.get(index);
+      switch (keyword) {
+        case "--description":
+          if (descSet) throw new IllegalArgumentException("Duplicate --description flag");
+          descSet = true;
+          index++;
+          if (index >= args.size()) throw new IllegalArgumentException("Missing value for --description");
+          tempDescription = args.get(index++);
+          break;
+        case "--location":
+          if (locSet) throw new IllegalArgumentException("Duplicate --location flag");
+          locSet = true;
+          index++;
+          if (index >= args.size()) throw new IllegalArgumentException("Missing value for --location");
+          tempLocation = args.get(index++);
+          break;
+        case "--private":
+          if (privateSet) throw new IllegalArgumentException("Duplicate --private flag");
+          privateSet = true;
+          tempIsPrivate = true;
+          index++;
+          if (index < args.size() && !args.get(index).startsWith("--")) {
+            throw new IllegalArgumentException("--private does not take a value");
+          }
+          break;
+        default:
+          throw new IllegalArgumentException("Unrecognized extra argument: " + keyword);
+      }
     }
 
     this.autoDecline = autoDeclineFlag;
     this.isRecurring = recurring;
     this.recurrenceCount = count;
     this.recurrenceEndDate = until;
+    this.description = tempDescription;
+    this.location = tempLocation;
+    this.isPrivate = tempIsPrivate;
   }
 
   @Override
@@ -117,6 +157,9 @@ public class CreateEventCommand implements ICommand {
               .setRecurrenceCount(recurrenceCount)
               .setRecurrenceEndDate(recurrenceEndDate != null ? recurrenceEndDate.atStartOfDay() : null)
               .setAutoDecline(autoDecline)
+              .setEventDescription(description)
+              .setEventLocation(location)
+              .setPrivate(isPrivate)
               .build();
 
       boolean success = model.addEvent(calendarName, event);
@@ -124,7 +167,7 @@ public class CreateEventCommand implements ICommand {
     } catch (IllegalArgumentException | IllegalStateException e) {
       return "Error: " + e.getMessage();
     } catch (Exception e) {
-      return "Unexpected error: " + e.getCause().getMessage();
+      return "Unexpected error: " + e.getMessage();
     }
   }
 

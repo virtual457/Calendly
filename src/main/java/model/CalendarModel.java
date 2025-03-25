@@ -93,7 +93,7 @@ public class CalendarModel implements ICalendarModel {
 
   @Override
   public boolean editEvents(String calendarName, String property, String eventName,
-                            LocalDateTime fromDateTime, LocalDateTime toDateTime,
+                            LocalDateTime fromDateTime,
                             String newValue, boolean editAll) {
     // Find the target calendar by name.
     Calendar targetCalendar = getCalendarByName(calendarName);
@@ -105,9 +105,8 @@ public class CalendarModel implements ICalendarModel {
     // Iterate through the events in the target calendar.
     for (CalendarEvent event : targetCalendar.getEvents()) {
       // Check if the event matches the criteria.
-      if (event.getEventName().equalsIgnoreCase(eventName)
-              && event.getStartDateTime().equals(fromDateTime)
-              && event.getEndDateTime().equals(toDateTime)) {
+      if (event.getEventName().equals(eventName)
+              && (event.getStartDateTime().isAfter(fromDateTime) || event.getStartDateTime().equals(fromDateTime))) {
 
         // Save original values for rollback.
         LocalDateTime originalStart = event.getStartDateTime();
@@ -540,6 +539,7 @@ public class CalendarModel implements ICalendarModel {
             .setEndDateTime(event.getEndDateTime())
             .setEventLocation(event.getEventLocation())
             .setEventDescription(event.getEventDescription())
+            .setPrivate(!event.isPublic())
             .setAutoDecline(true)
             .build();
   }

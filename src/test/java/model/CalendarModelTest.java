@@ -138,7 +138,7 @@ public class CalendarModelTest {
     assertTrue(model.addEvent("Work", eventDTO));
 
     // Edit event's location.
-    boolean edited = model.editEvents("Work", "location", "Standup", start, end, "Room B", false);
+    boolean edited = model.editEvents("Work", "location", "Standup", start, "Room B", false);
     assertTrue(edited);
     List<ICalendarEventDTO> events = model.getEventsInRange("Work", start.minusMinutes(1), end.plusMinutes(1));
     assertEquals("Room B", events.get(0).getEventLocation());
@@ -165,7 +165,7 @@ public class CalendarModelTest {
     assertTrue(model.addEvent("Work", eventDTO));
 
     // Attempt to edit all events matching the criteria.
-    boolean edited = model.editEvents("Work", "location", "Standup", start, end, "Room C", true);
+    boolean edited = model.editEvents("Work", "location", "Standup", start, "Room C", true);
     assertTrue(edited);
     List<ICalendarEventDTO> events = model.getEventsInRange("Work", start.minusMinutes(1), end.plusMinutes(1));
     for (ICalendarEventDTO event : events) {
@@ -574,7 +574,7 @@ public class CalendarModelTest {
             .build();
     assertTrue(model.addEvent("EditCal", eventDTO));
     // Attempt to edit an unsupported property.
-    model.editEvents("EditCal", "unsupported", "Event", start, end, "NewValue", false);
+    model.editEvents("EditCal", "unsupported", "Event", start, "NewValue", false);
   }
 
   @Test(expected = IllegalStateException.class)
@@ -583,7 +583,7 @@ public class CalendarModelTest {
     LocalDateTime start = LocalDateTime.of(2025, 8, 1, 10, 0);
     LocalDateTime end = LocalDateTime.of(2025, 8, 1, 11, 0);
     // No event added, so editing should fail.
-    model.editEvents("EditCal", "location", "NonExistent", start, end, "Room X", false);
+    model.editEvents("EditCal", "location", "NonExistent", start, "Room X", false);
   }
 
   // ---------- Calendar Availability and Presence ----------
@@ -796,7 +796,7 @@ public class CalendarModelTest {
 
     // Now attempt to edit Event2 so that it overlaps with Event1.
     // For example, change its start time to 9:30, which overlaps with Event1.
-    model.editEvents("OverlapCal", "start", "Event2", start2, end2, "2025-11-01T09:30:00", false);
+    model.editEvents("OverlapCal", "start", "Event2", start2, "2025-11-01T09:30:00", false);
   }
 
   //check if the event is not created in an unspecified calender

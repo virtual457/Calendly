@@ -41,7 +41,7 @@ public interface ICalendarModel {
   boolean addEvent(String calendarName, ICalendarEventDTO event);
 
   boolean editEvents(String calendarName, String property, String eventName,
-                     LocalDateTime fromDateTime, LocalDateTime toDateTime,
+                     LocalDateTime fromDateTime,
                      String newValue, boolean editAll);
 
   boolean isCalendarAvailable(String calName, LocalDate date);

@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -59,14 +60,14 @@ public class ExportEventsCommand implements ICommand {
         writer.newLine();
 
         for (ICalendarEventDTO event : events) {
-          boolean isAllDay = event.getStartDateTime().toLocalTime().equals(java.time.LocalTime.MIDNIGHT)
-                  && event.getEndDateTime().toLocalTime().equals(java.time.LocalTime.of(23, 59, 59));
+          boolean isAllDay = event.getStartDateTime().toLocalTime().equals(LocalTime.MIDNIGHT)
+                  && event.getEndDateTime().toLocalTime().equals(LocalTime.of(23, 59, 59));
 
           String subject = escapeCSV(event.getEventName());
           String startDate = event.getStartDateTime().format(dateFormatter);
           String endDate = event.getEndDateTime().format(dateFormatter);
-          String startTime = isAllDay ? "" : event.getStartDateTime().format(timeFormatter);
-          String endTime = isAllDay ? "" : event.getEndDateTime().format(timeFormatter);
+          String startTime = event.getStartDateTime().format(timeFormatter);
+          String endTime = event.getEndDateTime().format(timeFormatter);
           String allDay = isAllDay ? "True" : "False";
 
           String description = event.getEventDescription() != null ? escapeCSV(event.getEventDescription()) : "";
