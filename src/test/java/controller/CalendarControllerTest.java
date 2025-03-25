@@ -2214,6 +2214,11 @@ public class CalendarControllerTest {
     }
 
     @Override
+    public boolean editEvent(String calendarName, String property, String eventName, LocalDateTime fromDateTime, LocalDateTime toDateTime, String newValue) {
+      return false;
+    }
+
+    @Override
     public boolean isCalendarAvailable(String calName, LocalDate date) {
       return false;
     }
@@ -2225,6 +2230,11 @@ public class CalendarControllerTest {
 
     @Override
     public List<ICalendarEventDTO> getEventsInRange(String calendarName, LocalDateTime fromDateTime, LocalDateTime toDateTime) {
+      return List.of();
+    }
+
+    @Override
+    public List<ICalendarEventDTO> getEventsInSpecificDateTime(String calendarName, LocalDateTime dateTime) {
       return List.of();
     }
 

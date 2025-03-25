@@ -130,6 +130,110 @@ public class CalendarAppTest {
             .replace("\r\n", "\n")
             .replace("\r", "\n");
   }
+  //Show status tests
+  @Test
+  public void testShowStatusCommandWhenBusy_ShouldPrintBusy() throws IOException {
+    String[] commands = {
+            "create calendar --name StatusCal --timezone America/New_York",
+            "use calendar --name StatusCal",
+            "create event Meeting from 2024-06-04T10:00 to 2024-06-04T11:00",
+            "show status on 2024-06-04T10:30",
+            "exit"
+    };
+    runAppWithCommands(commands);
+    assertTrue(outContent.toString().toLowerCase().contains("busy"));
+  }
+
+  @Test
+  public void testShowStatusReturnsBusyForTimedEvent() throws IOException {
+    String[] commands = {
+            "create calendar --name BusyTest --timezone America/New_York",
+            "use calendar --name BusyTest",
+            "create event Meeting from 2024-06-05T10:00 to 2024-06-05T11:00",
+            "show status on 2024-06-05T10:30",
+            "exit"
+    };
+    runAppWithCommands(commands);
+    assertTrue(outContent.toString().toLowerCase().contains("busy"));
+  }
+
+  @Test
+  public void testShowStatusReturnsAvailableWhenNoEventExists() throws IOException {
+    String[] commands = {
+            "create calendar --name FreeTest --timezone America/New_York",
+            "use calendar --name FreeTest",
+            "show status on 2024-06-06T09:00",
+            "exit"
+    };
+    runAppWithCommands(commands);
+    assertTrue(outContent.toString().toLowerCase().contains("available"));
+  }
+
+  @Test
+  public void testShowStatusReturnsBusyForAllDayEvent() throws IOException {
+    String[] commands = {
+            "create calendar --name AllDayStatus --timezone America/New_York",
+            "use calendar --name AllDayStatus",
+            "create event Retreat on 2024-06-07",
+            "show status on 2024-06-07T13:00",
+            "exit"
+    };
+    runAppWithCommands(commands);
+    assertTrue(outContent.toString().toLowerCase().contains("busy"));
+  }
+
+  @Test
+  public void testShowStatusReturnsBusyForRecurringInstance() throws IOException {
+    String[] commands = {
+            "create calendar --name RecurringStatus --timezone America/New_York",
+            "use calendar --name RecurringStatus",
+            "create event Standup from 2024-06-10T09:00 to 2024-06-10T09:30 repeats M for 2 times",
+            "show status on 2024-06-10T09:15",
+            "exit"
+    };
+    runAppWithCommands(commands);
+    assertTrue(outContent.toString().toLowerCase().contains("busy"));
+  }
+
+  @Test
+  public void testShowStatusWithInvalidDatetimeFormat_ShouldFail() throws IOException {
+    String[] commands = {
+            "create calendar --name BadFormat --timezone America/New_York",
+            "use calendar --name BadFormat",
+            "show status on 06-08-2024T09:00", // Invalid format
+            "exit"
+    };
+    runAppWithCommands(commands);
+    assertTrue(outContent.toString().toLowerCase().contains("invalid date and time format"));
+  }
+
+  @Test
+  public void testShowStatusMissingOnKeyword_ShouldFail() throws IOException {
+    String[] commands = {
+            "create calendar --name MissingOn --timezone America/New_York",
+            "use calendar --name MissingOn",
+            "show status 2024-06-09T09:00", // Missing 'on'
+            "exit"
+    };
+    runAppWithCommands(commands);
+    assertTrue(outContent.toString().toLowerCase().contains("missing 'on' keyword"));
+  }
+
+  @Test
+  public void testShowStatusWithExtraArguments_ShouldFail() throws IOException {
+    String[] commands = {
+            "create calendar --name ExtraArgs --timezone America/New_York",
+            "use calendar --name ExtraArgs",
+            "show status on 2024-06-10T09:00 now", // Extra token
+            "exit"
+    };
+    runAppWithCommands(commands);
+    assertTrue(outContent.toString().toLowerCase().contains("invalid syntax"));
+  }
+
+
+
+
 
   //Create calendarr command tests
   @Test

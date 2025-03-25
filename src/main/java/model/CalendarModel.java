@@ -283,6 +283,28 @@ public class CalendarModel implements ICalendarModel {
     return false;
   }
 
+  @Override
+  public List<ICalendarEventDTO> getEventsInSpecificDateTime(String calendarName, LocalDateTime dateTime) {
+    // Look up the target calendar by its name.
+    Calendar targetCalendar = getCalendarByName(calendarName);
+    if (targetCalendar == null) {
+      throw new IllegalArgumentException("Calendar not found: " + calendarName);
+    }
+
+    if (dateTime == null ) {
+      throw new IllegalArgumentException("date time cannot be null");
+    }
+
+    List<CalendarEvent> rangeEvents = new ArrayList<>();
+    for (CalendarEvent event : targetCalendar.getEvents()) {
+      if (event.getStartDateTime().isBefore(dateTime) &&
+              event.getEndDateTime().isAfter(dateTime)) {
+        rangeEvents.add(event);
+      }
+    }
+    return rangeEvents.stream().map(this::convertToDTO).collect(Collectors.toList());
+  }
+
   public List<ICalendarEventDTO> getEventsInRange(String calendarName, LocalDateTime fromDateTime, LocalDateTime toDateTime) {
     // Look up the target calendar by its name.
     Calendar targetCalendar = getCalendarByName(calendarName);

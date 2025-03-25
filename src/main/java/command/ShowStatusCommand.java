@@ -2,36 +2,39 @@ package command;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Scanner;
 import model.ICalendarEventDTO;
 import model.ICalendarModel;
 
 /**
- * Command to check the user's status (busy/available) on a given date and time.
+ * Command to check the user status (busy/available) on a given date and time.
  */
 public class ShowStatusCommand implements ICommand {
   private final ICalendarModel model;
   private final String calendarName;
   private final LocalDateTime dateTime;
 
-  public ShowStatusCommand(Scanner parts, ICalendarModel model, String currentCalendar) {
+  public ShowStatusCommand(List<String> parts, ICalendarModel model, String currentCalendar) {
     this.model = model;
     this.calendarName = currentCalendar;
 
-    if (!parts.hasNext("on")) {
+    if (parts.size() != 2) {
+      throw new IllegalArgumentException("Invalid syntax. Expected: show status on <datetime>");
+    }
+
+    if (!parts.get(0).equals("on")) {
       throw new IllegalArgumentException("Missing 'on' keyword.");
     }
-    parts.next();
 
-    if (!parts.hasNext()) {
-      throw new IllegalArgumentException("Missing date and time.");
+    try {
+      this.dateTime = LocalDateTime.parse(parts.get(1));
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Invalid date and time format. Expected: yyyy-MM-ddTHH:mm");
     }
-    this.dateTime = LocalDateTime.parse(parts.next());
   }
 
   @Override
   public String execute() {
-    List<ICalendarEventDTO> events = model.getEventsInRange(calendarName, dateTime, dateTime);
+    List<ICalendarEventDTO> events = model.getEventsInSpecificDateTime(calendarName, dateTime);
     return events.isEmpty() ? "Available" : "Busy";
   }
 }

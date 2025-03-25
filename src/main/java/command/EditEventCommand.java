@@ -55,7 +55,6 @@ public class EditEventCommand implements ICommand {
         }
         withValue = parts.get(index++);
       } else {
-        // Fallback for commands like: edit events name Meeting NewName
         if (index == parts.size() - 1) {
           withValue = parts.get(index);
           index++;
