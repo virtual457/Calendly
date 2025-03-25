@@ -171,6 +171,84 @@ public class CalendarModel implements ICalendarModel {
     return found;
   }
 
+  @Override
+  public boolean editEvent(String calendarName, String property, String eventName, LocalDateTime fromDateTime, LocalDateTime toDateTime, String newValue) {
+    Calendar targetCalendar = getCalendarByName(calendarName);
+    boolean editAll = true;
+    if (targetCalendar == null) {
+      throw new IllegalArgumentException("Calendar not found: " + calendarName);
+    }
+
+    boolean found = false;
+    // Iterate through the events in the target calendar.
+    for (CalendarEvent event : targetCalendar.getEvents()) {
+      // Check if the event matches the criteria.
+      if (event.getEventName().equals(eventName)
+              && (event.getStartDateTime().isEqual(fromDateTime) && event.getEndDateTime().equals(toDateTime))) {
+
+        // Save original values for rollback.
+        LocalDateTime originalStart = event.getStartDateTime();
+        LocalDateTime originalEnd = event.getEndDateTime();
+
+        // Update the specified property.
+        switch (property.toLowerCase()) {
+          case "name":
+            event.setEventName(newValue);
+            found = true;
+            break;
+          case "start":
+            LocalDateTime newStart = LocalDateTime.parse(newValue);
+            if (!event.getEndDateTime().isAfter(newStart)) {
+              throw new IllegalArgumentException("New start must be before current end time.");
+            }
+            event.setStartDateTime(newStart);
+            found = true;
+            break;
+          case "end":
+            LocalDateTime newEnd = LocalDateTime.parse(newValue);
+            if (!newEnd.isAfter(event.getStartDateTime())) {
+              throw new IllegalArgumentException("New end must be after current start time.");
+            }
+            event.setEndDateTime(newEnd);
+            found = true;
+            break;
+          case "description":
+            event.setEventDescription(newValue);
+            found = true;
+            break;
+          case "location":
+            event.setEventLocation(newValue);
+            found = true;
+            break;
+          case "ispublic":
+            event.setPublic(Boolean.parseBoolean(newValue));
+            found = true;
+            break;
+          default:
+            throw new IllegalArgumentException("Unsupported property for edit: " + property);
+        }
+
+        // After the change, check for conflicts.
+        if (checkConflictForEvent(event, targetCalendar.getEvents())) {
+          // Rollback to original values.
+          event.setStartDateTime(originalStart);
+          event.setEndDateTime(originalEnd);
+          throw new IllegalStateException("Conflict detected after editing " + property);
+        }
+
+        // If not editing all matching events, return immediately.
+        if (!editAll) {
+          return true;
+        }
+      }
+    }
+
+    if (!found) {
+      throw new IllegalStateException("No matching event found for editing: " + eventName);
+    }
+    return found;
+  }
+
   public boolean isCalendarAvailable(String calName, LocalDate date) {
     // Iterate through the stored calendars.
     for (Calendar cal : calendars) {

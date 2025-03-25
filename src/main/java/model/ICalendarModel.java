@@ -44,6 +44,9 @@ public interface ICalendarModel {
                      LocalDateTime fromDateTime,
                      String newValue, boolean editAll);
 
+  boolean editEvent(String calendarName, String property, String eventName,LocalDateTime fromDateTime,
+                    LocalDateTime toDateTime, String newValue);
+
   boolean isCalendarAvailable(String calName, LocalDate date);
 
   boolean deleteCalendar(String calName);

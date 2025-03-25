@@ -1690,6 +1690,4 @@ public class CalendarAppTest {
     );
     assertEquals(expected, readExportedFile());
   }
-
-
 }
