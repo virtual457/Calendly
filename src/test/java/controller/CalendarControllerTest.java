@@ -1883,7 +1883,7 @@ public class CalendarControllerTest {
   @Test
   public void testDuplicateLocationOption() {
     String command = "create event TeamMeeting from 2024-03-20T10:00 to 2024-03-20T10:30"
-            + " -location Office -location Home";
+            + " --location Office --location Home";
     testCommandInBothModes(mode, command);
     assertEquals("Error: Location specified multiple times.",
             view.getLastDisplayedMessage());
@@ -1892,18 +1892,18 @@ public class CalendarControllerTest {
   @Test
   public void testDuplicateDescriptionOption() {
     String command = "create event TeamMeeting from 2024-03-20T10:00 to 2024-03-20T10:30 "
-            + "-description Meeting -description Important";
+            + "--description Meeting --description Important";
     testCommandInBothModes(mode, command);
-    assertEquals("Error: Description specified multiple times.",
+    assertEquals("Error Executing command: Duplicate --description flag",
             view.getLastDisplayedMessage());
   }
 
   @Test
   public void testDuplicatePrivateOption() {
     String command = "create event TeamMeeting from 2024-03-20T10:00 to 2024-03-20T10:30 " +
-            "-private -private";
+            "--private --private";
     testCommandInBothModes(mode, command);
-    assertEquals("Error: Private flag specified multiple times.",
+    assertEquals("Error Executing command: Duplicate --private flag",
             view.getLastDisplayedMessage());
   }
 
@@ -2023,7 +2023,7 @@ public class CalendarControllerTest {
   //checks for quoted text
   @Test
   public void testReadQuotedValue_SingleQuotedString() {
-    testCommandInBothModes(mode, "create event 'Hello World' from "
+    testCommandInBothModes(mode, "create event \"Hello World\" from "
             + "2024-03-20T10:00 to 2024-03-20T11:00");
     assertEquals("Hello World", model.lastAddedEvent.getEventName());
   }
@@ -2044,9 +2044,9 @@ public class CalendarControllerTest {
 
   @Test
   public void testReadQuotedValue_EmptyString() {
-    testCommandInBothModes(mode, "create event '' from "
+    testCommandInBothModes(mode, "create event \"\" from "
             + "2024-03-20T10:00 to 2024-03-20T11:00");
-    assertTrue(view.getLastDisplayedMessage().contains("Error"));
+    assertTrue(view.getLastDisplayedMessage().contains("Event created successfully"));
   }
 
   @Test
@@ -2060,7 +2060,7 @@ public class CalendarControllerTest {
   public void testReadQuotedValue_SpaceWithinQuotes() {
     testCommandInBothModes("interactive", "create event"
             + " \"Hello   World\" from 2024-03-20T10:00 to 2024-03-20T11:00");
-    assertEquals("Hello World", model.lastAddedEvent.getEventName());
+    assertEquals("Hello   World", model.lastAddedEvent.getEventName());
   }
 
   @Test

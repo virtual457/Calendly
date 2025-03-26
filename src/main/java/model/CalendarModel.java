@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -397,11 +398,12 @@ public class CalendarModel implements ICalendarModel {
     java.time.ZoneId sourceZone = java.time.ZoneId.of(sourceCal.getTimezone());
     java.time.ZoneId targetZone = java.time.ZoneId.of(targetCal.getTimezone());
 
+    List<CalendarEvent> eventsToBeCopied = new ArrayList<>();
     // For each event to be copied, convert its start and end times from the source to the target timezone.
     for (CalendarEvent event : eventsToCopy) {
 
-
-      LocalDateTime newStart = convertTimeToTargetDate(event.getStartDateTime(),sourceCal.getTimezone(), targetStart, targetCal.getTimezone());
+      LocalDate calculatedTargetStart = targetStart.plusDays(ChronoUnit.DAYS.between(sourceStart, event.getStartDateTime()));
+      LocalDateTime newStart = convertTimeToTargetDate(event.getStartDateTime(),sourceCal.getTimezone(), calculatedTargetStart, targetCal.getTimezone());
       java.time.Duration duration = java.time.Duration.between(event.getStartDateTime(), event.getEndDateTime());
 
       LocalDateTime newEnd = newStart.plus(duration);
@@ -424,8 +426,10 @@ public class CalendarModel implements ICalendarModel {
       }
 
       // Add the new event to the target calendar.
-      targetCal.addEvent(newEvent);
+      eventsToBeCopied.add(newEvent);
     }
+
+    eventsToBeCopied.forEach(targetCal::addEvent);
 
     return true;
   }
