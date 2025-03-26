@@ -36,6 +36,7 @@ class CalendarController implements ICalendarController {
     invoker.registerCommand("edit events", EditEventsCalendarCommand.class);
     invoker.registerCommand("show status", ShowStatusCommand.class);
     invoker.registerCommand("print events", PrintEventsCommand.class);
+    invoker.registerCommand("edit calendar", EditCalendarCommand.class);
   }
 
 

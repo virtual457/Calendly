@@ -1,5 +1,7 @@
 package model;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,8 +39,25 @@ class Calendar {
     return timezone;
   }
 
-  public void setTimezone(String timezone) {
-    this.timezone = timezone;
+  public void setTimezone(String newTimezone) {
+    String oldTimezone = this.timezone;
+    this.timezone = newTimezone;
+
+    ZoneId oldZone = ZoneId.of(oldTimezone);
+    ZoneId newZone = ZoneId.of(newTimezone);
+
+    for (CalendarEvent event : events) {
+      // Convert start time
+      ZonedDateTime oldStartZoned = event.getStartDateTime().atZone(oldZone);
+      ZonedDateTime newStartZoned = oldStartZoned.withZoneSameInstant(newZone);
+      event.setStartDateTime(newStartZoned.toLocalDateTime());
+
+      // Convert end time
+      ZonedDateTime oldEndZoned = event.getEndDateTime().atZone(oldZone);
+      ZonedDateTime newEndZoned = oldEndZoned.withZoneSameInstant(newZone);
+      event.setEndDateTime(newEndZoned.toLocalDateTime());
+
+    }
   }
 
   public List<CalendarEvent> getEvents() {
