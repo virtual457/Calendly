@@ -2128,12 +2128,21 @@ public class CalendarControllerTest {
 
     @Override
     public boolean editEvents(String calendarName, String property, String eventName, LocalDateTime fromDateTime, String newValue, boolean editAll) {
-      return false;
+      this.lastEditEventsProperty = property;
+      this.lastEditEventsName = eventName;
+      this.lastEditEventsStartDateTime = fromDateTime;
+      this.lastEditEventsNewValue = newValue;
+      return true;
     }
 
     @Override
     public boolean editEvent(String calendarName, String property, String eventName, LocalDateTime fromDateTime, LocalDateTime toDateTime, String newValue) {
-      return false;
+      this.lastEditEventProperty = property;
+      this.lastEditEventName = eventName;
+      this.lastEditEventStartDateTime = fromDateTime;
+      this.lastEditEventEndDateTime = fromDateTime;
+      this.lastEditEventNewValue = newValue;
+      return true;
     }
 
     @Override
