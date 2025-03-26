@@ -1018,7 +1018,7 @@ public class CalendarAppTest {
     String[] commands = {
             "create calendar --name UntilCal --timezone America/New_York",
             "use calendar --name UntilCal",
-            "create event Sync from 2025-04-22T09:00 to 2025-04-22T10:00 repeats TR until 2025-05-01",
+            "create event Sync from 2025-04-22T09:00 to 2025-04-22T10:00 repeats TR until 2025-05-01T23:59",
             "export cal " + OUTPUT_FILE,
             "exit"
     };
@@ -1235,7 +1235,7 @@ public class CalendarAppTest {
     String[] commands = {
             "create calendar --name Reviews --timezone America/New_York",
             "use calendar --name Reviews",
-            "create event CodeReview from 2024-04-08T15:00 to 2024-04-08T16:00 repeats MWF until 2024-04-12",
+            "create event CodeReview from 2024-04-08T15:00 to 2024-04-08T16:00 repeats MWF until 2024-04-12T23:59",
             "export cal " + OUTPUT_FILE,
             "exit"
     };

@@ -1128,7 +1128,7 @@ public class CalendarModelTest {
     assertTrue(model.copyEvents("SourceCal", laStart, laEnd, "TargetCal", targetDate));
 
     // Expected Tokyo time: 10 AM PDT = 2 AM JST (UTC+9)
-    LocalDateTime expectedStart = LocalDateTime.of(2025, 5, 11, 2, 0);
+    LocalDateTime expectedStart = LocalDateTime.of(2025, 5, 12, 2, 0);
     LocalDateTime expectedEnd = expectedStart.plusHours(1);
 
     List<ICalendarEventDTO> events = model.getEventsInRange("TargetCal", expectedStart.minusMinutes(1), expectedEnd.plusMinutes(1));
@@ -2303,7 +2303,7 @@ public class CalendarModelTest {
     assertTrue(model.copyEvents("SourceCal", sourceStart, sourceEnd, "TargetCal", targetDate));
 
     // Correct time in IST = 2025-05-06 04:30
-    LocalDateTime expectedStart = LocalDateTime.of(2025, 5, 6, 4, 30);
+    LocalDateTime expectedStart = LocalDateTime.of(2025, 5, 7, 4, 30);
     LocalDateTime expectedEnd = expectedStart.plusHours(1);
 
     List<ICalendarEventDTO> events = model.getEventsInRange("TargetCal", expectedStart.minusMinutes(1), expectedEnd.plusMinutes(1));

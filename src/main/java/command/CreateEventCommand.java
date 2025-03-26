@@ -23,7 +23,7 @@ public class CreateEventCommand implements ICommand {
   private final boolean isRecurring;
   private final List<DayOfWeek> recurrenceDays;
   private final Integer recurrenceCount;
-  private final LocalDate recurrenceEndDate;
+  private final LocalDateTime recurrenceEndDate;
   private final String description;
   private final String location;
   private final boolean isPrivate;
@@ -33,9 +33,10 @@ public class CreateEventCommand implements ICommand {
     this.calendarName = calendarName;
     this.recurrenceDays = new ArrayList<>();
     Integer count = null;
-    LocalDate until = null;
+    LocalDateTime until = null;
     boolean recurring = false;
     boolean autoDeclineFlag = false;
+    boolean isOn = false;
 
     String tempDescription = "";
     String tempLocation = "";
@@ -73,6 +74,7 @@ public class CreateEventCommand implements ICommand {
 
     } else if (args.get(index).equals("on")) {
       index++;
+      isOn = true;
       if (index >= args.size()) throw new IllegalArgumentException("Missing date after 'on'");
       this.startDateTime = LocalDate.parse(args.get(index)).atStartOfDay();
       this.endDateTime = this.startDateTime.withHour(23).withMinute(59).withSecond(59);
@@ -100,7 +102,12 @@ public class CreateEventCommand implements ICommand {
         } else if (args.get(index).equals("until")) {
           index++;
           if (index >= args.size()) throw new IllegalArgumentException("Missing end date after 'until'");
-          until = LocalDate.parse(args.get(index++));
+          if(isOn){
+            until = LocalDate.parse(args.get(index++)).atStartOfDay().withHour(23).withMinute(59).withSecond(59);
+          }
+          else {
+            until = LocalDateTime.parse(args.get(index++));
+          }
         }
       }
     }
@@ -155,7 +162,7 @@ public class CreateEventCommand implements ICommand {
               .setRecurring(isRecurring)
               .setRecurrenceDays(recurrenceDays)
               .setRecurrenceCount(recurrenceCount)
-              .setRecurrenceEndDate(recurrenceEndDate != null ? recurrenceEndDate.atStartOfDay() : null)
+              .setRecurrenceEndDate(recurrenceEndDate)
               .setAutoDecline(autoDecline)
               .setEventDescription(description)
               .setEventLocation(location)

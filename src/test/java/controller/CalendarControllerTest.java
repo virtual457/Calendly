@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.io.Reader;
+import java.io.StringReader;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -43,8 +44,6 @@ import static org.junit.Assert.fail;
  * cover a variety of input scenarios more comprehensively.
  * </p>
  */
-
-@RunWith(Parameterized.class)
 public class CalendarControllerTest {
   private ICalendarController controller;
   private TestCalendarModel model;
@@ -52,14 +51,10 @@ public class CalendarControllerTest {
   private PrintStream originalOut;
   private MockView view;
   private String mode;
-  String[] options = {"-location Office", "-description Quarterlymeeting", "-private"};
-  String[] spacedOptions = {"-location 'Off ice'", "-description 'Quarterly meeting'", "-private"};
-  String[] spacedOptions2 = {"-location Office", "-description 'Quarterly meeting'", "-private"};
-  String[] spacedOptions3 = {"-location 'Off ice'", "-description Quarterlymeeting", "-private"};
-
-  public CalendarControllerTest(String mode) {
-    this.mode = mode;
-  }
+  String[] options = {"--location Office", "--description Quarterlymeeting", "--private"};
+  String[] spacedOptions = {"--location \"Off ice\"", "--description \"Quarterly meeting\"", "--private"};
+  String[] spacedOptions2 = {"--location Office", "--description \"Quarterly meeting\"", "--private"};
+  String[] spacedOptions3 = {"--location \"Off ice\"", "--description Quarterlymeeting", "--private"};
 
   @Before
   public void setUp() {
@@ -80,39 +75,10 @@ public class CalendarControllerTest {
     System.setOut(new PrintStream(outputStream));
   }
 
-  /**
-   * A set of parameterized JUnit tests for verifying the behavior of the CalendarController.
-   */
-
-  @Parameterized.Parameters
-  public static Collection<Object[]> modes() {
-    return Arrays.asList(new Object[][]{
-            {"interactive"},
-            {"headless"}
-    });
-  }
 
   private void testCommandInBothModes(String mode, String command) {
-    // Interactive mode
-    try {
       resetModels();
-      if (mode.equalsIgnoreCase("interactive")) {
-        InputStream inputStream = new ByteArrayInputStream((command + "\nexit\n").getBytes());
-        System.setIn(inputStream);
-        //controller.run("interactive", null);
-        assertTrue(view.getDisplayedMessages().contains("Welcome to the Calendar App!"));
-      } else if (mode.equalsIgnoreCase("headless")) {
-        resetModels();
-        File tempFile = File.createTempFile("commands", ".txt");
-        try (FileWriter writer = new FileWriter(tempFile)) {
-          writer.write(command + "\nexit\n");
-        }
-        //controller.run("headless", tempFile.getAbsolutePath());
-        assertTrue(view.getDisplayedMessages().contains("Welcome to the Calendar App!"));
-      }
-    } catch (IOException e) {
-      fail("IOException thrown: " + e.getMessage());
-    }
+      controller.run(new StringReader(command));
   }
 
 
@@ -124,7 +90,7 @@ public class CalendarControllerTest {
       model.lastAddedEvent = null;
       testCommandInBothModes(mode, command);
       assertNotNull(model.lastAddedEvent);
-      assertEquals(Integer.valueOf(0), model.lastAddedEvent.getRecurrenceCount());
+      assertNull(model.lastAddedEvent.getRecurrenceCount());
       assertTrue(model.lastAddedEvent.getRecurrenceDays().isEmpty());
       assertNull(model.lastAddedEvent.getRecurrenceEndDate());
       assertFalse(model.lastAddedEvent.isRecurring());
@@ -151,13 +117,13 @@ public class CalendarControllerTest {
 
   @Test
   public void testCreateEventVariationsWithSpacedOptions() {
-    String baseCommand = "create event 'Team Meeting' from 2024-03-20T10:00 to 2024-03-20T11:00";
+    String baseCommand = "create event \"Team Meeting\" from 2024-03-20T10:00 to 2024-03-20T11:00";
     List<String> commands = generateCommandCombinations(baseCommand, spacedOptions);
     for (String command : commands) {
       model.lastAddedEvent = null;
       testCommandInBothModes(mode, command);
       assertNotNull(model.lastAddedEvent);
-      assertEquals(Integer.valueOf(0), model.lastAddedEvent.getRecurrenceCount());
+      assertNull(model.lastAddedEvent.getRecurrenceCount());
       assertTrue(model.lastAddedEvent.getRecurrenceDays().isEmpty());
       assertNull(model.lastAddedEvent.getRecurrenceEndDate());
       assertFalse(model.lastAddedEvent.isRecurring());
@@ -184,13 +150,13 @@ public class CalendarControllerTest {
 
   @Test
   public void testCreateEventVariationsWithSpacedOptions1() {
-    String baseCommand = "create event 'Team Meeting' from 2024-03-20T10:00 to 2024-03-20T11:00";
+    String baseCommand = "create event \"Team Meeting\" from 2024-03-20T10:00 to 2024-03-20T11:00";
     List<String> commands = generateCommandCombinations(baseCommand, options);
     for (String command : commands) {
       model.lastAddedEvent = null;
       testCommandInBothModes(mode, command);
       assertNotNull(model.lastAddedEvent);
-      assertEquals(Integer.valueOf(0), model.lastAddedEvent.getRecurrenceCount());
+      assertNull(model.lastAddedEvent.getRecurrenceCount());
       assertTrue(model.lastAddedEvent.getRecurrenceDays().isEmpty());
       assertNull(model.lastAddedEvent.getRecurrenceEndDate());
       assertFalse(model.lastAddedEvent.isRecurring());
@@ -217,13 +183,13 @@ public class CalendarControllerTest {
 
   @Test
   public void testCreateEventVariationsWithSpacedOptions2() {
-    String baseCommand = "create event 'Team Meeting' from 2024-03-20T10:00 to 2024-03-20T11:00";
+    String baseCommand = "create event \"Team Meeting\" from 2024-03-20T10:00 to 2024-03-20T11:00";
     List<String> commands = generateCommandCombinations(baseCommand, spacedOptions2);
     for (String command : commands) {
       model.lastAddedEvent = null;
       testCommandInBothModes(mode, command);
       assertNotNull(model.lastAddedEvent);
-      assertEquals(Integer.valueOf(0), model.lastAddedEvent.getRecurrenceCount());
+      assertNull(model.lastAddedEvent.getRecurrenceCount());
       assertTrue(model.lastAddedEvent.getRecurrenceDays().isEmpty());
       assertNull(model.lastAddedEvent.getRecurrenceEndDate());
       assertFalse(model.lastAddedEvent.isRecurring());
@@ -250,13 +216,13 @@ public class CalendarControllerTest {
 
   @Test
   public void testCreateEventVariationsWithSpacedOptions3() {
-    String baseCommand = "create event 'Team Meeting' from 2024-03-20T10:00 to 2024-03-20T11:00";
+    String baseCommand = "create event \"Team Meeting\" from 2024-03-20T10:00 to 2024-03-20T11:00";
     List<String> commands = generateCommandCombinations(baseCommand, spacedOptions3);
     for (String command : commands) {
       model.lastAddedEvent = null;
       testCommandInBothModes(mode, command);
       assertNotNull(model.lastAddedEvent);
-      assertEquals(Integer.valueOf(0), model.lastAddedEvent.getRecurrenceCount());
+      assertNull(model.lastAddedEvent.getRecurrenceCount());
       assertTrue(model.lastAddedEvent.getRecurrenceDays().isEmpty());
       assertNull(model.lastAddedEvent.getRecurrenceEndDate());
       assertFalse(model.lastAddedEvent.isRecurring());
@@ -333,7 +299,7 @@ public class CalendarControllerTest {
 
   @Test
   public void testCreateRecurringEventForNTimesVariationsSpacedOptions() {
-    String baseCommand = "create event 'Team Meeting' from 2024-03-20T10:00 "
+    String baseCommand = "create event \"Team Meeting\" from 2024-03-20T10:00 "
             + "to 2024-03-20T11:00 repeats MRU for 5 times";
     List<String> commands = generateCommandCombinations(baseCommand, spacedOptions);
     for (String command : commands) {
@@ -369,7 +335,7 @@ public class CalendarControllerTest {
 
   @Test
   public void testCreateRecurringEventForNTimesVariationsSpacedOptions1() {
-    String baseCommand = "create event 'Team Meeting' from 2024-03-20T10:00 to"
+    String baseCommand = "create event \"Team Meeting\" from 2024-03-20T10:00 to"
             + " 2024-03-20T11:00 repeats MRU for 5 times";
     List<String> commands = generateCommandCombinations(baseCommand, options);
     for (String command : commands) {
@@ -405,7 +371,7 @@ public class CalendarControllerTest {
 
   @Test
   public void testCreateRecurringEventForNTimesVariationsSpacedOptions2() {
-    String baseCommand = "create event 'Team Meeting' from 2024-03-20T10:00 to 2"
+    String baseCommand = "create event \"Team Meeting\" from 2024-03-20T10:00 to 2"
             + "024-03-20T11:00 repeats MRU for 5 times";
     List<String> commands = generateCommandCombinations(baseCommand, spacedOptions2);
     for (String command : commands) {
@@ -441,7 +407,7 @@ public class CalendarControllerTest {
 
   @Test
   public void testCreateRecurringEventForNTimesVariationsSpacedOptions3() {
-    String baseCommand = "create event 'Team Meeting' from 2024-03-20T10:00 "
+    String baseCommand = "create event \"Team Meeting\" from 2024-03-20T10:00 "
             + "to 2024-03-20T11:00 repeats MRU for 5 times";
     List<String> commands = generateCommandCombinations(baseCommand, spacedOptions3);
     for (String command : commands) {
@@ -474,7 +440,6 @@ public class CalendarControllerTest {
     }
   }
 
-  //TODO create a fuzzy test for N times
 
   //tests create a recurring date until a date
   @Test
@@ -504,7 +469,7 @@ public class CalendarControllerTest {
       assertTrue(model.lastAddedEvent.isRecurring());
       assertEquals(List.of(DayOfWeek.MONDAY, DayOfWeek.THURSDAY, DayOfWeek.SUNDAY),
               model.lastAddedEvent.getRecurrenceDays());
-      assertEquals(Integer.valueOf(0), model.lastAddedEvent.getRecurrenceCount());
+      assertNull(model.lastAddedEvent.getRecurrenceCount());
       assertEquals(LocalDateTime.parse("2024-04-20T10:00"),
               model.lastAddedEvent.getRecurrenceEndDate());
       assertTrue(model.lastAddedEvent.isRecurring());
@@ -526,7 +491,7 @@ public class CalendarControllerTest {
 
   @Test
   public void testCreateRecurringEventUntilDateVariationsWithSpacedOptions() {
-    String baseCommand = "create event 'Team Meeting' from 2024-03-20T10:00 to "
+    String baseCommand = "create event \"Team Meeting\" from 2024-03-20T10:00 to "
             + "2024-03-20T11:00 repeats MRU until 2024-04-20T10:00";
     List<String> commands = generateCommandCombinations(baseCommand, spacedOptions);
     for (String command : commands) {
@@ -541,7 +506,7 @@ public class CalendarControllerTest {
       assertTrue(model.lastAddedEvent.isRecurring());
       assertEquals(List.of(DayOfWeek.MONDAY, DayOfWeek.THURSDAY,
               DayOfWeek.SUNDAY), model.lastAddedEvent.getRecurrenceDays());
-      assertEquals(Integer.valueOf(0), model.lastAddedEvent.getRecurrenceCount());
+      assertNull(model.lastAddedEvent.getRecurrenceCount());
       assertEquals(LocalDateTime.parse("2024-04-20T10:00"),
               model.lastAddedEvent.getRecurrenceEndDate());
       assertTrue(model.lastAddedEvent.isRecurring());
@@ -563,7 +528,7 @@ public class CalendarControllerTest {
 
   @Test
   public void testCreateRecurringEventUntilDateVariationsWithSpacedOptions1() {
-    String baseCommand = "create event 'Team Meeting' from 2024-03-20T10:00 to "
+    String baseCommand = "create event \"Team Meeting\" from 2024-03-20T10:00 to "
             + "2024-03-20T11:00 repeats MRU until 2024-04-20T10:00";
     List<String> commands = generateCommandCombinations(baseCommand, options);
     for (String command : commands) {
@@ -578,7 +543,7 @@ public class CalendarControllerTest {
       assertTrue(model.lastAddedEvent.isRecurring());
       assertEquals(List.of(DayOfWeek.MONDAY, DayOfWeek.THURSDAY, DayOfWeek.SUNDAY),
               model.lastAddedEvent.getRecurrenceDays());
-      assertEquals(Integer.valueOf(0), model.lastAddedEvent.getRecurrenceCount());
+      assertNull(model.lastAddedEvent.getRecurrenceCount());
       assertEquals(LocalDateTime.parse("2024-04-20T10:00"),
               model.lastAddedEvent.getRecurrenceEndDate());
       assertTrue(model.lastAddedEvent.isRecurring());
@@ -600,7 +565,7 @@ public class CalendarControllerTest {
 
   @Test
   public void testCreateRecurringEventUntilDateVariationsWithSpacedOptions2() {
-    String baseCommand = "create event 'Team Meeting' from 2024-03-20T10:00 to "
+    String baseCommand = "create event \"Team Meeting\" from 2024-03-20T10:00 to "
             + "2024-03-20T11:00 repeats MRU until 2024-04-20T10:00";
     List<String> commands = generateCommandCombinations(baseCommand, spacedOptions2);
     for (String command : commands) {
@@ -615,7 +580,7 @@ public class CalendarControllerTest {
       assertTrue(model.lastAddedEvent.isRecurring());
       assertEquals(List.of(DayOfWeek.MONDAY, DayOfWeek.THURSDAY,
               DayOfWeek.SUNDAY), model.lastAddedEvent.getRecurrenceDays());
-      assertEquals(Integer.valueOf(0), model.lastAddedEvent.getRecurrenceCount());
+      assertNull(model.lastAddedEvent.getRecurrenceCount());
       assertEquals(LocalDateTime.parse("2024-04-20T10:00"),
               model.lastAddedEvent.getRecurrenceEndDate());
       assertTrue(model.lastAddedEvent.isRecurring());
@@ -637,7 +602,7 @@ public class CalendarControllerTest {
 
   @Test
   public void testCreateRecurringEventUntilDateVariationsWithSpacedOptions3() {
-    String baseCommand = "create event 'Team Meeting' from 2024-03-20T10:00 "
+    String baseCommand = "create event \"Team Meeting\" from 2024-03-20T10:00 "
             + "to 2024-03-20T11:00 repeats MRU until 2024-04-20T10:00";
     List<String> commands = generateCommandCombinations(baseCommand, spacedOptions3);
     for (String command : commands) {
@@ -652,7 +617,7 @@ public class CalendarControllerTest {
       assertTrue(model.lastAddedEvent.isRecurring());
       assertEquals(List.of(DayOfWeek.MONDAY, DayOfWeek.THURSDAY, DayOfWeek.SUNDAY),
               model.lastAddedEvent.getRecurrenceDays());
-      assertEquals(Integer.valueOf(0), model.lastAddedEvent.getRecurrenceCount());
+      assertNull(model.lastAddedEvent.getRecurrenceCount());
       assertEquals(LocalDateTime.parse("2024-04-20T10:00"),
               model.lastAddedEvent.getRecurrenceEndDate());
       assertTrue(model.lastAddedEvent.isRecurring());
@@ -700,7 +665,7 @@ public class CalendarControllerTest {
       assertEquals("TeamMeeting", model.lastAddedEvent.getEventName());
       assertFalse(model.lastAddedEvent.isRecurring());
       assertTrue(model.lastAddedEvent.getRecurrenceDays().isEmpty());
-      assertEquals(Integer.valueOf(0), model.lastAddedEvent.getRecurrenceCount());
+      assertNull(model.lastAddedEvent.getRecurrenceCount());
       assertNull(model.lastAddedEvent.getRecurrenceEndDate());
 
       if (command.contains("-location")) {
@@ -720,7 +685,7 @@ public class CalendarControllerTest {
 
   @Test
   public void testCreateAllDayEventVariationsWithSpacedOptions() {
-    String baseCommand = "create event 'Team Meeting' on 2024-03-20";
+    String baseCommand = "create event \"Team Meeting\" on 2024-03-20";
     List<String> commands = generateCommandCombinations(baseCommand, spacedOptions);
     for (String command : commands) {
       model.lastAddedEvent = null;
@@ -733,7 +698,7 @@ public class CalendarControllerTest {
       assertEquals("Team Meeting", model.lastAddedEvent.getEventName());
       assertFalse(model.lastAddedEvent.isRecurring());
       assertTrue(model.lastAddedEvent.getRecurrenceDays().isEmpty());
-      assertEquals(Integer.valueOf(0), model.lastAddedEvent.getRecurrenceCount());
+      assertNull(model.lastAddedEvent.getRecurrenceCount());
       assertNull(model.lastAddedEvent.getRecurrenceEndDate());
 
       if (command.contains("-location")) {
@@ -753,7 +718,7 @@ public class CalendarControllerTest {
 
   @Test
   public void testCreateAllDayEventVariationsWithSpacedOptions1() {
-    String baseCommand = "create event 'Team Meeting' on 2024-03-20";
+    String baseCommand = "create event \"Team Meeting\" on 2024-03-20";
     List<String> commands = generateCommandCombinations(baseCommand, options);
     for (String command : commands) {
       model.lastAddedEvent = null;
@@ -766,7 +731,7 @@ public class CalendarControllerTest {
       assertEquals("Team Meeting", model.lastAddedEvent.getEventName());
       assertFalse(model.lastAddedEvent.isRecurring());
       assertTrue(model.lastAddedEvent.getRecurrenceDays().isEmpty());
-      assertEquals(Integer.valueOf(0), model.lastAddedEvent.getRecurrenceCount());
+      assertNull(model.lastAddedEvent.getRecurrenceCount());
       assertNull(model.lastAddedEvent.getRecurrenceEndDate());
 
       if (command.contains("-location")) {
@@ -786,7 +751,7 @@ public class CalendarControllerTest {
 
   @Test
   public void testCreateAllDayEventVariationsWithSpacedOptions2() {
-    String baseCommand = "create event 'Team Meeting' on 2024-03-20";
+    String baseCommand = "create event \"Team Meeting\" on 2024-03-20";
     List<String> commands = generateCommandCombinations(baseCommand, spacedOptions2);
     for (String command : commands) {
       model.lastAddedEvent = null;
@@ -799,7 +764,7 @@ public class CalendarControllerTest {
       assertEquals("Team Meeting", model.lastAddedEvent.getEventName());
       assertFalse(model.lastAddedEvent.isRecurring());
       assertTrue(model.lastAddedEvent.getRecurrenceDays().isEmpty());
-      assertEquals(Integer.valueOf(0), model.lastAddedEvent.getRecurrenceCount());
+      assertNull(model.lastAddedEvent.getRecurrenceCount());
       assertNull(model.lastAddedEvent.getRecurrenceEndDate());
 
       if (command.contains("-location")) {
@@ -819,7 +784,7 @@ public class CalendarControllerTest {
 
   @Test
   public void testCreateAllDayEventVariationsWithSpacedOptions3() {
-    String baseCommand = "create event 'Team Meeting' on 2024-03-20";
+    String baseCommand = "create event \"Team Meeting\" on 2024-03-20";
     List<String> commands = generateCommandCombinations(baseCommand, spacedOptions3);
     for (String command : commands) {
       model.lastAddedEvent = null;
@@ -833,7 +798,7 @@ public class CalendarControllerTest {
       assertEquals("Team Meeting", model.lastAddedEvent.getEventName());
       assertFalse(model.lastAddedEvent.isRecurring());
       assertTrue(model.lastAddedEvent.getRecurrenceDays().isEmpty());
-      assertEquals(Integer.valueOf(0), model.lastAddedEvent.getRecurrenceCount());
+      assertNull(model.lastAddedEvent.getRecurrenceCount());
       assertNull(model.lastAddedEvent.getRecurrenceEndDate());
 
       if (command.contains("-location")) {
@@ -899,7 +864,7 @@ public class CalendarControllerTest {
 
   @Test
   public void testCreateRecurringAllDayEventForNTimesVariationsWithSpacedOptions() {
-    String baseCommand = "create event 'Team Meeting' on 2024-03-20 repeats MRU for 5 times";
+    String baseCommand = "create event \"Team Meeting\" on 2024-03-20 repeats MRU for 5 times";
     List<String> commands = generateCommandCombinations(baseCommand, spacedOptions);
     for (String command : commands) {
       model.lastAddedEvent = null;
@@ -933,7 +898,7 @@ public class CalendarControllerTest {
 
   @Test
   public void testCreateRecurringAllDayEventForNTimesVariationsWithSpacedOptions1() {
-    String baseCommand = "create event 'Team Meeting' on 2024-03-20 repeats MRU for 5 times";
+    String baseCommand = "create event \"Team Meeting\" on 2024-03-20 repeats MRU for 5 times";
     List<String> commands = generateCommandCombinations(baseCommand, options);
     for (String command : commands) {
       model.lastAddedEvent = null;
@@ -967,7 +932,7 @@ public class CalendarControllerTest {
 
   @Test
   public void testCreateRecurringAllDayEventForNTimesVariationsWithSpacedOptions2() {
-    String baseCommand = "create event 'Team Meeting' on 2024-03-20 repeats MRU for 5 times";
+    String baseCommand = "create event \"Team Meeting\" on 2024-03-20 repeats MRU for 5 times";
     List<String> commands = generateCommandCombinations(baseCommand, spacedOptions2);
     for (String command : commands) {
       model.lastAddedEvent = null;
@@ -1001,7 +966,7 @@ public class CalendarControllerTest {
 
   @Test
   public void testCreateRecurringAllDayEventForNTimesVariationsWithSpacedOptions3() {
-    String baseCommand = "create event 'Team Meeting' on 2024-03-20 repeats MRU for 5 times";
+    String baseCommand = "create event \"Team Meeting\" on 2024-03-20 repeats MRU for 5 times";
     List<String> commands = generateCommandCombinations(baseCommand, spacedOptions3);
     for (String command : commands) {
       model.lastAddedEvent = null;
@@ -1059,7 +1024,7 @@ public class CalendarControllerTest {
       assertTrue(model.lastAddedEvent.isRecurring());
       assertEquals(List.of(DayOfWeek.MONDAY, DayOfWeek.THURSDAY, DayOfWeek.SUNDAY),
               model.lastAddedEvent.getRecurrenceDays());
-      assertEquals(Integer.valueOf(0), model.lastAddedEvent.getRecurrenceCount());
+      assertNull(model.lastAddedEvent.getRecurrenceCount());
       assertEquals(LocalDateTime.parse("2024-04-20T23:59:59"),
               model.lastAddedEvent.getRecurrenceEndDate());
 
@@ -1080,7 +1045,7 @@ public class CalendarControllerTest {
 
   @Test
   public void testCreateRecurringAllDayEventForEventUntilDateVariationsWithSpacedOptions() {
-    String baseCommand = "create event 'Team Meeting' on 2024-03-20 repeats MRU until 2024-04-20";
+    String baseCommand = "create event \"Team Meeting\" on 2024-03-20 repeats MRU until 2024-04-20";
     List<String> commands = generateCommandCombinations(baseCommand, spacedOptions);
     for (String command : commands) {
       model.lastAddedEvent = null;
@@ -1094,7 +1059,7 @@ public class CalendarControllerTest {
       assertTrue(model.lastAddedEvent.isRecurring());
       assertEquals(List.of(DayOfWeek.MONDAY, DayOfWeek.THURSDAY, DayOfWeek.SUNDAY),
               model.lastAddedEvent.getRecurrenceDays());
-      assertEquals(Integer.valueOf(0), model.lastAddedEvent.getRecurrenceCount());
+      assertNull(model.lastAddedEvent.getRecurrenceCount());
       assertEquals(LocalDateTime.parse("2024-04-20T23:59:59"),
               model.lastAddedEvent.getRecurrenceEndDate());
 
@@ -1115,7 +1080,7 @@ public class CalendarControllerTest {
 
   @Test
   public void testCreateRecurringAllDayEventForEventUntilDateVariationsWithSpacedOptions1() {
-    String baseCommand = "create event 'Team Meeting' on 2024-03-20 repeats MRU until 2024-04-20";
+    String baseCommand = "create event \"Team Meeting\" on 2024-03-20 repeats MRU until 2024-04-20";
     List<String> commands = generateCommandCombinations(baseCommand, options);
     for (String command : commands) {
       model.lastAddedEvent = null;
@@ -1129,7 +1094,7 @@ public class CalendarControllerTest {
       assertTrue(model.lastAddedEvent.isRecurring());
       assertEquals(List.of(DayOfWeek.MONDAY, DayOfWeek.THURSDAY, DayOfWeek.SUNDAY),
               model.lastAddedEvent.getRecurrenceDays());
-      assertEquals(Integer.valueOf(0), model.lastAddedEvent.getRecurrenceCount());
+      assertNull(model.lastAddedEvent.getRecurrenceCount());
       assertEquals(LocalDateTime.parse("2024-04-20T23:59:59"),
               model.lastAddedEvent.getRecurrenceEndDate());
 
@@ -1150,7 +1115,7 @@ public class CalendarControllerTest {
 
   @Test
   public void testCreateRecurringAllDayEventForEventUntilDateVariationsWithSpacedOptions2() {
-    String baseCommand = "create event 'Team Meeting' on 2024-03-20 repeats MRU until 2024-04-20";
+    String baseCommand = "create event \"Team Meeting\" on 2024-03-20 repeats MRU until 2024-04-20";
     List<String> commands = generateCommandCombinations(baseCommand, spacedOptions2);
     for (String command : commands) {
       model.lastAddedEvent = null;
@@ -1164,7 +1129,7 @@ public class CalendarControllerTest {
       assertTrue(model.lastAddedEvent.isRecurring());
       assertEquals(List.of(DayOfWeek.MONDAY, DayOfWeek.THURSDAY, DayOfWeek.SUNDAY),
               model.lastAddedEvent.getRecurrenceDays());
-      assertEquals(Integer.valueOf(0), model.lastAddedEvent.getRecurrenceCount());
+      assertNull( model.lastAddedEvent.getRecurrenceCount());
       assertEquals(LocalDateTime.parse("2024-04-20T23:59:59"),
               model.lastAddedEvent.getRecurrenceEndDate());
 
@@ -1185,7 +1150,7 @@ public class CalendarControllerTest {
 
   @Test
   public void testCreateRecurringAllDayEventForEventUntilDateVariationsWithSpacedOptions3() {
-    String baseCommand = "create event 'Team Meeting' on 2024-03-20 repeats MRU until 2024-04-20";
+    String baseCommand = "create event \"Team Meeting\" on 2024-03-20 repeats MRU until 2024-04-20";
     List<String> commands = generateCommandCombinations(baseCommand, spacedOptions3);
     for (String command : commands) {
       model.lastAddedEvent = null;
@@ -1199,7 +1164,7 @@ public class CalendarControllerTest {
       assertTrue(model.lastAddedEvent.isRecurring());
       assertEquals(List.of(DayOfWeek.MONDAY, DayOfWeek.THURSDAY, DayOfWeek.SUNDAY),
               model.lastAddedEvent.getRecurrenceDays());
-      assertEquals(Integer.valueOf(0), model.lastAddedEvent.getRecurrenceCount());
+      assertNull(model.lastAddedEvent.getRecurrenceCount());
       assertEquals(LocalDateTime.parse("2024-04-20T23:59:59"),
               model.lastAddedEvent.getRecurrenceEndDate());
 
@@ -1555,27 +1520,25 @@ public class CalendarControllerTest {
     String baseCommand = "create event TeamMeeting on 2024-03-20 repeats MTWR for 5 times";
 
     Map<String, String> errorCases = new LinkedHashMap<>();
-    errorCases.put("create", "Error: Unsupported command.");
-    errorCases.put("event", "Error: Expected 'event' after 'create'.");
-    errorCases.put("TeamMeeting", "Error: Missing 'from' or 'on' keyword."
-            + " Or EventName is required.");
-    errorCases.put("on", "Error: Missing 'from' or 'on' keyword. Or EventName is required.");
-    errorCases.put("2024-03-20", "Error processing command: Text "
-            + "'repeats' could not be parsed at index 0");
-    errorCases.put("repeats", "Error: Unknown option: MTWR");
-    errorCases.put("MTWR", "Error: Invalid recurrence day.");
-    errorCases.put("for", "Error: command missing until or from.");
-    errorCases.put("5", "Error processing command: For input string: \"times\"");
-    errorCases.put("times", "Error processing command: null");
+    errorCases.put("create", "Error: Unknown command.");
+    errorCases.put("event", "Error: Unknown command.");
+    errorCases.put("TeamMeeting", "Error Executing command: Expected 'from' or 'on' after event name");
+    errorCases.put("on", "Error Executing command: Text 'repeats' could not be parsed at index 0");
+    errorCases.put("2024-03-20", "Error: Missing date after 'on'");
+    errorCases.put("repeats", "Error: Missing weekdays after 'repeats'");
+    errorCases.put("MTWR", "Error: Invalid weekday character: "); // This error happens if one of the chars is invalid
+    errorCases.put("for", "Error: Missing recurrence count after 'for'");
+    errorCases.put("5", "Error: Missing keyword 'times'");
+    errorCases.put("times", "Error: Unrecognized extra argument: times");
 
     for (Map.Entry<String, String> entry : errorCases.entrySet()) {
-      String modifiedCommand = baseCommand.replaceFirst("\\b" +
-                      entry.getKey() + "\\b", "")
+      String modifiedCommand = baseCommand.replaceFirst("\\b" + entry.getKey() + "\\b", "")
               .replaceAll("\\s+", " ").trim();
       testCommandInBothModes(mode, modifiedCommand);
       assertEquals(entry.getValue(), view.getLastDisplayedMessage());
     }
   }
+
 
   @Test
   public void testEditEventMissingWords2() {
@@ -1583,18 +1546,16 @@ public class CalendarControllerTest {
             + "2024-03-20T10:30 with UpdatedMeeting";
 
     Map<String, String> errorCases = new LinkedHashMap<>();
-    errorCases.put("edit", "Error: Unsupported command.");
-    errorCases.put("event", "Error: Invalid event type. Expected 'event' or 'events'.");
-    errorCases.put("name", "Error: Missing 'from' keyword.");
-    errorCases.put("TeamMeeting", "Error: Missing 'from' keyword.");
-    errorCases.put("from", "Error: Missing 'from' keyword.");
-    errorCases.put("2024-03-20T10:00", "Error processing command: Text 'to' "
-            + "could not be parsed at index 0");
-    errorCases.put("to", "Error: Missing 'to' keyword.");
-    errorCases.put("2024-03-20T10:30", "Error processing command: Text 'with'"
-            + " could not be parsed at index 0");
-    errorCases.put("with", "Error: Missing 'with' keyword.");
-    errorCases.put("UpdatedMeeting", "Error: Missing new property value.");
+    errorCases.put("edit", "Error: Unknown command.");
+    errorCases.put("event", "Error: Unknown command.");
+    errorCases.put("name", "Error Executing command: Expected 'from' keyword at position 3.");
+    errorCases.put("TeamMeeting", "Error Executing command: Expected 'from' keyword at position 3.");
+    errorCases.put("from", "Error Executing command: Expected 'from' keyword at position 3.");
+    errorCases.put("2024-03-20T10:00", "Error Executing command: Expected 'to' keyword at position 5.");
+    errorCases.put("to", "Error Executing command: Expected 'to' keyword at position 5.");
+    errorCases.put("2024-03-20T10:30", "Error Executing command: Expected 'with' keyword at position 7.");
+    errorCases.put("with", "Error Executing command: Expected 'with' keyword at position 7.");
+    errorCases.put("UpdatedMeeting", "Error Executing command: Index 7 out of bounds for length 7");
 
     for (Map.Entry<String, String> entry : errorCases.entrySet()) {
       String modifiedCommand = baseCommand.replaceFirst("\\b" + entry.getKey() +
@@ -1609,17 +1570,15 @@ public class CalendarControllerTest {
     String baseCommand = "create event TeamMeeting on 2024-03-20 repeats MTWR until 2024-04-20";
 
     Map<String, String> errorCases = new LinkedHashMap<>();
-    errorCases.put("create", "Error: Unsupported command.");
-    errorCases.put("event", "Error: Expected 'event' after 'create'.");
-    errorCases.put("TeamMeeting", "Error: Missing 'from' or 'on' keyword." +
-            " Or EventName is required.");
-    errorCases.put("on", "Error: Missing 'from' or 'on' keyword. Or EventName is required.");
-    errorCases.put("2024-03-20", "Error processing command: Text 'repeats' " +
-            "could not be parsed at index 0");
-    errorCases.put("repeats", "Error: Unknown option: MTWR");
-    errorCases.put("MTWR", "Error: Invalid recurrence day.");
-    errorCases.put("until", "Error: command missing until or from.");
-    errorCases.put("2024-04-20", "Error processing command: null");
+    errorCases.put("create", "Error: Unknown command.");
+    errorCases.put("event", "Error: Unknown command.");
+    errorCases.put("TeamMeeting", "Error Executing command: Expected 'from' or 'on' after event name");
+    errorCases.put("on", "Error Executing command: Expected 'from' or 'on' after event name");
+    errorCases.put("2024-03-20", "Error Executing command: Text 'repeats' could not be parsed at index 0");
+    errorCases.put("repeats", "Error Executing command: Unrecognized extra argument: MTWR");
+    errorCases.put("MTWR", "Error Executing command: Invalid weekday character: u");
+    errorCases.put("until", "Error Executing command: Unrecognized extra argument: 2024-04-20");
+    errorCases.put("2024-04-20", "Error Executing command: Missing end date after 'until'");
 
     for (Map.Entry<String, String> entry : errorCases.entrySet()) {
       String modifiedCommand = baseCommand.replaceFirst("\\b" +
@@ -1635,11 +1594,11 @@ public class CalendarControllerTest {
     String baseCommand = "edit events name TeamMeeting from 2024-03-20T10:00 with UpdatedMeeting";
 
     Map<String, String> errorCases = new LinkedHashMap<>();
-    errorCases.put("edit", "Error: Unsupported command.");
-    errorCases.put("events", "Error: Invalid event type. Expected 'event' or 'events'.");
-    errorCases.put("name", "Error: Invalid Edit events command");
-    errorCases.put("TeamMeeting", "Error: Invalid Edit events command");
-    errorCases.put("from", "Error: Invalid Edit events command");
+    errorCases.put("edit", "Error: Unknown command.");
+    errorCases.put("events", "Error: Unknown command.");
+    errorCases.put("name", "Error: Invalid Edit events command1");
+    errorCases.put("TeamMeeting", "Error: Invalid Edit events command2");
+    errorCases.put("from", "Error: Invalid Edit events command3");
     errorCases.put("2024-03-20T10:00", "Error processing command: Text 'with' "
             + "could not be parsed at index 0");
     errorCases.put("with", "Error: Missing 'with' keyword.");
@@ -2059,9 +2018,9 @@ public class CalendarControllerTest {
   @Test
   public void testCreateCommandMissingDescriptionValue() {
     String command = "create event TeamMeeting from 2024-03-20T10:00 "
-            + "to 2024-03-20T10:30 -description";
+            + "to 2024-03-20T10:30 --description";
     testCommandInBothModes(mode, command);
-    assertEquals("Error: Missing description value.", view.getLastDisplayedMessage());
+    assertEquals("Error Executing command: Missing value for --description", view.getLastDisplayedMessage());
   }
 
   @Test
@@ -2140,6 +2099,8 @@ public class CalendarControllerTest {
     LocalDateTime lastEditEventStartDateTime;
     LocalDateTime lastEditEventEndDateTime;
     String lastEditEventNewValue;
+    String lastUsedCalendarName;
+    String lastCreatedCalendarName;
 
     // Fields for edit events
     String lastEditEventsProperty;
@@ -2155,12 +2116,14 @@ public class CalendarControllerTest {
 
     @Override
     public boolean createCalendar(String calName, String timezone) {
-      return false;
+      this.lastCreatedCalendarName = calName;
+      return true;
     }
 
     @Override
     public boolean addEvent(String calendarName, ICalendarEventDTO event) {
-      return false;
+      this.lastAddedEvent = event;
+      return true;
     }
 
     @Override
