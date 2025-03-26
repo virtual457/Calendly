@@ -237,8 +237,11 @@ public class CalendarModel implements ICalendarModel {
             event.setEventLocation(newValue);
             found = true;
             break;
-          case "ispublic":
-            event.setPublic(Boolean.parseBoolean(newValue));
+          case "isprivate":
+            if (!newValue.equalsIgnoreCase("true") && !newValue.equalsIgnoreCase("false")) {
+              throw new IllegalArgumentException("For input string: \"" + newValue + "\"");
+            }
+            event.setPublic(!Boolean.parseBoolean(newValue));
             found = true;
             break;
           default:
