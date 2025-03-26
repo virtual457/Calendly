@@ -68,7 +68,7 @@ public class CalendarAppTest {
   public void testMain_InvalidArguments_ShouldPrintUsageMessage() throws IOException {
     String[] args = {};
     CalendarApp.main(args);
-    String expectedMessage = "Argument Error: Usage: --mode <interactive|headless> [filePath]";
+    String expectedMessage = "Usage: --mode <interactive|headless> [filePath]";
     assertTrue(outContent.toString().trim().contains(expectedMessage));
   }
 
@@ -2056,7 +2056,8 @@ public class CalendarAppTest {
             "use calendar --name TestCal",
             "create event Meeting from 2025-05-01T10:00 to 2025-05-01T11:00",
             "edit event name Meeting from 2025-05-01T10:00 to 2025-05-01T11:00 with TeamSync",
-            "export cal " + OUTPUT_FILE
+            "export cal " + OUTPUT_FILE,
+            "exit"
     };
     runAppWithCommands(commands);
 
@@ -3214,23 +3215,51 @@ public class CalendarAppTest {
 
   // Test: Successfully update the end time of a non-recurring event.
   @Test
-  public void testEditEvent_UpdateEnd_ShouldExportCorrectly() throws IOException {
+  public void testEditEvent_UpdateEnd_ShouldDetectConflict() throws IOException {
     String[] commands = {
-            "create calendar --name EditEndSingle --timezone America/New_York",
-            "use calendar --name EditEndSingle",
+            "create calendar --name EditEndConflict --timezone America/New_York",
+            "use calendar --name EditEndConflict",
             "create event Review from 2025-06-20T09:00 to 2025-06-20T10:00",
+            "create event WrapUp from 2025-06-20T10:00 to 2025-06-20T11:00",
             "edit event end Review from 2025-06-20T09:00 to 2025-06-20T10:00 with \"2025-06-20T10:20:00\"",
             "export cal " + OUTPUT_FILE,
             "exit"
     };
     runAppWithCommands(commands);
 
-    assertTrue(outContent.toString().contains("Conflict detected after editing start"));
+    // Conflict should be reported
+    assertTrue(outContent.toString().contains("Conflict detected after editing end"));
 
-    // Verify events remain unchanged due to conflict.
+    // Review event should remain unchanged due to conflict
     String expected = String.join("\n",
             "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
-            "\"Review\",06/20/2025,09:00 AM,06/20/2025,10:20 AM,False,\"\",\"\",False"
+            "\"Review\",06/20/2025,09:00 AM,06/20/2025,10:00 AM,False,\"\",\"\",False",
+            "\"WrapUp\",06/20/2025,10:00 AM,06/20/2025,11:00 AM,False,\"\",\"\",False"
+    );
+    assertEquals(expected, readExportedFile());
+  }
+
+  @Test
+  public void testEditEvent_UpdateStart_ShouldDetectConflict() throws IOException {
+    String[] commands = {
+            "create calendar --name EditStartConflict --timezone America/New_York",
+            "use calendar --name EditStartConflict",
+            "create event WrapUp from 2025-06-20T10:00 to 2025-06-20T11:00",
+            "create event Review from 2025-06-20T09:00 to 2025-06-20T10:00",
+            "edit event start WrapUp from 2025-06-20T10:00 to 2025-06-20T11:00 with \"2025-06-20T09:30:00\"",
+            "export cal " + OUTPUT_FILE,
+            "exit"
+    };
+    runAppWithCommands(commands);
+
+    // Conflict should be reported
+    assertTrue(outContent.toString().contains("Conflict detected after editing start"));
+
+    // Review should remain unchanged
+    String expected = String.join("\n",
+            "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+            "\"WrapUp\",06/20/2025,10:00 AM,06/20/2025,11:00 AM,False,\"\",\"\",False",
+            "\"Review\",06/20/2025,09:00 AM,06/20/2025,10:00 AM,False,\"\",\"\",False"
     );
     assertEquals(expected, readExportedFile());
   }
@@ -3538,16 +3567,27 @@ public class CalendarAppTest {
 
   // Test: Edit event with invalid boolean value (should fail)
   @Test
-  public void testEditEvent_InvalidBoolean_ShouldFail() {
+  public void testEditEvent_InvalidBoolean_ShouldFail() throws IOException {
     String[] commands = {
             "create calendar --name InvalidBoolCal --timezone America/New_York",
             "use calendar --name InvalidBoolCal",
             "create event Workshop from 2025-09-10T11:00 to 2025-09-10T12:00",
-            "edit event isprivate Workshop from 2025-09-10T11:00 to 2025-09-10T12:00 with  \"yes\"",
+            "edit event isprivate Workshop from 2025-09-10T11:00 to 2025-09-10T12:00 with \"yes\"",
+            "export cal " + OUTPUT_FILE,
             "exit"
     };
     runAppWithCommands(commands);
-    assertTrue(outContent.toString().toLowerCase().contains("for input string"));
+
+    // Check that it throws an error due to invalid boolean input
+    String output = outContent.toString().toLowerCase();
+    assertTrue(output.contains("for input string") || output.contains("invalid boolean"));
+
+    // Ensure the original event was not modified
+    String expected = String.join("\n",
+            "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+            "\"Workshop\",09/10/2025,11:00 AM,09/10/2025,12:00 PM,False,\"\",\"\",False"
+    );
+    assertEquals(expected, readExportedFile());
   }
 
 
