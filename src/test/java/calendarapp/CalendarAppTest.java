@@ -76,11 +76,7 @@ public class CalendarAppTest {
   public void testMain_ValidArguments_ShouldRunInteractiveMode() throws IOException {
     String[] args = {"--mode", "interactive"};
     Thread appThread = new Thread(() -> {
-      try {
-        CalendarApp.main(args);
-      } catch (IOException e) {
-        fail("IOException occurred: " + e.getMessage());
-      }
+      CalendarApp.main(args);
     });
     appThread.start();
     try {

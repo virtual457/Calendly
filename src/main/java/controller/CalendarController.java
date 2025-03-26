@@ -43,27 +43,15 @@ class CalendarController implements ICalendarController {
 
 
   @Override
-  public void run(String mode, String filePath) {
-    if (!mode.equalsIgnoreCase("interactive") && !mode.equalsIgnoreCase("headless")) {
-      view.display("Invalid mode. Use --mode interactive OR --mode headless <filePath>");
-      return;
-    }
-    runMode(mode.equalsIgnoreCase("interactive"), filePath);
-  }
-
-  private void runMode(boolean isInteractive, String filePath) {
-    BufferedReader reader = null;
-
-    try {
-      reader = isInteractive
-              ? new BufferedReader(new InputStreamReader(System.in))
-              : new BufferedReader(new FileReader(filePath));
-
+  public void run(Readable input) {
+    try (Scanner scanner = new Scanner(input)) {
       view.display("Welcome to the Calendar App!");
-      String line;
-      while ((line = reader.readLine()) != null) {
-        if (line.trim().equalsIgnoreCase("exit")) break;
-        List<String> tokens = tokenizeCommand(line.trim());
+
+      while (scanner.hasNextLine()) {
+        String line = scanner.nextLine().trim();
+        if (line.equalsIgnoreCase("exit")) break;
+
+        List<String> tokens = tokenizeCommand(line);
         if (tokens.isEmpty()) continue;
 
         String action = tokens.get(0);
@@ -71,15 +59,12 @@ class CalendarController implements ICalendarController {
         String commandKey = (action + " " + subAction).toLowerCase();
         List<String> args = tokens.subList(2, tokens.size());
 
-        String response = invoker.executeCommand(commandKey, args, model );
-
-
+        String response = invoker.executeCommand(commandKey, args, model);
         view.display(response);
       }
-    } catch (IOException e) {
+    } catch (Exception e) {
       view.display("Error: " + e.getMessage());
     }
-
   }
 
   private List<String> tokenizeCommand(String input) {
