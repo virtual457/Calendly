@@ -21,9 +21,6 @@ public class EditEventCommand implements ICommand {
     this.model = model;
     this.calendarName = currentCalendar;
 
-    if (parts.size() != 8) {
-      throw new IllegalArgumentException("Invalid number of arguments for edit event command.");
-    }
 
     this.property = parts.get(0);
     this.eventName = parts.get(1);
