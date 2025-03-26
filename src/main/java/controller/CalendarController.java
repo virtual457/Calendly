@@ -6,7 +6,18 @@ import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import command.*;
+import command.CommandInvoker;
+import command.CopyEventCommand;
+import command.CopyEventsCommand;
+import command.CreateCalendarCommand;
+import command.CreateEventCommand;
+import command.EditCalendarCommand;
+import command.EditEventCommand;
+import command.EditEventsCalendarCommand;
+import command.ExportEventsCommand;
+import command.PrintEventsCommand;
+import command.ShowStatusCommand;
+import command.UseCalendarCommand;
 import model.ICalendarModel;
 import view.IView;
 
@@ -36,6 +47,7 @@ class CalendarController implements ICalendarController {
     invoker.registerCommand("edit events", EditEventsCalendarCommand.class);
     invoker.registerCommand("show status", ShowStatusCommand.class);
     invoker.registerCommand("print events", PrintEventsCommand.class);
+    invoker.registerCommand("edit calendar", EditCalendarCommand.class);
   }
 
 

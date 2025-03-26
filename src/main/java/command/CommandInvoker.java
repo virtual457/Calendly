@@ -44,7 +44,7 @@ public class CommandInvoker {
     if (commandClass != null) {
       try {
 
-        if((!(commandName.equalsIgnoreCase("use Calendar") || commandName.equalsIgnoreCase("create calendar"))) && Objects.isNull(currentCalendar)){
+        if((!(commandName.equalsIgnoreCase("use Calendar") || commandName.equalsIgnoreCase("create calendar") || commandName.equalsIgnoreCase("edit calendar"))) && Objects.isNull(currentCalendar)){
           throw new IllegalArgumentException("Please use somme calendar");
         }
         // Instantiate the command dynamically and pass parameters

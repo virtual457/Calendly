@@ -2770,6 +2770,62 @@ public class CalendarModelTest {
     assertEquals(targetStart, targetEvents.get(0).getStartDateTime());
   }
 
+  //edit calendar model tests
+  @Test
+  public void testEditCalendarTimezone_EventTimesAdjust() {
+    model.createCalendar("ShiftCal", "America/New_York");
+
+    // Original time in EST (UTC-5)
+    LocalDateTime start = LocalDateTime.of(2025, 3, 28, 9, 0);
+    LocalDateTime end = LocalDateTime.of(2025, 3, 28, 10, 0);
+
+    ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
+          .setEventName("TimezoneTest")
+          .setStartDateTime(start)
+          .setEndDateTime(end)
+          .setRecurring(false)
+          .setAutoDecline(true)
+          .setEventDescription("Test event for timezone shift")
+          .setEventLocation("Room 1")
+          .setPrivate(false)
+          .build();
+
+    assertTrue(model.addEvent("ShiftCal", eventDTO));
+
+    // Capture the original event times
+    List<ICalendarEventDTO> eventsBefore = model.getEventsInRange("ShiftCal", start.minusMinutes(1), end.plusMinutes(1));
+    assertEquals(1, eventsBefore.size());
+    LocalDateTime originalStart = eventsBefore.get(0).getStartDateTime();
+    LocalDateTime originalEnd = eventsBefore.get(0).getEndDateTime();
+
+    // Change the timezone to Asia/Tokyo (UTC+9)
+    assertTrue(model.editCalendar("ShiftCal", "timezone", "Asia/Tokyo"));
+
+    // Now get the updated times
+    List<ICalendarEventDTO> eventsAfter = model.getEventsInRange("ShiftCal", originalStart.minusDays(1), originalEnd.plusDays(1));
+    assertEquals(1, eventsAfter.size());
+
+    LocalDateTime newStart = eventsAfter.get(0).getStartDateTime();
+    LocalDateTime newEnd = eventsAfter.get(0).getEndDateTime();
+
+    // Convert the original times to ZonedDateTime for comparison
+    ZonedDateTime originalStartZoned = originalStart.atZone(ZoneId.of("America/New_York"));
+    ZonedDateTime originalEndZoned = originalEnd.atZone(ZoneId.of("America/New_York"));
+
+    ZonedDateTime expectedStartZoned = originalStartZoned.withZoneSameInstant(ZoneId.of("Asia/Tokyo"));
+    ZonedDateTime expectedEndZoned = originalEndZoned.withZoneSameInstant(ZoneId.of("Asia/Tokyo"));
+
+    assertEquals(expectedStartZoned.toLocalDateTime(), newStart);
+    assertEquals(expectedEndZoned.toLocalDateTime(), newEnd);
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testCreateCalendar_InvalidTimezone_ShouldThrow() {
+    model.createCalendar("InvalidTZCal", "Mars/SpaceTime");  // Invalid IANA timezone
+  }
+
+
+
 
 
 

@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
  * CalendarModel stores multiple calendars in a list.
  * Each operation requires a calendar name to identify the target calendar.
  */
-public class CalendarModel implements ICalendarModel {
+class CalendarModel implements ICalendarModel {
   private List<Calendar> calendars;
 
   public CalendarModel() {
