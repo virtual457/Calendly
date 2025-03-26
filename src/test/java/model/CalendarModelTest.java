@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import java.lang.reflect.Method;
 import java.time.DayOfWeek;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -12,6 +13,8 @@ import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -266,9 +269,11 @@ public class CalendarModelTest {
 
   @Test
   public void testCopyEvents() {
+    model = new CalendarModel();
     model.createCalendar("Fall2024", "America/New_York");
     model.createCalendar("Spring2025", "America/New_York");
 
+    // Original event in Fall2024 calendar
     LocalDateTime fallStart = LocalDateTime.of(2024, 9, 5, 10, 0);
     LocalDateTime fallEnd = LocalDateTime.of(2024, 9, 5, 11, 0);
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
@@ -283,15 +288,32 @@ public class CalendarModelTest {
             .build();
     assertTrue(model.addEvent("Fall2024", eventDTO));
 
-    LocalDate targetStart = LocalDate.of(2025, 1, 8);
-    boolean copied = model.copyEvents("Fall2024", fallStart, fallEnd, "Spring2025", targetStart);
+    // New target date
+    LocalDate targetDate = LocalDate.of(2025, 1, 8);
+
+    // Copy event to Spring2025 calendar
+    boolean copied = model.copyEvents("Fall2024", fallStart, fallEnd, "Spring2025", targetDate);
     assertTrue(copied);
 
-    List<ICalendarEventDTO> copiedEvents = model.getEventsInRange("Spring2025", targetStart.atStartOfDay().minusHours(1), targetStart.atStartOfDay().plusHours(2));
+    // Expected new start time is 10:00 AM on 2025-01-08
+    LocalDateTime expectedStart = LocalDateTime.of(2025, 1, 8, 10, 0);
+    LocalDateTime expectedEnd = LocalDateTime.of(2025, 1, 8, 11, 0);
+
+    List<ICalendarEventDTO> copiedEvents = model.getEventsInRange(
+            "Spring2025",
+            expectedStart.minusMinutes(1),
+            expectedEnd.plusMinutes(1)
+    );
     assertEquals(1, copiedEvents.size());
+
     ICalendarEventDTO copiedEvent = copiedEvents.get(0);
     assertEquals("Lecture", copiedEvent.getEventName());
-    assertEquals(targetStart, copiedEvent.getStartDateTime());
+    assertEquals(expectedStart, copiedEvent.getStartDateTime());
+    assertEquals(expectedEnd, copiedEvent.getEndDateTime());
+    assertEquals("Lecture on CS5010", copiedEvent.getEventDescription());
+    assertEquals("Room 101", copiedEvent.getEventLocation());
+    assertTrue(copiedEvent.isAutoDecline());
+    assertTrue(copiedEvent.isPrivate());
   }
 
   // ===== Edit Calendar Tests =====
@@ -624,7 +646,7 @@ public class CalendarModelTest {
     model.createCalendar("SourceCal", "America/New_York");
     model.createCalendar("TargetCal", "America/New_York");
 
-    // Original event (2 occurrences: March 3 and March 10, 2025)
+    // Original recurring event starts on March 3, 2025 (Monday) at 9:00 AM
     LocalDateTime start = LocalDateTime.of(2025, 3, 3, 9, 0);
     LocalDateTime end = LocalDateTime.of(2025, 3, 3, 10, 0);
 
@@ -642,24 +664,35 @@ public class CalendarModelTest {
             .build();
     assertTrue(model.addEvent("SourceCal", eventDTO));
 
-    // Copy interval should cover both original occurrences clearly.
-    LocalDateTime copyIntervalStart = start.minusDays(1); // March 2, 2025
-    LocalDateTime copyIntervalEnd = start.plusWeeks(1).plusDays(1); // March 11, 2025
+    // Copy window: March 2 to March 11 (covers both occurrences)
+    LocalDateTime intervalStart = LocalDateTime.of(2025, 3, 2, 0, 0);
+    LocalDateTime intervalEnd = LocalDateTime.of(2025, 3, 11, 0, 0);
 
-    // Target start corresponds logically to the first copied event
-    LocalDate targetStart = LocalDate.of(2025, 4, 7); // Monday, April 7, 2025
+    // Target start date: April 7, 2025 (Monday) — aligns with first recurrence
+    LocalDate targetStart = LocalDate.of(2025, 4, 7);
 
-    boolean copied = model.copyEvents("SourceCal", copyIntervalStart, copyIntervalEnd, "TargetCal", targetStart);
-    assertTrue(copied);
+    assertTrue(model.copyEvents("SourceCal", intervalStart, intervalEnd, "TargetCal", targetStart));
 
-    // Expect 2 occurrences at April 7 and April 14, 2025 (both Mondays)
-    List<ICalendarEventDTO> events = model.getEventsInRange("TargetCal",
-            targetStart.atStartOfDay().minusDays(1),
-            targetStart.atStartOfDay().plusWeeks(2));
+    // Retrieve events from April 6 to April 21 in TargetCal
+    List<ICalendarEventDTO> copiedEvents = model.getEventsInRange(
+            "TargetCal",
+            LocalDateTime.of(2025, 4, 6, 0, 0),
+            LocalDateTime.of(2025, 4, 21, 0, 0)
+    );
 
-    assertEquals(2, events.size());
-    assertEquals(LocalDateTime.of(2025, 4, 7, 9, 0), events.get(0).getStartDateTime());
-    assertEquals(LocalDateTime.of(2025, 4, 14, 9, 0), events.get(1).getStartDateTime());
+    assertEquals(2, copiedEvents.size());
+
+    // First copied event: April 7, 2025 at 9:00 AM
+    ICalendarEventDTO event1 = copiedEvents.get(0);
+    assertEquals("Weekly Sync", event1.getEventName());
+    assertEquals(LocalDateTime.of(2025, 4, 7, 9, 0), event1.getStartDateTime());
+    assertEquals(LocalDateTime.of(2025, 4, 7, 10, 0), event1.getEndDateTime());
+
+    // Second copied event: April 14, 2025 at 9:00 AM
+    ICalendarEventDTO event2 = copiedEvents.get(1);
+    assertEquals("Weekly Sync", event2.getEventName());
+    assertEquals(LocalDateTime.of(2025, 4, 14, 9, 0), event2.getStartDateTime());
+    assertEquals(LocalDateTime.of(2025, 4, 14, 10, 0), event2.getEndDateTime());
   }
 
   // ---------- Delete Calendar Edge Cases ----------
@@ -935,9 +968,11 @@ public class CalendarModelTest {
     model = new CalendarModel();
     model.createCalendar("SourceCal", "America/New_York");
     model.createCalendar("TargetCal", "America/New_York");
-    // Create an event in SourceCal.
+
+    // Create an event in SourceCal on Jan 1, 2025 from 9:00 to 10:00
     LocalDateTime sourceStart = LocalDateTime.of(2025, 1, 1, 9, 0);
     LocalDateTime sourceEnd = LocalDateTime.of(2025, 1, 1, 10, 0);
+
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
             .setEventName("Meeting")
             .setStartDateTime(sourceStart)
@@ -950,24 +985,29 @@ public class CalendarModelTest {
             .build();
     assertTrue(model.addEvent("SourceCal", eventDTO));
 
-    // Copy the event from SourceCal to TargetCal.
-    LocalDate targetStart = LocalDate.of(2025, 2, 1);
-    boolean copied = model.copyEvents("SourceCal", sourceStart, sourceEnd, "TargetCal", targetStart);
+    // Copy to Feb 1, 2025 (same time of day, different date)
+    LocalDate targetDate = LocalDate.of(2025, 2, 1);
+    boolean copied = model.copyEvents("SourceCal", sourceStart, sourceEnd, "TargetCal", targetDate);
     assertTrue(copied);
 
-    List<ICalendarEventDTO> events = model.getEventsInRange("TargetCal",
-            targetStart.atStartOfDay().minusMinutes(1), targetStart.atStartOfDay().plusHours(1));
+    // Expected new start = 9:00 AM on Feb 1, 2025 (same time of day)
+    LocalDateTime expectedStart = LocalDateTime.of(2025, 2, 1, 9, 0);
+    LocalDateTime expectedEnd = expectedStart.plusHours(1);
+
+    List<ICalendarEventDTO> events = model.getEventsInRange(
+            "TargetCal",
+            expectedStart.minusMinutes(1),
+            expectedEnd.plusMinutes(1)
+    );
+
     assertEquals(1, events.size());
     ICalendarEventDTO copiedEvent = events.get(0);
-    // Since the event in SourceCal starts at 9:00 and targetStart is 11:00,
-    // the offset is 2 hours; the copied event's start should be targetStart (if offset is zero)
-    // In our copyEvents implementation, the new start is calculated as:
-    // newStart = targetStart + Duration.between(sourceStart, event.getStartDateTime())
-    // For an event that exactly matches sourceStart, offset is zero.
-    assertEquals(targetStart, copiedEvent.getStartDateTime());
-    // Duration remains the same (1 hour).
-    assertEquals(targetStart.atStartOfDay().plusHours(1), copiedEvent.getEndDateTime());
+
     assertEquals("Meeting", copiedEvent.getEventName());
+    assertEquals(expectedStart, copiedEvent.getStartDateTime());
+    assertEquals(expectedEnd, copiedEvent.getEndDateTime());
+    assertEquals("Team meeting", copiedEvent.getEventDescription());
+    assertEquals("Room 101", copiedEvent.getEventLocation());
   }
 
   @Test
@@ -975,46 +1015,45 @@ public class CalendarModelTest {
     model = new CalendarModel();
     model.createCalendar("SourceCal", "America/New_York");
     model.createCalendar("TargetCal", "America/New_York");
-    // Add two events to SourceCal.
-    LocalDateTime start1 = LocalDateTime.of(2025, 1, 1, 9, 0);
-    LocalDateTime end1 = LocalDateTime.of(2025, 1, 1, 10, 0);
-    ICalendarEventDTO event1 = CalendarEventDTO.builder()
-            .setEventName("Event1")
-            .setStartDateTime(start1)
-            .setEndDateTime(end1)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("First event")
-            .setEventLocation("Room 101")
-            .setPrivate(false)
-            .build();
-    LocalDateTime start2 = LocalDateTime.of(2025, 1, 1, 10, 30);
-    LocalDateTime end2 = LocalDateTime.of(2025, 1, 1, 11, 30);
-    ICalendarEventDTO event2 = CalendarEventDTO.builder()
-            .setEventName("Event2")
-            .setStartDateTime(start2)
-            .setEndDateTime(end2)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Second event")
-            .setEventLocation("Room 102")
-            .setPrivate(false)
-            .build();
-    assertTrue(model.addEvent("SourceCal", event1));
-    assertTrue(model.addEvent("SourceCal", event2));
 
-    // Set the copy interval to cover both events.
-    LocalDateTime copyIntervalStart = LocalDateTime.of(2025, 1, 1, 8, 0);
-    LocalDateTime copyIntervalEnd = LocalDateTime.of(2025, 1, 1, 12, 0);
-    // New base start for the copy in TargetCal.
-    LocalDate targetStart = LocalDate.of(2025, 2, 1);
-    boolean copied = model.copyEvents("SourceCal", copyIntervalStart, copyIntervalEnd, "TargetCal", targetStart);
+    // Add two events to SourceCal
+    model.addEvent("SourceCal", CalendarEventDTO.builder()
+            .setEventName("Event1")
+            .setStartDateTime(LocalDateTime.of(2025, 1, 1, 9, 0))
+            .setEndDateTime(LocalDateTime.of(2025, 1, 1, 10, 0))
+            .setRecurring(false)
+            .setAutoDecline(true)
+            .setEventDescription("First")
+            .setEventLocation("Room A")
+            .setPrivate(false)
+            .build());
+
+    model.addEvent("SourceCal", CalendarEventDTO.builder()
+            .setEventName("Event2")
+            .setStartDateTime(LocalDateTime.of(2025, 1, 1, 11, 0))
+            .setEndDateTime(LocalDateTime.of(2025, 1, 1, 12, 0))
+            .setRecurring(false)
+            .setAutoDecline(true)
+            .setEventDescription("Second")
+            .setEventLocation("Room B")
+            .setPrivate(false)
+            .build());
+
+    // Copy both events
+    boolean copied = model.copyEvents(
+            "SourceCal",
+            LocalDateTime.of(2025, 1, 1, 8, 0),
+            LocalDateTime.of(2025, 1, 1, 13, 0),
+            "TargetCal",
+            LocalDate.of(2025, 2, 1));
     assertTrue(copied);
 
-    // Adjust the range to cover both new event start times.
-    List<ICalendarEventDTO> targetEvents = model.getEventsInRange("TargetCal",
-            targetStart.atStartOfDay().minusMinutes(1), targetStart.atStartOfDay().plusHours(3));
-    assertEquals(2, targetEvents.size());
+    // Check that both events exist in target calendar
+    List<ICalendarEventDTO> events = model.getEventsInRange(
+            "TargetCal",
+            LocalDateTime.of(2025, 2, 1, 0, 0),
+            LocalDateTime.of(2025, 2, 1, 23, 59));
+    assertEquals(2, events.size());
   }
 
   @Test
@@ -1023,8 +1062,10 @@ public class CalendarModelTest {
     model.createCalendar("SourceCal", "America/New_York");
     model.createCalendar("TargetCal", "Asia/Kolkata");
 
+    // Source event in New York timezone: 9 AM to 10 AM EST (UTC-5)
     LocalDateTime sourceStart = LocalDateTime.of(2025, 3, 1, 9, 0);
     LocalDateTime sourceEnd = LocalDateTime.of(2025, 3, 1, 10, 0);
+
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
             .setEventName("MorningMeeting")
             .setStartDateTime(sourceStart)
@@ -1037,46 +1078,66 @@ public class CalendarModelTest {
             .build();
     assertTrue(model.addEvent("SourceCal", eventDTO));
 
-    LocalDate targetStart = LocalDate.of(2025, 3, 2); // Kolkata Time
+    // Target day in IST (Asia/Kolkata) to align with original time
+    LocalDate targetStart = LocalDate.of(2025, 3, 2); // IST
+
     assertTrue(model.copyEvents("SourceCal", sourceStart, sourceEnd, "TargetCal", targetStart));
 
+    // Time difference between EST (UTC-5) and IST (UTC+5:30) = +10.5 hours
+    // 2025-03-01 09:00 EST + 10.5h = 2025-03-02 19:30 IST
+    LocalDateTime expectedStart = LocalDateTime.of(2025, 3, 2, 19, 30);
+    LocalDateTime expectedEnd = expectedStart.plusHours(1);
+
     List<ICalendarEventDTO> copiedEvents = model.getEventsInRange("TargetCal",
-            targetStart.atStartOfDay().minusMinutes(1), targetStart.atStartOfDay().plusHours(1));
+            expectedStart.minusHours(1), expectedEnd.plusHours(1));
+
     assertEquals(1, copiedEvents.size());
-    assertEquals(targetStart, copiedEvents.get(0).getStartDateTime());
+    ICalendarEventDTO copiedEvent = copiedEvents.get(0);
+    assertEquals("MorningMeeting", copiedEvent.getEventName());
+    assertEquals(expectedStart, copiedEvent.getStartDateTime());
+    assertEquals(expectedEnd, copiedEvent.getEndDateTime());
+    assertEquals("Morning sync", copiedEvent.getEventDescription());
+    assertEquals("NY Office", copiedEvent.getEventLocation());
   }
 
   @Test
-  public void testCopyEvents_TimeZoneOffset_AdjustsCorrectly() {
+  public void testCopyEvents_TimeZoneAdjustedSimple() {
+    model = new CalendarModel();
     model.createCalendar("SourceCal", "America/Los_Angeles");
     model.createCalendar("TargetCal", "Asia/Tokyo");
 
-    LocalDateTime sourceStart = LocalDateTime.of(2025, 5, 10, 10, 0);
-    LocalDateTime sourceEnd = LocalDateTime.of(2025, 5, 10, 11, 0);
+    // Original event in LA (PDT)
+    LocalDateTime laStart = LocalDateTime.of(2025, 5, 10, 10, 0);
+    LocalDateTime laEnd = laStart.plusHours(1);
 
-    ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
+    ICalendarEventDTO event = CalendarEventDTO.builder()
             .setEventName("Global Call")
-            .setStartDateTime(sourceStart)
-            .setEndDateTime(sourceEnd)
-            .setAutoDecline(true)
+            .setStartDateTime(laStart)
+            .setEndDateTime(laEnd)
             .setRecurring(false)
+            .setAutoDecline(true)
+            .setPrivate(false)
             .setEventDescription("Call across time zones")
             .setEventLocation("Zoom")
-            .setPrivate(false)
             .build();
-    assertTrue(model.addEvent("SourceCal", eventDTO));
 
-    LocalDateTime copyStart = LocalDateTime.of(2025, 5, 10, 0, 0);
-    LocalDateTime copyEnd = LocalDateTime.of(2025, 5, 10, 23, 59);
-    LocalDate targetStart = LocalDate.of(2025, 5, 11);  // Arbitrary same-day start in Tokyo
+    assertTrue(model.addEvent("SourceCal", event));
 
-    boolean copied = model.copyEvents("SourceCal", copyStart, copyEnd, "TargetCal", targetStart);
-    assertTrue(copied);
+    // Copy to Tokyo, using May 11 as base
+    LocalDate targetDate = LocalDate.of(2025, 5, 11);
+    assertTrue(model.copyEvents("SourceCal", laStart, laEnd, "TargetCal", targetDate));
 
-    List<ICalendarEventDTO> targetEvents = model.getEventsInRange("TargetCal",
-            targetStart.atStartOfDay().minusHours(1), targetStart.atStartOfDay().plusHours(3));
-    assertEquals(1, targetEvents.size());
-    assertEquals("Global Call", targetEvents.get(0).getEventName());
+    // Expected Tokyo time: 10 AM PDT = 2 AM JST (UTC+9)
+    LocalDateTime expectedStart = LocalDateTime.of(2025, 5, 11, 2, 0);
+    LocalDateTime expectedEnd = expectedStart.plusHours(1);
+
+    List<ICalendarEventDTO> events = model.getEventsInRange("TargetCal", expectedStart.minusMinutes(1), expectedEnd.plusMinutes(1));
+    assertEquals(1, events.size());
+
+    ICalendarEventDTO copied = events.get(0);
+    assertEquals("Global Call", copied.getEventName());
+    assertEquals(expectedStart, copied.getStartDateTime());
+    assertEquals(expectedEnd, copied.getEndDateTime());
   }
 
   @Test
@@ -1097,13 +1158,14 @@ public class CalendarModelTest {
     model.createCalendar("SourceCal", "America/New_York");
     model.createCalendar("TargetCal", "America/New_York");
 
-    LocalDateTime eventStart = LocalDateTime.of(2025, 8, 10, 9, 0);
-    LocalDateTime eventEnd = LocalDateTime.of(2025, 8, 10, 10, 0);
+    // Source event: 9–10 AM on Aug 10, 2025
+    LocalDateTime sourceStart = LocalDateTime.of(2025, 8, 10, 9, 0);
+    LocalDateTime sourceEnd = LocalDateTime.of(2025, 8, 10, 10, 0);
 
     ICalendarEventDTO sourceEvent = CalendarEventDTO.builder()
             .setEventName("Morning Meeting")
-            .setStartDateTime(eventStart)
-            .setEndDateTime(eventEnd)
+            .setStartDateTime(sourceStart)
+            .setEndDateTime(sourceEnd)
             .setAutoDecline(true)
             .setRecurring(false)
             .setEventDescription("Team Sync")
@@ -1112,10 +1174,11 @@ public class CalendarModelTest {
             .build();
     assertTrue(model.addEvent("SourceCal", sourceEvent));
 
+    // Conflict in target calendar: 9–10 AM on Sept 1, 2025 (same time as mapped source event)
     ICalendarEventDTO conflicting = CalendarEventDTO.builder()
             .setEventName("Blocker")
-            .setStartDateTime(LocalDateTime.of(2025, 9, 1, 11, 0))
-            .setEndDateTime(LocalDateTime.of(2025, 9, 1, 12, 0))
+            .setStartDateTime(LocalDateTime.of(2025, 9, 1, 9, 0))
+            .setEndDateTime(LocalDateTime.of(2025, 9, 1, 10, 0))
             .setAutoDecline(true)
             .setRecurring(false)
             .setEventDescription("Overlap")
@@ -1124,13 +1187,10 @@ public class CalendarModelTest {
             .build();
     assertTrue(model.addEvent("TargetCal", conflicting));
 
-    // This target time will create a conflict
-    LocalDateTime copyStart = LocalDateTime.of(2025, 8, 10, 8, 0);
-    LocalDateTime copyEnd = LocalDateTime.of(2025, 8, 10, 11, 0);
-    LocalDate targetStart = LocalDate.of(2025, 9, 1) ;
-
+    // This should create a conflict, because the copied event will also land at 9–10 AM on Sept 1, 2025
+    LocalDate targetStart = LocalDate.of(2025, 9, 1);
     assertThrows(IllegalStateException.class, () -> {
-      model.copyEvents("SourceCal", copyStart, copyEnd, "TargetCal", targetStart);
+      model.copyEvents("SourceCal", sourceStart, sourceEnd, "TargetCal", targetStart);
     });
   }
 
@@ -1151,7 +1211,7 @@ public class CalendarModelTest {
     model.createCalendar("TargetCal", "America/New_York");
 
     LocalDateTime start = LocalDateTime.of(2025, 6, 1, 9, 0);
-    LocalDateTime end = start.plusHours(1);
+    LocalDateTime end = start.plusHours(1); // 10:00 AM
 
     // Event in SourceCal
     ICalendarEventDTO sourceEvent = CalendarEventDTO.builder()
@@ -1166,11 +1226,11 @@ public class CalendarModelTest {
             .build();
     assertTrue(model.addEvent("SourceCal", sourceEvent));
 
-    // Conflicting event already in TargetCal
+    // Conflicting event already in TargetCal — this overlaps with the copied event
     ICalendarEventDTO conflict = CalendarEventDTO.builder()
             .setEventName("Blocker")
-            .setStartDateTime(LocalDateTime.of(2025, 7, 1, 18, 30))
-            .setEndDateTime(LocalDateTime.of(2025, 7, 1, 19, 30))
+            .setStartDateTime(LocalDateTime.of(2025, 7, 1, 9, 30))
+            .setEndDateTime(LocalDateTime.of(2025, 7, 1, 10, 30))
             .setRecurring(false)
             .setEventDescription("Already here")
             .setEventLocation("Room 2")
@@ -1179,6 +1239,7 @@ public class CalendarModelTest {
             .build();
     assertTrue(model.addEvent("TargetCal", conflict));
 
+    // Copying to July 1, 2025 — should try to place event at 9:00 AM
     model.copyEvents("SourceCal", start, end, "TargetCal", LocalDate.of(2025, 7, 1));
   }
 
@@ -1188,7 +1249,8 @@ public class CalendarModelTest {
     model.createCalendar("SourceCal", "America/New_York");
     model.createCalendar("TargetCal", "America/New_York");
 
-    LocalDateTime start = LocalDateTime.of(2025, 1, 30, 10, 0); // Thursday
+    // Original recurring event on Jan 30, 2025 (Thursday), repeating weekly 4 times
+    LocalDateTime start = LocalDateTime.of(2025, 1, 30, 10, 0);
     LocalDateTime end = start.plusHours(1);
 
     ICalendarEventDTO recurring = CalendarEventDTO.builder()
@@ -1205,24 +1267,36 @@ public class CalendarModelTest {
             .build();
     assertTrue(model.addEvent("SourceCal", recurring));
 
-    // Copy all 4 occurrences
+    // Define copy window to include all 4 original occurrences
     LocalDateTime sourceEnd = start.plusWeeks(3);
-    LocalDate targetStart = LocalDate.of(2025, 3, 6);
+    LocalDate targetStart = LocalDate.of(2025, 3, 6); // First Thursday of copy
 
-    boolean copied = model.copyEvents("SourceCal", start, sourceEnd, "TargetCal", targetStart);
-    assertTrue(copied);
+    assertTrue(model.copyEvents("SourceCal", start, sourceEnd, "TargetCal", targetStart));
 
-    List<ICalendarEventDTO> events = model.getEventsInRange("TargetCal", targetStart.atStartOfDay().minusDays(1), targetStart.atStartOfDay().plusWeeks(3));
+    // Each copied event will land on a Thursday starting from 2025-03-06, at 10:00 AM
+    List<ICalendarEventDTO> events = model.getEventsInRange(
+            "TargetCal",
+            targetStart.atStartOfDay().minusDays(1),
+            targetStart.plusWeeks(4).atTime(23, 59)
+    );
+
     assertEquals(4, events.size());
+
+    assertEquals(LocalDateTime.of(2025, 3, 6, 10, 0), events.get(0).getStartDateTime());
+    assertEquals(LocalDateTime.of(2025, 3, 13, 10, 0), events.get(1).getStartDateTime());
+    assertEquals(LocalDateTime.of(2025, 3, 20, 10, 0), events.get(2).getStartDateTime());
+    assertEquals(LocalDateTime.of(2025, 3, 27, 10, 0), events.get(3).getStartDateTime());
   }
 
   @Test
   public void testCopyEvents_WithDSTTransition() {
+    model = new CalendarModel();
     model.createCalendar("SourceCal", "America/New_York"); // Has DST
     model.createCalendar("TargetCal", "Asia/Kolkata");     // No DST
 
-    LocalDateTime dstStart = LocalDateTime.of(2025, 3, 9, 1, 30); // Just before DST jump
-    LocalDateTime dstEnd = LocalDateTime.of(2025, 3, 9, 2, 30);
+    // DST starts at 2:00 AM on March 9, 2025
+    LocalDateTime dstStart = LocalDateTime.of(2025, 3, 9, 1, 30);
+    LocalDateTime dstEnd = LocalDateTime.of(2025, 3, 9, 2, 30); // Actually interpreted as 3:30 AM EDT
 
     ICalendarEventDTO event = CalendarEventDTO.builder()
             .setEventName("DST Event")
@@ -1237,21 +1311,36 @@ public class CalendarModelTest {
     assertTrue(model.addEvent("SourceCal", event));
 
     LocalDate targetStart = LocalDate.of(2025, 3, 10);
-    boolean copied = model.copyEvents("SourceCal", dstStart.minusMinutes(10), dstEnd.plusMinutes(10), "TargetCal", targetStart);
-    assertTrue(copied);
+    assertTrue(model.copyEvents("SourceCal", dstStart.minusMinutes(10), dstEnd.plusMinutes(10), "TargetCal", targetStart));
 
-    List<ICalendarEventDTO> events = model.getEventsInRange("TargetCal", targetStart.atStartOfDay().minusMinutes(10), targetStart.atStartOfDay().plusHours(2));
+    // Convert start: 2025-03-09 01:30 EST → 06:30 UTC → 12:00 IST
+    // Convert end:   2025-03-09 03:30 EDT → 07:30 UTC → 13:00 IST
+    LocalDateTime expectedStart = LocalDateTime.of(2025, 3, 10, 12, 0);
+    LocalDateTime expectedEnd = LocalDateTime.of(2025, 3, 10, 13, 0);
+
+    List<ICalendarEventDTO> events = model.getEventsInRange(
+            "TargetCal",
+            expectedStart.minusHours(1),
+            expectedEnd.plusHours(1)
+    );
+
     assertEquals(1, events.size());
     assertEquals("DST Event", events.get(0).getEventName());
+    assertEquals(expectedStart, events.get(0).getStartDateTime());
+    assertEquals(expectedEnd, events.get(0).getEndDateTime());
+    assertEquals("Room DST", events.get(0).getEventLocation());
+    assertEquals("Spring forward", events.get(0).getEventDescription());
   }
 
   @Test
   public void testCopyEvents_ToHalfHourTimezone() {
-    model.createCalendar("SourceCal", "America/Chicago");
-    model.createCalendar("TargetCal", "Asia/Kathmandu"); // UTC+5:45
+    model.createCalendar("SourceCal", "America/Chicago");        // UTC-5 in July (CDT)
+    model.createCalendar("TargetCal", "Asia/Kathmandu");         // UTC+5:45
 
+    // Original source event in Chicago: 9 AM to 10 AM CDT
     LocalDateTime srcStart = LocalDateTime.of(2025, 7, 15, 9, 0);
     LocalDateTime srcEnd = LocalDateTime.of(2025, 7, 15, 10, 0);
+
     ICalendarEventDTO event = CalendarEventDTO.builder()
             .setEventName("Half-Hour TZ Event")
             .setStartDateTime(srcStart)
@@ -1264,21 +1353,44 @@ public class CalendarModelTest {
             .build();
     assertTrue(model.addEvent("SourceCal", event));
 
-    LocalDate targetStart = LocalDate.of(2025, 8, 1); // Arbitrary
-    boolean copied = model.copyEvents("SourceCal", srcStart.minusMinutes(1), srcEnd.plusMinutes(1), "TargetCal", targetStart);
+    // Target date to align the first copied event to: August 1, 2025
+    LocalDate targetStart = LocalDate.of(2025, 8, 1);
+    boolean copied = model.copyEvents("SourceCal",
+            srcStart.minusMinutes(1), srcEnd.plusMinutes(1),
+            "TargetCal", targetStart);
     assertTrue(copied);
 
-    List<ICalendarEventDTO> copiedEvents = model.getEventsInRange("TargetCal", targetStart.atStartOfDay().minusMinutes(1), targetStart.atStartOfDay().plusHours(2));
+    // Calculate expected time:
+    // Source event is 9:00 CDT → UTC = 14:00
+    // Target calendar is Kathmandu (UTC+5:45) → expected local = 14:00 + 5:45 = 19:45
+    // So the new event on August 1 should be from 19:45 to 20:45 local time
+    LocalDateTime expectedStart = LocalDateTime.of(2025, 8, 1, 19, 45);
+    LocalDateTime expectedEnd = expectedStart.plusHours(1);
+
+    // Validate copied event
+    List<ICalendarEventDTO> copiedEvents = model.getEventsInRange(
+            "TargetCal",
+            expectedStart.minusMinutes(30),
+            expectedEnd.plusMinutes(30)
+    );
     assertEquals(1, copiedEvents.size());
+    ICalendarEventDTO copiedEvent = copiedEvents.get(0);
+    assertEquals("Half-Hour TZ Event", copiedEvent.getEventName());
+    assertEquals(expectedStart, copiedEvent.getStartDateTime());
+    assertEquals(expectedEnd, copiedEvent.getEndDateTime());
+    assertEquals("Room Half", copiedEvent.getEventLocation());
   }
 
   @Test
   public void testCopyEvents_TargetTimezoneBehind() {
-    model.createCalendar("SourceCal", "Asia/Tokyo");      // UTC+9
-    model.createCalendar("TargetCal", "America/Los_Angeles"); // UTC-8
+    model = new CalendarModel();
+    model.createCalendar("SourceCal", "Asia/Tokyo");           // UTC+9
+    model.createCalendar("TargetCal", "America/Los_Angeles");  // UTC-7 in June (PDT)
 
+    // Source event: 2025-05-01 10:00–11:00 in Tokyo
     LocalDateTime srcStart = LocalDateTime.of(2025, 5, 1, 10, 0);
     LocalDateTime srcEnd = LocalDateTime.of(2025, 5, 1, 11, 0);
+
     ICalendarEventDTO event = CalendarEventDTO.builder()
             .setEventName("TimeZone Jump")
             .setStartDateTime(srcStart)
@@ -1291,12 +1403,30 @@ public class CalendarModelTest {
             .build();
     assertTrue(model.addEvent("SourceCal", event));
 
-    LocalDate targetStart = LocalDate.of(2025, 6, 1);
-    boolean copied = model.copyEvents("SourceCal", srcStart, srcEnd, "TargetCal", targetStart);
-    assertTrue(copied);
+    // Copy to 2025-06-01 in LA
+    LocalDate targetStartDate = LocalDate.of(2025, 6, 1);
+    assertTrue(model.copyEvents("SourceCal", srcStart, srcEnd, "TargetCal", targetStartDate));
 
-    List<ICalendarEventDTO> events = model.getEventsInRange("TargetCal", targetStart.atStartOfDay().minusHours(1), targetStart.atStartOfDay().plusHours(2));
+    // Time conversion:
+    // srcStart = 2025-05-01 10:00 JST → 2025-05-01 01:00 UTC
+    // Target date = 2025-06-01 in LA (PDT = UTC-7)
+    // New start = 2025-06-01 01:00 UTC → 2025-05-31 18:00 PDT
+    LocalDateTime expectedStart = LocalDateTime.of(2025, 5, 31, 18, 0);
+    LocalDateTime expectedEnd = expectedStart.plusHours(1);
+
+    List<ICalendarEventDTO> events = model.getEventsInRange(
+            "TargetCal",
+            expectedStart.minusHours(1),
+            expectedEnd.plusHours(1)
+    );
+
     assertEquals(1, events.size());
+    ICalendarEventDTO copied = events.get(0);
+    assertEquals("TimeZone Jump", copied.getEventName());
+    assertEquals("Room TZ", copied.getEventLocation());
+    assertEquals("Jump test", copied.getEventDescription());
+    assertEquals(expectedStart, copied.getStartDateTime());
+    assertEquals(expectedEnd, copied.getEndDateTime());
   }
 
   @Test(expected = IllegalStateException.class)
@@ -2148,32 +2278,41 @@ public class CalendarModelTest {
   //Across calendar tests
 
   @Test
-  public void testCopyEventAcrossTimezones_AdjustedCorrectly() {
+  public void testCopyEventAcrossTimezones_Simple() {
+    model = new CalendarModel();
     model.createCalendar("SourceCal", "America/New_York");
     model.createCalendar("TargetCal", "Asia/Kolkata");
 
-    LocalDateTime sourceStart = LocalDateTime.of(2025, 5, 5, 19, 0); // EDT
-    LocalDateTime sourceEnd = LocalDateTime.of(2025, 5, 5, 20, 0);
+    LocalDateTime sourceStart = LocalDateTime.of(2025, 5, 5, 19, 0); // 7 PM EDT
+    LocalDateTime sourceEnd = sourceStart.plusHours(1);
 
-    ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
+    ICalendarEventDTO event = CalendarEventDTO.builder()
             .setEventName("TimeShiftedMeeting")
             .setStartDateTime(sourceStart)
             .setEndDateTime(sourceEnd)
-            .setAutoDecline(true)
             .setRecurring(false)
-            .setEventDescription("With timezone")
-            .setEventLocation("NYC Room")
+            .setAutoDecline(true)
             .setPrivate(false)
+            .setEventDescription("Timezone test")
+            .setEventLocation("NY Office")
             .build();
 
-    assertTrue(model.addEvent("SourceCal", eventDTO));
+    assertTrue(model.addEvent("SourceCal", event));
 
-    LocalDate targetStart = LocalDate.of(2025, 5, 6);// IST
-    assertTrue(model.copyEvents("SourceCal", sourceStart, sourceEnd, "TargetCal", targetStart));
+    LocalDate targetDate = LocalDate.of(2025, 5, 6); // Target in IST
+    assertTrue(model.copyEvents("SourceCal", sourceStart, sourceEnd, "TargetCal", targetDate));
 
-    List<ICalendarEventDTO> copied = model.getEventsInRange("TargetCal", targetStart.atStartOfDay().minusDays(1), targetStart.atStartOfDay().plusDays(1));
-    assertEquals(1, copied.size());
-    assertEquals("TimeShiftedMeeting", copied.get(0).getEventName());
+    // Correct time in IST = 2025-05-06 04:30
+    LocalDateTime expectedStart = LocalDateTime.of(2025, 5, 6, 4, 30);
+    LocalDateTime expectedEnd = expectedStart.plusHours(1);
+
+    List<ICalendarEventDTO> events = model.getEventsInRange("TargetCal", expectedStart.minusMinutes(1), expectedEnd.plusMinutes(1));
+    assertEquals(1, events.size());
+
+    ICalendarEventDTO copied = events.get(0);
+    assertEquals("TimeShiftedMeeting", copied.getEventName());
+    assertEquals(expectedStart, copied.getStartDateTime());
+    assertEquals(expectedEnd, copied.getEndDateTime());
   }
 
   @Test
@@ -2206,9 +2345,11 @@ public class CalendarModelTest {
 
   @Test(expected = IllegalStateException.class)
   public void testCopyEventsConflictInTargetCalendar_ShouldFail() {
+    model = new CalendarModel();
     model.createCalendar("SourceCal", "America/New_York");
     model.createCalendar("TargetCal", "America/New_York");
 
+    // Source event: April 1, 2025, 9–10 AM
     LocalDateTime srcStart = LocalDateTime.of(2025, 4, 1, 9, 0);
     LocalDateTime srcEnd = LocalDateTime.of(2025, 4, 1, 10, 0);
 
@@ -2225,10 +2366,14 @@ public class CalendarModelTest {
 
     assertTrue(model.addEvent("SourceCal", event1));
 
+    // This event in TargetCal will conflict with the copied event's time
+    // We're assuming the copy aligns srcStart (9:00) to targetStartDate (May 1)
+    // So expected copied start = May 1, 9:00 — which will overlap with 11–12 below if durations overlap
+    // To trigger conflict, align event1 to 11:00–12:00
     ICalendarEventDTO conflicting = CalendarEventDTO.builder()
             .setEventName("Conflict")
-            .setStartDateTime(LocalDateTime.of(2025, 5, 1, 11, 0))
-            .setEndDateTime(LocalDateTime.of(2025, 5, 1, 12, 0))
+            .setStartDateTime(LocalDateTime.of(2025, 5, 1, 9, 30))
+            .setEndDateTime(LocalDateTime.of(2025, 5, 1, 10, 30))
             .setAutoDecline(true)
             .setRecurring(false)
             .setEventDescription("Existing")
@@ -2238,16 +2383,20 @@ public class CalendarModelTest {
 
     assertTrue(model.addEvent("TargetCal", conflicting));
 
-    // Copy from source to target with overlap.
+    // Copy event from SourceCal (9:00–10:00) into May 1 (targetStart = May 1)
+    // Since both calendars are in the same timezone, newStart = 2025-05-01 09:00
+    // This will overlap with existing event (9:30–10:30) → should throw conflict exception
     model.copyEvents("SourceCal", srcStart, srcEnd, "TargetCal", LocalDate.of(2025, 5, 1));
   }
 
   @Test
   public void testCopyRecurringEventAcrossCalendars_TimezoneShifted() {
-    model.createCalendar("SourceCal", "America/New_York");
-    model.createCalendar("TargetCal", "Europe/London");
+    model = new CalendarModel();
+    model.createCalendar("SourceCal", "America/New_York");  // UTC-4 (EDT in March)
+    model.createCalendar("TargetCal", "Europe/London");     // UTC+0 (still GMT before Mar 30)
 
-    LocalDateTime start = LocalDateTime.of(2025, 3, 10, 10, 0); // Monday
+    // Original recurring event: 10:00–11:00 EDT on March 10 and March 17
+    LocalDateTime start = LocalDateTime.of(2025, 3, 10, 10, 0);
     LocalDateTime end = LocalDateTime.of(2025, 3, 10, 11, 0);
 
     ICalendarEventDTO recurring = CalendarEventDTO.builder()
@@ -2265,12 +2414,40 @@ public class CalendarModelTest {
 
     assertTrue(model.addEvent("SourceCal", recurring));
 
-    // Copy to London timezone one week later.
-    LocalDateTime targetStart = LocalDateTime.of(2025, 3, 17, 14, 0);
-    assertTrue(model.copyEvents("SourceCal", start, start.plusDays(7), "TargetCal", targetStart.toLocalDate()));
+    // Target calendar's first event will align with 2025-03-17 in London
+    LocalDate targetStartDate = LocalDate.of(2025, 3, 17);
+    boolean copied = model.copyEvents("SourceCal", start, start.plusWeeks(1), "TargetCal", targetStartDate);
+    assertTrue(copied);
 
-    List<ICalendarEventDTO> result = model.getEventsInRange("TargetCal", targetStart.minusMinutes(30), targetStart.plusDays(7));
+    // New York time was 10:00 EDT (UTC-4) → 14:00 London time (UTC+0)
+    // So the copied event should be on 2025-03-17 and 2025-03-24 at 14:00–15:00 in London time
+
+    LocalDateTime expectedStart1 = LocalDateTime.of(2025, 3, 17, 14, 0);
+    LocalDateTime expectedEnd1 = expectedStart1.plusHours(1);
+    LocalDateTime expectedStart2 = LocalDateTime.of(2025, 3, 24, 14, 0);
+    LocalDateTime expectedEnd2 = expectedStart2.plusHours(1);
+
+    List<ICalendarEventDTO> result = model.getEventsInRange("TargetCal", expectedStart1.minusDays(1), expectedEnd2.plusHours(1));
     assertEquals(2, result.size());
+
+    // Validate both recurring instances
+    boolean foundFirst = false, foundSecond = false;
+
+    for (ICalendarEventDTO e : result) {
+      if (e.getStartDateTime().equals(expectedStart1)) {
+        assertEquals("Sync", e.getEventName());
+        assertEquals(expectedEnd1, e.getEndDateTime());
+        assertEquals("Cross timezones", e.getEventDescription());
+        foundFirst = true;
+      } else if (e.getStartDateTime().equals(expectedStart2)) {
+        assertEquals("Sync", e.getEventName());
+        assertEquals(expectedEnd2, e.getEndDateTime());
+        assertEquals("Cross timezones", e.getEventDescription());
+        foundSecond = true;
+      }
+    }
+
+    assertTrue(foundFirst && foundSecond);
   }
 
   @Test
@@ -2329,12 +2506,14 @@ public class CalendarModelTest {
   }
 
   @Test
-  public void testCopyRecurringEvent_UTCtoEST() {
+  public void testCopyRecurringEvent_UTCtoEST_NoConflict() {
     model.createCalendar("UTC_Cal", "UTC");
     model.createCalendar("EST_Cal", "America/New_York");
 
-    LocalDateTime start = LocalDateTime.of(2025, 10, 6, 14, 0); // Monday
-    LocalDateTime end = LocalDateTime.of(2025, 10, 6, 15, 0);
+    // Step 1: Create a recurring event in the source (UTC)
+    LocalDateTime start = LocalDateTime.of(2025, 10, 6, 14, 0); // Monday UTC
+    LocalDateTime end = LocalDateTime.of(2025, 10, 6, 15, 0);   // 1-hour event
+
     ICalendarEventDTO event = CalendarEventDTO.builder()
             .setEventName("Global Sync")
             .setStartDateTime(start)
@@ -2347,15 +2526,47 @@ public class CalendarModelTest {
             .setAutoDecline(true)
             .setPrivate(false)
             .build();
+    assertTrue(model.addEvent("UTC_Cal", event));
 
-    model.addEvent("UTC_Cal", event);
+    // Step 2: Ensure there is no conflicting event in the target calendar
+    // (If there was, we would remove or skip this setup.)
+    // For safety, we make sure target calendar is empty initially.
 
-    LocalDateTime targetStart = LocalDateTime.of(2025, 11, 3, 9, 0); // Monday in EST
-    boolean copied = model.copyEvents("UTC_Cal", start, start.plusDays(7), "EST_Cal", targetStart.toLocalDate());
+    // Step 3: Define the copy interval and target start
+    LocalDateTime copyIntervalStart = start.minusDays(1); // Oct 5, 2025
+    LocalDateTime copyIntervalEnd = start.plusDays(8);    // Oct 14, 2025
+    LocalDate targetStartDate = LocalDate.of(2025, 11, 3); // First copied event should align here
+
+    boolean copied = model.copyEvents("UTC_Cal", copyIntervalStart, copyIntervalEnd, "EST_Cal", targetStartDate);
     assertTrue(copied);
 
-    List<ICalendarEventDTO> events = model.getEventsInRange("EST_Cal", targetStart.minusMinutes(1), targetStart.plusDays(10));
-    assertEquals(2, events.size());
+    // Expected times in target calendar after conversion (UTC → EST)
+    // 14:00 UTC → 09:00 EST in Fall (UTC-5)
+    LocalDateTime expectedStart1 = LocalDateTime.of(2025, 11, 3, 9, 0);
+    LocalDateTime expectedEnd1 = expectedStart1.plusHours(1);
+    LocalDateTime expectedStart2 = LocalDateTime.of(2025, 11, 10, 9, 0);
+    LocalDateTime expectedEnd2 = expectedStart2.plusHours(1);
+
+    List<ICalendarEventDTO> copiedEvents = model.getEventsInRange("EST_Cal",
+            expectedStart1.minusHours(1), expectedEnd2.plusHours(1));
+    assertEquals(2, copiedEvents.size());
+
+    // Validate events
+    boolean foundFirst = false;
+    boolean foundSecond = false;
+
+    for (ICalendarEventDTO e : copiedEvents) {
+      if (e.getStartDateTime().equals(expectedStart1) && e.getEndDateTime().equals(expectedEnd1)) {
+        foundFirst = true;
+        assertEquals("Global Sync", e.getEventName());
+      } else if (e.getStartDateTime().equals(expectedStart2) && e.getEndDateTime().equals(expectedEnd2)) {
+        foundSecond = true;
+        assertEquals("Global Sync", e.getEventName());
+      }
+    }
+
+    assertTrue(foundFirst);
+    assertTrue(foundSecond);
   }
 
   @Test
@@ -2390,26 +2601,30 @@ public class CalendarModelTest {
 
   @Test
   public void testCopyEvents_MultipleEventsAcrossTimezones() {
+    model = new CalendarModel();
     model.createCalendar("SourceCal", "Asia/Kolkata");
     model.createCalendar("TargetCal", "America/Los_Angeles");
 
-    LocalDateTime sourceStart = LocalDateTime.of(2025, 4, 1, 9, 0);
-    LocalDateTime sourceEnd = LocalDateTime.of(2025, 4, 1, 18, 0);
+    LocalDateTime sourceStart1 = LocalDateTime.of(2025, 4, 1, 9, 0);
+    LocalDateTime sourceEnd1 = sourceStart1.plusHours(1);
+    LocalDateTime sourceStart2 = LocalDateTime.of(2025, 4, 1, 16, 0);
+    LocalDateTime sourceEnd2 = sourceStart2.plusHours(2);
 
     ICalendarEventDTO event1 = CalendarEventDTO.builder()
             .setEventName("Morning Call")
-            .setStartDateTime(sourceStart)
-            .setEndDateTime(sourceStart.plusHours(1))
+            .setStartDateTime(sourceStart1)
+            .setEndDateTime(sourceEnd1)
             .setAutoDecline(true)
             .setRecurring(false)
             .setEventDescription("Daily sync")
             .setEventLocation("Zoom")
             .setPrivate(false)
             .build();
+
     ICalendarEventDTO event2 = CalendarEventDTO.builder()
             .setEventName("Evening Wrap")
-            .setStartDateTime(sourceEnd.minusHours(2))
-            .setEndDateTime(sourceEnd)
+            .setStartDateTime(sourceStart2)
+            .setEndDateTime(sourceEnd2)
             .setAutoDecline(true)
             .setRecurring(false)
             .setEventDescription("Wrap-up meeting")
@@ -2420,11 +2635,41 @@ public class CalendarModelTest {
     assertTrue(model.addEvent("SourceCal", event1));
     assertTrue(model.addEvent("SourceCal", event2));
 
-    LocalDateTime newTargetStart = LocalDateTime.of(2025, 4, 2, 8, 0);
-    assertTrue(model.copyEvents("SourceCal", sourceStart, sourceEnd, "TargetCal", newTargetStart.toLocalDate()));
+    LocalDate targetStartDate = LocalDate.of(2025, 4, 2);
+    assertTrue(model.copyEvents("SourceCal", sourceStart1, sourceEnd2, "TargetCal", targetStartDate));
 
-    List<ICalendarEventDTO> copied = model.getEventsInRange("TargetCal", newTargetStart.minusHours(1), newTargetStart.plusDays(1));
-    assertEquals(2, copied.size());
+    // 🧾 Expected times in America/Los_Angeles (based on copyEvents logic)
+    LocalDateTime expectedStart1 = LocalDateTime.of(2025, 4, 2, 9, 0);  // 9 AM PDT
+    LocalDateTime expectedEnd1 = expectedStart1.plusHours(1);
+
+    LocalDateTime expectedStart2 = LocalDateTime.of(2025, 4, 2, 16, 0); // 4 PM PDT
+    LocalDateTime expectedEnd2 = expectedStart2.plusHours(2);
+
+    List<ICalendarEventDTO> copiedEvents = model.getEventsInRange(
+            "TargetCal",
+            targetStartDate.atStartOfDay().minusHours(1),
+            targetStartDate.atTime(23, 59)
+    );
+
+    assertEquals(2, copiedEvents.size());
+
+    boolean foundEvent1 = false, foundEvent2 = false;
+
+    for (ICalendarEventDTO e : copiedEvents) {
+      if (e.getEventName().equals("Morning Call")) {
+        assertEquals(expectedStart1, e.getStartDateTime());
+        assertEquals(expectedEnd1, e.getEndDateTime());
+        assertEquals("Zoom", e.getEventLocation());
+        foundEvent1 = true;
+      } else if (e.getEventName().equals("Evening Wrap")) {
+        assertEquals(expectedStart2, e.getStartDateTime());
+        assertEquals(expectedEnd2, e.getEndDateTime());
+        assertEquals("Office", e.getEventLocation());
+        foundEvent2 = true;
+      }
+    }
+
+    assertTrue(foundEvent1 && foundEvent2);
   }
 
   @Test(expected = IllegalArgumentException.class)
