@@ -20,12 +20,8 @@ public class CalendarApp {
       ICalendarController controller = createController(model, view);
 
       controller.run(handler.getReadable());  // pass just the input stream
-    } catch (IOException e) {
-      System.out.println("IO Error: " + e.getMessage());
-    } catch (IllegalArgumentException e) {
-      System.out.println("Argument Error: " + e.getMessage());
     } catch (Exception e) {
-      System.out.println("Unexpected Error: " + e.getMessage());
+      System.out.println(e.getMessage());
     }
   }
 
