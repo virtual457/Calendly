@@ -2,6 +2,7 @@ package model;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * Represents the data model interface for the Calendar application.
@@ -26,7 +27,7 @@ public interface ICalendarModel {
    * @return a new instance of an {@code ICalendarModel} implementation
    * @throws IllegalArgumentException if the given {@code type} is invalid or unsupported
    */
-
+  //TODO:add all these methhods throws exception
   static ICalendarModel createInstance(String type) {
     if (type.equalsIgnoreCase("listBased")) {
       return new CalendarModel();
@@ -35,18 +36,37 @@ public interface ICalendarModel {
     }
   }
 
-  boolean addEvent(ICalendarEventDTO event);
+  boolean createCalendar(String calName, String timezone);
 
-  boolean editEvent(String property, String eventName, LocalDateTime fromDateTime, LocalDateTime toDateTime, String newValue);
+  boolean addEvent(String calendarName, ICalendarEventDTO event);
 
-  boolean editEvents(String property, String eventName, LocalDateTime fromDateTime, String newValue);
+  boolean editEvents(String calendarName, String property, String eventName,
+                     LocalDateTime fromDateTime,
+                     String newValue, boolean editAll);
 
-  String printEventsOnSpecificDate(LocalDate date);
+  boolean editEvent(String calendarName, String property, String eventName, LocalDateTime fromDateTime, LocalDateTime toDateTime, String newValue);
 
-  String printEventsInSpecificRange(LocalDateTime fromDateTime, LocalDateTime toDateTime);
+  boolean isCalendarAvailable(String calName, LocalDate date);
 
-  String exportEvents(String filename);
+  boolean deleteCalendar(String calName);
 
-  String showStatus(LocalDateTime dateTime);
+
+  List<ICalendarEventDTO> getEventsInRange(String calendarName, LocalDateTime fromDateTime, LocalDateTime toDateTime);
+
+
+  List<ICalendarEventDTO> getEventsInSpecificDateTime(String calendarName, LocalDateTime dateTime);
+
+  boolean copyEvents(String sourceCalendarName,
+                     LocalDateTime sourceStart, LocalDateTime sourceEnd,
+                     String targetCalendarName,
+                     LocalDate targetStart);
+
+  boolean copyEvent(String sourceCalendarName,LocalDateTime sourceStart, String eventName,
+                    String targetCalendarName,
+                    LocalDateTime targetStart);
+
+  boolean isCalendarPresent(String calName);
+
+  boolean editCalendar(String calendarName, String property, String newValue);
 
 }
