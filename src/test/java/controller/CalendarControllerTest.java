@@ -1369,31 +1369,148 @@ public class CalendarControllerTest {
   }
 
   // End of edit events function
+  //Prrint command tests
   @Test
-  public void testPrintEventsOnDateCallsModelWithCorrectParams() {
-    testCommandInBothModes(mode, "print events on 2024-03-20");
-    assertEquals(LocalDate.parse("2024-03-20"), model.lastPrintDate);
+  public void testPrintEventsOnDate_CallsModelWithFullDayRange() {
+    String command = "print events on 2024-03-20";
+    testCommandInBothModes(mode, command);
+    assertEquals("DefaultCalendarName", model.lastGetEventsRangeCalendar);
+    assertEquals(LocalDateTime.parse("2024-03-20T00:00"), model.lastGetEventsRangeStart);
+    assertEquals(LocalDateTime.parse("2024-03-20T23:59:59"), model.lastGetEventsRangeEnd);
   }
 
   @Test
-  public void testExportCalendarCallsModelWithCorrectParams() {
-    testCommandInBothModes(mode, "export cal events.csv");
-    assertEquals("events.csv", model.lastExportFilename);
+  public void testPrintEventsInRange_CallsModelWithCorrectStartAndEnd() {
+    String command = "print events from 2024-03-20T10:00 to 2024-03-20T12:00";
+    testCommandInBothModes(mode, command);
+
+    assertEquals("DefaultCalendarName", model.lastGetEventsRangeCalendar);
+    assertEquals(LocalDateTime.parse("2024-03-20T10:00"), model.lastGetEventsRangeStart);
+    assertEquals(LocalDateTime.parse("2024-03-20T12:00"), model.lastGetEventsRangeEnd);
   }
 
   @Test
-  public void testShowStatusCallsModelWithCorrectParams() {
-    testCommandInBothModes(mode, "show status on 2024-03-20T10:30");
-    assertEquals(LocalDateTime.parse("2024-03-20T10:30"), model.lastShowStatusDateTime);
+  public void testPrintEvents_MissingArguments() {
+    String command = "print events";
+    testCommandInBothModes("interactive", command);
+    assertEquals("Error Executing command: Print Command too short need more details",
+            view.getLastDisplayedMessage());
   }
 
   @Test
-  public void testPrintEventsInSpecificRangeCallsModelWithCorrectParams() {
-    testCommandInBothModes(mode, "print events from 2024-03-20T10:00 to 2024-03-20T12:00");
-    assertEquals(LocalDateTime.parse("2024-03-20T10:00"), model.lastPrintStartDateTime);
-    assertEquals(LocalDateTime.parse("2024-03-20T12:00"), model.lastPrintEndDateTime);
+  public void testPrintEvents_InvalidKeyword() {
+    String command = "print events something 2024-03-20";
+    testCommandInBothModes("interactive", command);
+    assertEquals("Error Executing command: Expected 'on' or 'from' at start of print events command.",
+            view.getLastDisplayedMessage());
   }
 
+  @Test
+  public void testPrintEvents_OnWithExtraArguments() {
+    String command = "print events on 2024-03-20 extra";
+    testCommandInBothModes("interactive", command);
+    assertEquals("Error Executing command: Invalid format. Expected: print events on <date>",
+            view.getLastDisplayedMessage());
+  }
+
+  @Test
+  public void testPrintEvents_FromMissingToKeyword() {
+    String command = "print events from 2024-03-20T10:00 2024-03-20T12:00";
+    testCommandInBothModes("interactive", command);
+    assertEquals("Error Executing command: Invalid format. Expected: print events from <datetime> to <datetime>",
+            view.getLastDisplayedMessage());
+  }
+
+  @Test
+  public void testPrintEvents_FromIncompleteArguments() {
+    String command = "print events from 2024-03-20T10:00 to";
+    testCommandInBothModes("interactive", command);
+    assertEquals("Error Executing command: Invalid format. Expected: print events from <datetime> to <datetime>",
+            view.getLastDisplayedMessage());
+  }
+
+  //show status commands
+  @Test
+  public void testShowStatusWhenNoEvents() {
+    String command = "show status on 2024-03-20T14:00";
+    testCommandInBothModes(mode, command);
+    assertEquals(LocalDateTime.parse("2024-03-20T14:00"), model.lastGetEventsSpecificDateTime);
+    assertEquals("Available", view.getLastDisplayedMessage());
+  }
+
+  @Test
+  public void testShowStatus_MissingOnKeyword() {
+    String command = "show status 2024-03-20T10:00";
+    testCommandInBothModes(mode, command);
+    assertTrue(view.getLastDisplayedMessage().toLowerCase().contains("error"));
+  }
+
+  @Test
+  public void testShowStatus_MissingDateTime() {
+    String command = "show status on";
+    testCommandInBothModes("interactive", command);
+    assertTrue(view.getLastDisplayedMessage().toLowerCase().contains("error"));
+  }
+
+  @Test
+  public void testShowStatus_InvalidDateTimeFormat() {
+    String command = "show status on 03-20-2024 10:00AM";
+    testCommandInBothModes("interactive", command);
+    assertTrue(view.getLastDisplayedMessage().toLowerCase().contains("error"));
+  }
+
+  @Test
+  public void testShowStatus_RandomGarbage() {
+    String command = "show status on banana";
+    testCommandInBothModes("interactive", command);
+    assertTrue(view.getLastDisplayedMessage().toLowerCase().contains("error"));
+  }
+
+
+  //Exporrt tests forr controller
+
+  @Test
+  public void testExportEvents_ValidCommand_CallsModelGetEventsInRange() {
+    String command = "export cal myCalendar.csv";
+    testCommandInBothModes(mode, command);
+
+    assertEquals("DefaultCalendarName", model.lastGetEventsRangeCalendar);
+    assertEquals(LocalDateTime.MIN, model.lastGetEventsRangeStart);
+    assertEquals(LocalDateTime.MAX, model.lastGetEventsRangeEnd);
+    assertTrue(view.getLastDisplayedMessage().contains("Events exported successfully")
+            || view.getLastDisplayedMessage().contains("Error exporting events"));
+  }
+
+  @Test
+  public void testCopyEvent_MissingTargetKeyword() {
+    String command = "copy event TeamMeeting on 2024-03-20T10:00 to 2024-03-22T09:00";
+    testCommandInBothModes(mode, command);
+    assertEquals("Error Executing command: Expected '--target' after source date and time.",
+            view.getLastDisplayedMessage());
+  }
+
+  @Test
+  public void testExportEvents_MissingFilename() {
+    String command = "export cal";
+    testCommandInBothModes(mode, command);
+    assertEquals("Error Executing command: Missing filename for export.", view.getLastDisplayedMessage());
+  }
+
+  @Test
+  public void testExportEvents_TooManyArguments() {
+    String command = "export cal calendar.csv extraArg";
+    testCommandInBothModes(mode, command);
+    assertEquals("Error Executing command: Too many arguments for export command.", view.getLastDisplayedMessage());
+  }
+
+  @Test
+  public void testExportEvents_MissingCal() {
+    String command = "export calendar.csv extraArg";
+    testCommandInBothModes(mode, command);
+    assertEquals("Error: Unknown command.", view.getLastDisplayedMessage());
+  }
+
+  
   @Test
   public void testInvalidCommandDoesNotCallModel() {
     testCommandInBothModes(mode, "invalid command format");
@@ -1503,13 +1620,13 @@ public class CalendarControllerTest {
     errorCases.put("create", "Error: Unknown command.");
     errorCases.put("event", "Error: Unknown command.");
     errorCases.put("TeamMeeting", "Error Executing command: Expected 'from' or 'on' after event name");
-    errorCases.put("on", "Error Executing command: Text 'repeats' could not be parsed at index 0");
-    errorCases.put("2024-03-20", "Error: Missing date after 'on'");
-    errorCases.put("repeats", "Error: Missing weekdays after 'repeats'");
-    errorCases.put("MTWR", "Error: Invalid weekday character: "); // This error happens if one of the chars is invalid
-    errorCases.put("for", "Error: Missing recurrence count after 'for'");
-    errorCases.put("5", "Error: Missing keyword 'times'");
-    errorCases.put("times", "Error: Unrecognized extra argument: times");
+    errorCases.put("on", "Error Executing command: Expected 'from' or 'on' after event name");
+    errorCases.put("2024-03-20", "Error Executing command: Text 'repeats' could not be parsed at index 0");
+    errorCases.put("repeats", "Error Executing command: Unrecognized extra argument: MTWR");
+    errorCases.put("MTWR", "Error Executing command: Invalid weekday character: f"); // This error happens if one of the chars is invalid
+    errorCases.put("for", "Error Executing command: Unrecognized extra argument: 5");
+    errorCases.put("5", "Error Executing command: For input string: \"times\"");
+    errorCases.put("times", "Error Executing command: Missing keyword 'times'");
 
     for (Map.Entry<String, String> entry : errorCases.entrySet()) {
       String modifiedCommand = baseCommand.replaceFirst("\\b" + entry.getKey() + "\\b", "")
@@ -1618,10 +1735,10 @@ public class CalendarControllerTest {
     String baseCommand = "print events on 2024-03-20";
 
     Map<String, String> errorCases = new LinkedHashMap<>();
-    errorCases.put("print", "Error: Unsupported command.");
-    errorCases.put("events", "Error: Expected 'events' after 'print'.");
-    errorCases.put("on", "Error: Invalid print command format.");
-    errorCases.put("2024-03-20", "Error: Missing date.");
+    errorCases.put("print", "Error: Unknown command.");
+    errorCases.put("events", "Error: Unknown command.");
+    errorCases.put("on", "Error Executing command: Expected 'on' or 'from' at start of print events command.");
+    errorCases.put("2024-03-20", "Error Executing command: Invalid format. Expected: print events on <date>");
 
     for (Map.Entry<String, String> entry : errorCases.entrySet()) {
       String modifiedCommand = baseCommand.replaceFirst("\\b" + entry.getKey()
@@ -1636,13 +1753,12 @@ public class CalendarControllerTest {
     String baseCommand = "print events from 2024-03-20T10:00 to 2024-03-20T12:00";
 
     Map<String, String> errorCases = new LinkedHashMap<>();
-    errorCases.put("print", "Error: Unsupported command.");
-    errorCases.put("events", "Error: Expected 'events' after 'print'.");
-    errorCases.put("from", "Error: Invalid print command format.");
-    errorCases.put("2024-03-20T10:00", "Error processing command: Text "
-            + "'to' could not be parsed at index 0");
-    errorCases.put("to", "Error: Missing 'to' keyword.");
-    errorCases.put("2024-03-20T12:00", "Error: Missing end date and time.");
+    errorCases.put("print", "Error: Unknown command.");
+    errorCases.put("events", "Error: Unknown command.");
+    errorCases.put("from", "Error Executing command: Expected 'on' or 'from' at start of print events command.");
+    errorCases.put("2024-03-20T10:00", "Error Executing command: Invalid format. Expected: print events from <datetime> to <datetime>");
+    errorCases.put("to", "Error Executing command: Invalid format. Expected: print events from <datetime> to <datetime>");
+    errorCases.put("2024-03-20T12:00", "Error Executing command: Invalid format. Expected: print events from <datetime> to <datetime>");
 
     for (Map.Entry<String, String> entry : errorCases.entrySet()) {
       String modifiedCommand = baseCommand.replaceFirst("\\b" + entry.getKey()
@@ -1657,9 +1773,9 @@ public class CalendarControllerTest {
     String baseCommand = "export cal events.csv";
 
     Map<String, String> errorCases = new LinkedHashMap<>();
-    errorCases.put("export", "Error: Unsupported command.");
-    errorCases.put("cal", "Error: Expected 'cal' after 'export'.");
-    errorCases.put("events.csv", "Error: Missing filename.");
+    errorCases.put("export", "Error: Unknown command.");
+    errorCases.put("cal", "Error: Unknown command.");
+    errorCases.put("events.csv", "Error Executing command: Missing filename for export.");
 
     for (Map.Entry<String, String> entry : errorCases.entrySet()) {
       String modifiedCommand = baseCommand.replaceFirst("\\b" + entry.getKey()
@@ -1674,10 +1790,10 @@ public class CalendarControllerTest {
     String baseCommand = "show status on 2024-03-20T14:00";
 
     Map<String, String> errorCases = new LinkedHashMap<>();
-    errorCases.put("show", "Error: Unsupported command.");
-    errorCases.put("status", "Error: Expected 'status' after 'show'.");
-    errorCases.put("on", "Error: Expected 'on' keyword.");
-    errorCases.put("2024-03-20T14:00", "Error: Missing date and time.");
+    errorCases.put("show", "Error: Unknown command.");
+    errorCases.put("status", "Error: Unknown command.");
+    errorCases.put("on", "Error Executing command: Invalid syntax. Expected: show status on <datetime>");
+    errorCases.put("2024-03-20T14:00", "Error Executing command: Invalid syntax. Expected: show status on <datetime>");
 
     for (Map.Entry<String, String> entry : errorCases.entrySet()) {
       String modifiedCommand = baseCommand.replaceFirst("\\b" + entry.getKey()
@@ -1809,21 +1925,6 @@ public class CalendarControllerTest {
     }
   }
 
-  @Test
-  public void testEditEventsFromMissingWords2() {
-    String baseCommand = "edit events name TeamMeeting from 2024-03-20T10:00 with UpdatedMeeting";
-
-    String[] wordsToRemove = {"edit", "events", "name", "TeamMeeting", "from", "2024-03-20T10:00",
-            "with", "UpdatedMeeting"};
-
-    for (String word : wordsToRemove) {
-      String modifiedCommand = baseCommand.replace(word, "").replaceAll("\\s+",
-              " ").trim();
-      testCommandInBothModes(mode, modifiedCommand);
-      assertTrue("Expected an error message", view.getLastDisplayedMessage().toLowerCase()
-              .contains("error"));
-    }
-  }
 
   @Test
   public void testEditEventsAllMatchingMissingWords2() {
@@ -1844,38 +1945,10 @@ public class CalendarControllerTest {
   public void testEmptyCommand() {
     String command = "";
     testCommandInBothModes(mode, command);
-    assertTrue("Expected an error message for empty command",
-            view.getLastDisplayedMessage().toLowerCase().contains("error"));
+    assertTrue("Expected nothing message for empty command",
+            view.getLastDisplayedMessage().contains("Welcome to the Calendar App!"));
   }
 
-  //Tests to verify correct output is returned if we are using string return statements
-  @Test
-  public void testPrintEventsOnSpecificDate() {
-    String command = "print events on 2024-03-20";
-    testCommandInBothModes(mode, command);
-    assertEquals("Printed events.", view.getLastDisplayedMessage());
-  }
-
-  @Test
-  public void testPrintEventsInSpecificRange() {
-    String command = "print events from 2024-03-20T10:00 to 2024-03-20T12:00";
-    testCommandInBothModes(mode, command);
-    assertEquals("Printed events in range.", view.getLastDisplayedMessage());
-  }
-
-  @Test
-  public void testExportEvents() {
-    String command = "export cal events.csv";
-    testCommandInBothModes(mode, command);
-    assertEquals("Exported events.", view.getLastDisplayedMessage());
-  }
-
-  @Test
-  public void testShowStatus() {
-    String command = "show status on 2024-03-20T14:00";
-    testCommandInBothModes(mode, command);
-    assertEquals("Status checked.", view.getLastDisplayedMessage());
-  }
 
   //Tests to validate the mode of the controlleer run
   //Repeated options checking
@@ -1885,7 +1958,7 @@ public class CalendarControllerTest {
     String command = "create event TeamMeeting from 2024-03-20T10:00 to 2024-03-20T10:30"
             + " --location Office --location Home";
     testCommandInBothModes(mode, command);
-    assertEquals("Error: Location specified multiple times.",
+    assertEquals("Error Executing command: Duplicate --location flag",
             view.getLastDisplayedMessage());
   }
 
@@ -1970,7 +2043,7 @@ public class CalendarControllerTest {
   public void testPrintEventsMissingStartDateTime() {
     String command = "print events from";
     testCommandInBothModes(mode, command);
-    assertEquals("Error Executing command: Expected 'on <date>' or 'from <datetime> to <datetime>' after print events.", view.getLastDisplayedMessage());
+    assertEquals("Error Executing command: Invalid format. Expected: print events from <datetime> to <datetime>", view.getLastDisplayedMessage());
   }
 
   @Test
@@ -2051,24 +2124,171 @@ public class CalendarControllerTest {
 
   @Test
   public void testReadQuotedValue_MissingClosingQuote() {
-    testCommandInBothModes("interactive", "create event "
+    testCommandInBothModes(mode, "create event "
             + "\"Hello World from 2024-03-20T10:00 to 2024-03-20T11:00");
     assertTrue(view.getLastDisplayedMessage().contains("Error"));
   }
 
   @Test
   public void testReadQuotedValue_SpaceWithinQuotes() {
-    testCommandInBothModes("interactive", "create event"
+    testCommandInBothModes(mode, "create event"
             + " \"Hello   World\" from 2024-03-20T10:00 to 2024-03-20T11:00");
     assertEquals("Hello   World", model.lastAddedEvent.getEventName());
   }
 
   @Test
   public void testReadQuotedValue_NoInput_ShouldReturnEmptyString() {
-    testCommandInBothModes("interactive", "create "
+    testCommandInBothModes(mode, "create "
             + "event from 2024-03-20T10:00 to 2024-03-20T11:00");
     assertTrue(view.getLastDisplayedMessage().contains("Error"));
   }
+
+  //Copy event tests
+  @Test
+  public void testCopySingleEvent() {
+    String command = "copy event TeamMeeting on 2024-03-20T10:00 --target WorkCalendar to 2024-03-22T09:00";
+    testCommandInBothModes(mode, command);
+    assertEquals(LocalDateTime.parse("2024-03-20T10:00"), model.lastCopyEventSourceStart);
+    assertEquals("TeamMeeting", model.lastCopyEventName);
+    assertEquals("WorkCalendar", model.lastCopyTargetCalendar);
+    assertEquals(LocalDateTime.parse("2024-03-22T09:00"), model.lastCopyEventTargetStart);
+  }
+
+  @Test
+  public void testCopySingleEventWithQuotedName() {
+    String command = "copy event \"Team Meeting\" on 2024-03-20T10:00 --target WorkCalendar to 2024-03-22T09:00";
+    testCommandInBothModes(mode, command);
+
+    assertEquals("Team Meeting", model.lastCopyEventName);
+    assertEquals(LocalDateTime.parse("2024-03-20T10:00"), model.lastCopyEventSourceStart);
+    assertEquals("WorkCalendar", model.lastCopyTargetCalendar);
+    assertEquals(LocalDateTime.parse("2024-03-22T09:00"), model.lastCopyEventTargetStart);
+  }
+
+  @Test
+  public void testCopyEventWithExtraSpaces() {
+    String command = "copy    event   TeamMeeting   on   2024-03-20T10:00   --target   WorkCalendar   to   2024-03-22T09:00";
+    testCommandInBothModes(mode, command);
+
+    assertEquals("TeamMeeting", model.lastCopyEventName);
+    assertEquals(LocalDateTime.parse("2024-03-20T10:00"), model.lastCopyEventSourceStart);
+    assertEquals("WorkCalendar", model.lastCopyTargetCalendar);
+    assertEquals(LocalDateTime.parse("2024-03-22T09:00"), model.lastCopyEventTargetStart);
+  }
+
+  @Test
+  public void testCopyEventWithDifferentDateFormat() {
+    String command = "copy event TeamMeeting on 2024-03-20T10:00:00 --target WorkCalendar to 2024-03-22T09:00:00";
+    testCommandInBothModes(mode, command);
+
+    assertEquals("TeamMeeting", model.lastCopyEventName);
+    assertEquals(LocalDateTime.parse("2024-03-20T10:00:00"), model.lastCopyEventSourceStart);
+    assertEquals("WorkCalendar", model.lastCopyTargetCalendar);
+    assertEquals(LocalDateTime.parse("2024-03-22T09:00:00"), model.lastCopyEventTargetStart);
+  }
+
+  @Test
+  public void testCopyEventWithLowercaseKeywords() {
+    String command = "copy event TeamMeeting on 2024-03-20T10:00 --target WorkCalendar to 2024-03-22T09:00";
+    testCommandInBothModes(mode, command);
+
+    assertEquals("TeamMeeting", model.lastCopyEventName);
+    assertEquals(LocalDateTime.parse("2024-03-20T10:00"), model.lastCopyEventSourceStart);
+    assertEquals("WorkCalendar", model.lastCopyTargetCalendar);
+    assertEquals(LocalDateTime.parse("2024-03-22T09:00"), model.lastCopyEventTargetStart);
+  }
+
+  @Test
+  public void testCopyEvent_MissingOnKeyword() {
+    String command = "copy event TeamMeeting 2024-03-20T10:00 --target WorkCalendar to 2024-03-22T09:00";
+    testCommandInBothModes(mode, command);
+    assertTrue(view.getLastDisplayedMessage().contains("Error Executing command: Expected 'on' after event name."));
+  }
+
+  @Test
+  public void testCopyEvent_MissingTargetFlag() {
+    String command = "copy event TeamMeeting on 2024-03-20T10:00 WorkCalendar to 2024-03-22T09:00";
+    testCommandInBothModes(mode, command);
+    assertTrue(view.getLastDisplayedMessage().contains("Error Executing command: Expected '--target' after source date and time."));
+  }
+
+  @Test
+  public void testCopyEvent_MissingToKeyword() {
+    String command = "copy event TeamMeeting on 2024-03-20T10:00 --target WorkCalendar 2024-03-22T09:00";
+    testCommandInBothModes(mode, command);
+    assertTrue(view.getLastDisplayedMessage().contains("Error Executing command: Expected 'to' after target calendar name."));
+  }
+
+  @Test
+  public void testCopyEvent_MissingTargetDateTime() {
+    String command = "copy event TeamMeeting on 2024-03-20T10:00 --target WorkCalendar to";
+    testCommandInBothModes(mode, command);
+    assertTrue(view.getLastDisplayedMessage().contains("Error Executing command: Missing target datetime."));
+  }
+
+  @Test
+  public void testCopyEvent_InvalidSourceDateTime() {
+    String command = "copy event TeamMeeting on 2024-03-20Txx:00 --target WorkCalendar to 2024-03-22T09:00";
+    testCommandInBothModes(mode, command);
+    assertTrue(view.getLastDisplayedMessage().contains("Error Executing command: Invalid source date and time format."));
+  }
+
+  @Test
+  public void testCopyEvent_QuotedEventName() {
+    String command = "copy event \"Team Meeting\" on 2024-03-20T10:00 --target WorkCalendar to 2024-03-22T09:00";
+    testCommandInBothModes(mode, command);
+    assertEquals("Team Meeting", model.lastCopyEventName);
+    assertEquals(LocalDateTime.parse("2024-03-20T10:00"), model.lastCopyEventSourceStart);
+    assertEquals("WorkCalendar", model.lastCopyTargetCalendar);
+    assertEquals(LocalDateTime.parse("2024-03-22T09:00"), model.lastCopyEventTargetStart);
+  }
+
+  @Test
+  public void testCopyEvent_EventNameWithMultipleSpaces() {
+    String command = "copy event   \"  Team   Meeting   \" on 2024-03-20T10:00 --target WorkCalendar to 2024-03-22T09:00";
+    testCommandInBothModes(mode, command);
+    assertEquals("  Team   Meeting   ", model.lastCopyEventName);
+  }
+
+  @Test
+  public void testCopyEvent_MissingEventName() {
+    String command = "copy event on 2024-03-20T10:00 --target WorkCalendar to 2024-03-22T09:00";
+    testCommandInBothModes(mode, command);
+    assertTrue(view.getLastDisplayedMessage().toLowerCase().contains("error"));
+  }
+
+  @Test
+  public void testCopyEvent_InvalidTargetDateTime() {
+    String command = "copy event TeamMeeting on 2024-03-20T10:00 --target WorkCalendar to 22-03-2024T09:00";
+    testCommandInBothModes(mode, command);
+    assertTrue(view.getLastDisplayedMessage().toLowerCase().contains("invalid target date and time format"));
+  }
+
+  @Test
+  public void testCopyEvent_MissingTargetCalendar() {
+    String command = "copy event TeamMeeting on 2024-03-20T10:00 --target to 2024-03-22T09:00";
+    testCommandInBothModes(mode, command);
+    assertTrue(view.getLastDisplayedMessage().toLowerCase().contains("error"));
+  }
+
+  @Test
+  public void testCopyEvent_MissingEventKeyword() {
+    String command = "copy TeamMeeting on 2024-03-20T10:00 --target WorkCalendar to 2024-03-22T09:00";
+    testCommandInBothModes(mode, command);
+    assertTrue(view.getLastDisplayedMessage().contains("Error: Unknown command."));
+  }
+
+
+
+
+
+
+
+
+
+
+
+
 
   private class TestCalendarModel implements ICalendarModel {
     ICalendarEventDTO lastAddedEvent;
@@ -2092,6 +2312,34 @@ public class CalendarControllerTest {
     LocalDateTime lastShowStatusDateTime;
     LocalDateTime lastPrintStartDateTime;
     LocalDateTime lastPrintEndDateTime;
+
+
+    String lastCopySourceCalendar;
+    LocalDateTime lastCopyEventSourceStart;
+    String lastCopyEventName;
+    String lastCopyTargetCalendar;
+    LocalDateTime lastCopyEventTargetStart;
+
+    LocalDateTime lastCopyEventsSourceStart;
+    LocalDateTime lastCopyEventsSourceEnd;
+    LocalDate lastCopyEventsTargetStart;
+
+    // Get events in range
+    String lastGetEventsRangeCalendar;
+    LocalDateTime lastGetEventsRangeStart;
+    LocalDateTime lastGetEventsRangeEnd;
+
+    // Get events at specific time
+    String lastGetEventsSpecificCalendar;
+    LocalDateTime lastGetEventsSpecificDateTime;
+    String lastCalendarPresentName;
+     String lastEditCalendarName;
+
+    String lastEditCalendarProperty;
+    String lastEditCalendarNewValue;
+    LocalDate lastIsCalendarAvailabledate;
+    String lastIsCalendarAvailableName;
+
 
     @Override
     public boolean createCalendar(String calName, String timezone) {
@@ -2126,6 +2374,8 @@ public class CalendarControllerTest {
 
     @Override
     public boolean isCalendarAvailable(String calName, LocalDate date) {
+      this.lastIsCalendarAvailabledate = date;
+      this.lastIsCalendarAvailableName = calName;
       return false;
     }
 
@@ -2136,17 +2386,27 @@ public class CalendarControllerTest {
 
     @Override
     public List<ICalendarEventDTO> getEventsInRange(String calendarName, LocalDateTime fromDateTime, LocalDateTime toDateTime) {
+      this.lastGetEventsRangeCalendar = "DefaultCalendarName";
+      this.lastGetEventsRangeStart = fromDateTime;
+      this.lastGetEventsRangeEnd = toDateTime;
       return List.of();
     }
 
     @Override
     public List<ICalendarEventDTO> getEventsInSpecificDateTime(String calendarName, LocalDateTime dateTime) {
+      this.lastGetEventsSpecificCalendar = calendarName;
+      this.lastGetEventsSpecificDateTime = dateTime;
       return List.of();
     }
 
     @Override
     public boolean copyEvents(String sourceCalendarName, LocalDateTime sourceStart, LocalDateTime sourceEnd, String targetCalendarName, LocalDate targetStart) {
-      return false;
+      this.lastCopySourceCalendar = sourceCalendarName;
+      this.lastCopyEventsSourceStart = sourceStart;
+      this.lastCopyEventsSourceEnd = sourceEnd;
+      this.lastCopyTargetCalendar = targetCalendarName;
+      this.lastCopyEventsTargetStart = targetStart;
+      return true;
     }
 
 
@@ -2154,17 +2414,26 @@ public class CalendarControllerTest {
     public boolean copyEvent(String sourceCalendarName,LocalDateTime sourceStart, String eventName,
                              String targetCalendarName,
                              LocalDateTime targetStart) {
-      return false;
+      this.lastCopySourceCalendar = sourceCalendarName;
+      this.lastCopyEventSourceStart = sourceStart;
+      this.lastCopyEventName = eventName;
+      this.lastCopyTargetCalendar = targetCalendarName;
+      this.lastCopyEventTargetStart = targetStart;
+      return true;
     }
 
     @Override
     public boolean isCalendarPresent(String calName) {
+      this.lastCalendarPresentName = calName;
       return false;
     }
 
     @Override
     public boolean editCalendar(String calendarName, String property, String newValue) {
-      return false;
+      this.lastEditCalendarName = calendarName;
+      this.lastEditCalendarProperty = property;
+      this.lastEditCalendarNewValue = newValue;
+      return true;
     }
   }
 

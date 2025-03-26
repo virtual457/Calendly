@@ -20,10 +20,10 @@ public class PrintEventsCommand implements ICommand {
     this.model = model;
     this.calendarName = currentCalendar;
 
-    if (parts.size() < 2) {
-      throw new IllegalArgumentException("Expected 'on <date>' or 'from <datetime> to <datetime>' after print events.");
+    if(parts.isEmpty())
+    {
+      throw new IllegalArgumentException("Print Command too short need more details");
     }
-
     if (parts.get(0).equals("on")) {
       if (parts.size() != 2) {
         throw new IllegalArgumentException("Invalid format. Expected: print events on <date>");
@@ -50,7 +50,10 @@ public class PrintEventsCommand implements ICommand {
     if (events.isEmpty()) {
       return "No events found.";
     }
+    return buildStringForPrintEvents(events);
+  }
 
+  private String buildStringForPrintEvents(List<ICalendarEventDTO> events) {
     StringBuilder sb = new StringBuilder();
     for (ICalendarEventDTO event : events) {
       sb.append("- ")

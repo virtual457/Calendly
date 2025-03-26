@@ -1,7 +1,6 @@
 package command;
 
 import model.ICalendarModel;
-
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -20,50 +19,62 @@ public class CopyEventCommand implements ICommand {
     this.model = model;
     this.sourceCalendar = currentCalendar;
 
-    if (args.size() < 7) {
-      throw new IllegalArgumentException("Incomplete command. Expected: copy event <eventName> on <dateTime> --target <calendar> to <dateTime>");
-    }
-
-    if (!args.get(0).equals("event")) {
-      throw new IllegalArgumentException("Expected 'event' after 'copy'.");
-    }
-
-    this.eventName = args.get(1);
-    if (eventName.isEmpty()) {
-      throw new IllegalArgumentException("Missing event name.");
-    }
-
-    if (!args.get(2).equals("on")) {
-      throw new IllegalArgumentException("Expected 'on' after event name.");
-    }
+    int index = 0;
 
     try {
-      this.sourceDateTime = LocalDateTime.parse(args.get(3));
-    } catch (Exception e) {
-      throw new IllegalArgumentException("Invalid source date and time format.");
-    }
+      // eventName
+      if (index >= args.size()) throw new IllegalArgumentException("Missing event name.");
+      this.eventName = args.get(index++);
+      if (eventName.isEmpty()) {
+        throw new IllegalArgumentException("Event name cannot be empty.");
+      }
 
-    if (!args.get(4).equals("--target")) {
-      throw new IllegalArgumentException("Expected '--target' after source date and time.");
-    }
+      // 'on'
+      if (index >= args.size()) throw new IllegalArgumentException("Missing 'on' keyword.");
+      String onKeyword = args.get(index++);
+      if (!onKeyword.equals("on")) {
+        throw new IllegalArgumentException("Expected 'on' after event name.");
+      }
 
-    this.targetCalendar = args.get(5);
-    if (targetCalendar.isEmpty()) {
-      throw new IllegalArgumentException("Missing target calendar name.");
-    }
+      // sourceDateTime
+      if (index >= args.size()) throw new IllegalArgumentException("Missing source datetime.");
+      try {
+        this.sourceDateTime = LocalDateTime.parse(args.get(index++));
+      } catch (Exception e) {
+        throw new IllegalArgumentException("Invalid source date and time format.");
+      }
 
-    if (!args.get(6).equals("to")) {
-      throw new IllegalArgumentException("Expected 'to' after target calendar name.");
-    }
+      // '--target'
+      if (index >= args.size()) throw new IllegalArgumentException("Missing '--target' keyword.");
+      String targetKeyword = args.get(index++);
+      if (!targetKeyword.equals("--target")) {
+        throw new IllegalArgumentException("Expected '--target' after source date and time.");
+      }
 
-    if (args.size() < 8) {
-      throw new IllegalArgumentException("Missing target date and time.");
-    }
+      // targetCalendar
+      if (index >= args.size()) throw new IllegalArgumentException("Missing target calendar name.");
+      this.targetCalendar = args.get(index++);
+      if (targetCalendar.isEmpty()) {
+        throw new IllegalArgumentException("Target calendar name cannot be empty.");
+      }
 
-    try {
-      this.targetDateTime = LocalDateTime.parse(args.get(7));
-    } catch (Exception e) {
-      throw new IllegalArgumentException("Invalid target date and time format.");
+      // 'to'
+      if (index >= args.size()) throw new IllegalArgumentException("Missing 'to' keyword.");
+      String toKeyword = args.get(index++);
+      if (!toKeyword.equals("to")) {
+        throw new IllegalArgumentException("Expected 'to' after target calendar name.");
+      }
+
+      // targetDateTime
+      if (index >= args.size()) throw new IllegalArgumentException("Missing target datetime.");
+      try {
+        this.targetDateTime = LocalDateTime.parse(args.get(index));
+      } catch (Exception e) {
+        throw new IllegalArgumentException("Invalid target date and time format.");
+      }
+
+    } catch (IndexOutOfBoundsException e) {
+      throw new IllegalArgumentException("Incomplete command. Please check the syntax.");
     }
   }
 

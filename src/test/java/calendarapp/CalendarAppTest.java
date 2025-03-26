@@ -686,7 +686,7 @@ public class CalendarAppTest {
             "exit"
     };
     runAppWithCommands(commands);
-    assertTrue(outContent.toString().contains("Error Executing command: Expected 'on <date>' or 'from <datetime> to <datetime>' after print events."));
+    assertTrue(outContent.toString().contains("Error Executing command: Expected 'on' or 'from' at start of print events command."));
   }
 
   @Test
@@ -698,7 +698,7 @@ public class CalendarAppTest {
             "exit"
     };
     runAppWithCommands(commands);
-    assertTrue(outContent.toString().contains("Error Executing command: Expected 'on <date>' or 'from <datetime> to <datetime>' after print events."));
+    assertTrue(outContent.toString().contains("Error Executing command: Invalid format. Expected: print events on <date>"));
   }
 
   @Test

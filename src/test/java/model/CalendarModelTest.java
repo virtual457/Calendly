@@ -657,7 +657,7 @@ public class CalendarModelTest {
             .setEndDateTime(end)
             .setRecurring(true)
             .setRecurrenceCount(2)
-            .setRecurrenceDays(Arrays.asList(DayOfWeek.MONDAY))
+            .setRecurrenceDays(List.of(DayOfWeek.MONDAY))
             .setEventDescription("Recurring meeting")
             .setEventLocation("Room Z")
             .setPrivate(false)

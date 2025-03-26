@@ -35,13 +35,22 @@ public class ExportEventsCommand implements ICommand {
 
   @Override
   public String execute() {
-    if (calendarName == null) {
-      return "Error: No calendar selected.";
-    }
-    LocalDateTime start = LocalDateTime.of(2000, 1, 1, 0, 0);
-    LocalDateTime end = LocalDateTime.of(2100, 12, 31, 23, 59);
+    LocalDateTime start = LocalDateTime.MIN;
+    LocalDateTime end = LocalDateTime.MAX;
     List<ICalendarEventDTO> events = model.getEventsInRange(calendarName, start, end);
+    return exportToCSV(events);
+  }
 
+  private String escapeCSV(String value) {
+    return "\"" + value.replace("\"", "\"\"") + "\"";
+  }
+
+  /**
+   * private helper to create thhe export file with the events requested.
+   * @param events the list of events to be included in the exported file
+   * @return returns a string specifing the status of the export.
+   */
+  private String exportToCSV(List<ICalendarEventDTO> events) {
     DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
     DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("hh:mm a");
 
@@ -84,9 +93,5 @@ public class ExportEventsCommand implements ICommand {
     } catch (IOException e) {
       return "Error exporting events: " + e.getMessage();
     }
-  }
-
-  private String escapeCSV(String value) {
-    return "\"" + value.replace("\"", "\"\"") + "\"";
   }
 }
