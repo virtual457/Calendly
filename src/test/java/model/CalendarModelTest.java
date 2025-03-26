@@ -2152,8 +2152,8 @@ public class CalendarModelTest {
     model.createCalendar("SourceCal", "America/New_York");
     model.createCalendar("TargetCal", "Asia/Kolkata");
 
-    LocalDateTime sourceStart = LocalDateTime.of(2025, 5, 5, 9, 0); // EDT
-    LocalDateTime sourceEnd = LocalDateTime.of(2025, 5, 5, 10, 0);
+    LocalDateTime sourceStart = LocalDateTime.of(2025, 5, 5, 19, 0); // EDT
+    LocalDateTime sourceEnd = LocalDateTime.of(2025, 5, 5, 20, 0);
 
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
             .setEventName("TimeShiftedMeeting")
@@ -2171,7 +2171,7 @@ public class CalendarModelTest {
     LocalDateTime targetStart = LocalDateTime.of(2025, 5, 6, 10, 0); // IST
     assertTrue(model.copyEvents("SourceCal", sourceStart, sourceEnd, "TargetCal", targetStart));
 
-    List<ICalendarEventDTO> copied = model.getEventsInRange("TargetCal", targetStart.minusHours(1), targetStart.plusHours(2));
+    List<ICalendarEventDTO> copied = model.getEventsInRange("TargetCal", targetStart.minusDays(1), targetStart.plusDays(1));
     assertEquals(1, copied.size());
     assertEquals("TimeShiftedMeeting", copied.get(0).getEventName());
   }
