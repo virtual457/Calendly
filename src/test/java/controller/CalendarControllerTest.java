@@ -2140,7 +2140,7 @@ public class CalendarControllerTest {
       this.lastEditEventProperty = property;
       this.lastEditEventName = eventName;
       this.lastEditEventStartDateTime = fromDateTime;
-      this.lastEditEventEndDateTime = fromDateTime;
+      this.lastEditEventEndDateTime = toDateTime;
       this.lastEditEventNewValue = newValue;
       return true;
     }
