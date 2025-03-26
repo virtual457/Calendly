@@ -100,6 +100,66 @@ public class CalendarModelTest {
     assertEquals(3, events.size());
   }
 
+  @Test(expected = IllegalStateException.class)
+  public void testAddEvent_WithAutoDeclineAndConflict_ShouldThrowException() {
+    model.createCalendar("MyCal", "America/New_York");
+
+    // Add existing event
+    LocalDateTime existingStart = LocalDateTime.of(2025, 6, 1, 10, 0);
+    LocalDateTime existingEnd = existingStart.plusHours(1);
+    ICalendarEventDTO existing = CalendarEventDTO.builder()
+            .setEventName("Existing")
+            .setStartDateTime(existingStart)
+            .setEndDateTime(existingEnd)
+            .setAutoDecline(true)
+            .setRecurring(false)
+            .setPrivate(false)
+            .build();
+    assertTrue(model.addEvent("MyCal", existing));
+
+    // Add conflicting event with autoDecline = true
+    ICalendarEventDTO conflicting = CalendarEventDTO.builder()
+            .setEventName("Conflict")
+            .setStartDateTime(existingStart.plusMinutes(30)) // Overlaps with existing
+            .setEndDateTime(existingEnd.plusMinutes(30))
+            .setAutoDecline(true)
+            .setRecurring(false)
+            .setPrivate(false)
+            .build();
+
+    model.addEvent("MyCal", conflicting); // should throw exception
+  }
+
+  @Test
+  public void testAddEvent_WithConflictButNoAutoDecline_ShouldSucceed() {
+    model.createCalendar("MyCal", "America/New_York");
+
+    // Add existing event
+    LocalDateTime existingStart = LocalDateTime.of(2025, 6, 1, 10, 0);
+    LocalDateTime existingEnd = existingStart.plusHours(1);
+    ICalendarEventDTO existing = CalendarEventDTO.builder()
+            .setEventName("Existing")
+            .setStartDateTime(existingStart)
+            .setEndDateTime(existingEnd)
+            .setAutoDecline(true)
+            .setRecurring(false)
+            .setPrivate(false)
+            .build();
+    assertTrue(model.addEvent("MyCal", existing));
+
+    // Add conflicting event but with autoDecline = false
+    ICalendarEventDTO conflicting = CalendarEventDTO.builder()
+            .setEventName("Conflict")
+            .setStartDateTime(existingStart.plusMinutes(30))
+            .setEndDateTime(existingEnd.plusMinutes(30))
+            .setAutoDecline(false)  // allow overlapping
+            .setRecurring(false)
+            .setPrivate(false)
+            .build();
+
+    assertTrue(model.addEvent("MyCal", conflicting));
+  }
+
   @Test(expected = IllegalArgumentException.class)
   public void testAddNonRecurringEventWithRecurrenceInfo() {
     model.createCalendar("Work", "America/New_York");
