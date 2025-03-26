@@ -4,7 +4,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.util.List;
 
-class CalendarEventDTO implements ICalendarEventDTO {
+public class CalendarEventDTO implements ICalendarEventDTO {
   private String eventName;
   private LocalDateTime startDateTime;
   private LocalDateTime endDateTime;
@@ -41,7 +41,7 @@ class CalendarEventDTO implements ICalendarEventDTO {
     private LocalDateTime endDateTime;
     private Boolean isRecurring = false;
     private List<DayOfWeek> recurrenceDays;
-    private Integer recurrenceCount = 0;
+    private Integer recurrenceCount;
     private LocalDateTime recurrenceEndDate;
     private Boolean autoDecline = false;
     private String eventDescription = "";

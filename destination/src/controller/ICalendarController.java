@@ -18,5 +18,5 @@ public interface ICalendarController {
     return new CalendarController(model, view);
   }
 
-  void run(String mode, String fileName);
+  void run(Readable readable);
 }
