@@ -57,9 +57,9 @@ public interface ICalendarModel {
   List<ICalendarEventDTO> getEventsInSpecificDateTime(String calendarName, LocalDateTime dateTime);
 
   boolean copyEvents(String sourceCalendarName,
-                     LocalDateTime sourceStart, LocalDateTime sourceEnd,
+                     LocalDate sourceStart, LocalDate sourceEnd,
                      String targetCalendarName,
-                     LocalDateTime targetStart);
+                     LocalDate targetStart);
 
   boolean copyEvent(String sourceCalendarName,LocalDateTime sourceStart, String eventName,
                     String targetCalendarName,

@@ -21,11 +21,11 @@ public class CalendarApp {
 
       controller.run(handler.getReadable());  // pass just the input stream
     } catch (IOException e) {
-      System.err.println("IO Error: " + e.getMessage());
+      System.out.println("IO Error: " + e.getMessage());
     } catch (IllegalArgumentException e) {
-      System.err.println("Argument Error: " + e.getMessage());
+      System.out.println("Argument Error: " + e.getMessage());
     } catch (Exception e) {
-      System.err.println("Unexpected Error: " + e.getMessage());
+      System.out.println("Unexpected Error: " + e.getMessage());
     }
   }
 
