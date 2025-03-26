@@ -1,14 +1,14 @@
 package command;
 
-import model.ICalendarModel;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import model.ICalendarEventDTO;
+import model.ICalendarModel;
 
 /**
- * Command to copy events from a single day or a date range to another calendar.
+ * Command to copy events from a calendar.
  */
 public class CopyEventsCommand implements ICommand {
   private final ICalendarModel model;
@@ -21,104 +21,74 @@ public class CopyEventsCommand implements ICommand {
   private String targetCalendar;
   private LocalDate targetStartDate;
 
-  public CopyEventsCommand(List<String> args, ICalendarModel model, String currentCalendar) {
+  public CopyEventsCommand(List<String> parts, ICalendarModel model, String currentCalendar) {
     this.model = model;
     this.sourceCalendar = currentCalendar;
 
-    // Step-by-step parsing and validation
-    if (args.isEmpty()) {
-      throw new IllegalArgumentException("Missing command arguments after 'copy'.");
+    if (parts.isEmpty()) {
+      throw new IllegalArgumentException("Expected 'copy events on <date> --target <calendar> to <date>' or 'copy events between <date> and <date> --target <calendar> to <date>'");
     }
 
-    if (!args.get(0).equals("events")) {
-      throw new IllegalArgumentException("Expected 'events' after 'copy'.");
-    }
+    int index = 0;
 
-    if (args.size() < 2) {
-      throw new IllegalArgumentException("Expected 'on' or 'between' after 'events'.");
-    }
+    String type = safeGet(parts, index);
+    if (type.equals("on")) {
+      copyType = "on";
+      index++;
+      fromDate = parseDate(safeGet(parts, index++), "Invalid source date.");
 
-    this.copyType = args.get(1);
-    if (copyType.equals("on")) {
-      parseOnFormat(args);
-    } else if (copyType.equals("between")) {
-      parseBetweenFormat(args);
+      if (!safeGet(parts, index++).equals("--target")) {
+        throw new IllegalArgumentException("Expected '--target' after source date.");
+      }
+
+      targetCalendar = safeGet(parts, index++);
+
+      if (!safeGet(parts, index++).equals("to")) {
+        throw new IllegalArgumentException("Expected 'to' after target calendar.");
+      }
+
+      targetStartDate = parseDate(safeGet(parts, index++), "Invalid target date.");
+      toDate = fromDate;
+
+    } else if (type.equals("between")) {
+      copyType = "between";
+      index++;
+      fromDate = parseDate(safeGet(parts, index++), "Invalid start date.");
+
+      if (!safeGet(parts, index++).equals("and")) {
+        throw new IllegalArgumentException("Expected 'and' after start date.");
+      }
+
+      toDate = parseDate(safeGet(parts, index++), "Invalid end date.");
+
+      if (!safeGet(parts, index++).equals("--target")) {
+        throw new IllegalArgumentException("Expected '--target' after end date.");
+      }
+
+      targetCalendar = safeGet(parts, index++);
+
+      if (!safeGet(parts, index++).equals("to")) {
+        throw new IllegalArgumentException("Expected 'to' after target calendar.");
+      }
+
+      targetStartDate = parseDate(safeGet(parts, index++), "Invalid target start date.");
     } else {
       throw new IllegalArgumentException("Expected 'on' or 'between' after 'events'.");
     }
   }
 
-  private void parseOnFormat(List<String> args) {
-    if (args.size() < 7) {
-      throw new IllegalArgumentException("Incomplete command. Expected: copy events on <date> --target <calendar> to <date>");
+  private String safeGet(List<String> parts, int index) {
+    if (index >= parts.size()) {
+      throw new IllegalArgumentException("Incomplete command. Expected more arguments.");
     }
-
-    try {
-      this.fromDate = LocalDate.parse(args.get(2));
-    } catch (Exception e) {
-      throw new IllegalArgumentException("Invalid source date format.");
-    }
-
-    if (!args.get(3).equals("--target")) {
-      throw new IllegalArgumentException("Expected '--target' after source date.");
-    }
-
-    this.targetCalendar = args.get(4);
-    if (targetCalendar.isEmpty()) {
-      throw new IllegalArgumentException("Missing target calendar name.");
-    }
-
-    if (!args.get(5).equals("to")) {
-      throw new IllegalArgumentException("Expected 'to' after target calendar.");
-    }
-
-    try {
-      this.targetStartDate = LocalDate.parse(args.get(6));
-    } catch (Exception e) {
-      throw new IllegalArgumentException("Invalid target date format.");
-    }
-
-    this.toDate = this.fromDate; // same day
+    return parts.get(index);
   }
 
-  private void parseBetweenFormat(List<String> args) {
-    if (args.size() < 9) {
-      throw new IllegalArgumentException("Incomplete command. Expected: copy events between <date> and <date> --target <calendar> to <date>");
-    }
-
+  private LocalDate parseDate(String value, String errorMessage) {
     try {
-      this.fromDate = LocalDate.parse(args.get(2));
+      return LocalDate.parse(value);
     } catch (Exception e) {
-      throw new IllegalArgumentException("Invalid start date format.");
-    }
-
-    if (!args.get(3).equals("and")) {
-      throw new IllegalArgumentException("Expected 'and' after start date.");
-    }
-
-    try {
-      this.toDate = LocalDate.parse(args.get(4));
-    } catch (Exception e) {
-      throw new IllegalArgumentException("Invalid end date format.");
-    }
-
-    if (!args.get(5).equals("--target")) {
-      throw new IllegalArgumentException("Expected '--target' after end date.");
-    }
-
-    this.targetCalendar = args.get(6);
-    if (targetCalendar.isEmpty()) {
-      throw new IllegalArgumentException("Missing target calendar name.");
-    }
-
-    if (!args.get(7).equals("to")) {
-      throw new IllegalArgumentException("Expected 'to' after target calendar.");
-    }
-
-    try {
-      this.targetStartDate = LocalDate.parse(args.get(8));
-    } catch (Exception e) {
-      throw new IllegalArgumentException("Invalid target start date format.");
+      throw new IllegalArgumentException(errorMessage);
     }
   }
 
@@ -126,9 +96,8 @@ public class CopyEventsCommand implements ICommand {
   public String execute() {
     LocalDateTime rangeStart = fromDate.atStartOfDay();
     LocalDateTime rangeEnd = toDate.atTime(LocalTime.MAX);
-    LocalDate targetStart = targetStartDate;
 
-    boolean success = model.copyEvents(sourceCalendar, rangeStart, rangeEnd, targetCalendar, targetStart);
+    boolean success = model.copyEvents(sourceCalendar, rangeStart, rangeEnd, targetCalendar, targetStartDate);
     return success ? "Events copied successfully." : "Error copying events.";
   }
 }

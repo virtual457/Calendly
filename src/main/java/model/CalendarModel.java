@@ -388,7 +388,7 @@ public class CalendarModel implements ICalendarModel {
     //TODO: Throw exception
     // If no events found in the interval, return false.
     if (eventsToCopy.isEmpty()) {
-      return false;
+      throw new IllegalArgumentException("Events to be copied are empty");
     }
 
     // Sort events by start time.

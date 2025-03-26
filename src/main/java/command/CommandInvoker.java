@@ -6,6 +6,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Scanner;
 
 /**
@@ -42,6 +43,10 @@ public class CommandInvoker {
     Class<? extends ICommand> commandClass = commandRegistry.get(commandName);
     if (commandClass != null) {
       try {
+
+        if((!(commandName.equalsIgnoreCase("use Calendar") || commandName.equalsIgnoreCase("create calendar"))) && Objects.isNull(currentCalendar)){
+          throw new IllegalArgumentException("Please use somme calendar");
+        }
         // Instantiate the command dynamically and pass parameters
         ICommand command = commandClass.getDeclaredConstructor(List.class, ICalendarModel.class, String.class)
                 .newInstance(parts, model,currentCalendar);

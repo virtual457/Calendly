@@ -62,20 +62,26 @@ public class CreateEventCommand implements ICommand {
 
     if (args.get(index).equals("from")) {
       index++;
-      if (index >= args.size()) throw new IllegalArgumentException("Missing start datetime after 'from'");
+      if (index >= args.size()) {
+        throw new IllegalArgumentException("Missing start datetime after 'from'");
+      }
       this.startDateTime = LocalDateTime.parse(args.get(index++));
 
       if (index >= args.size() || !args.get(index).equals("to")) {
         throw new IllegalArgumentException("Expected 'to' after start time");
       }
       index++;
-      if (index >= args.size()) throw new IllegalArgumentException("Missing end datetime after 'to'");
+      if (index >= args.size()){
+        throw new IllegalArgumentException("Missing end datetime after 'to'");
+      }
       this.endDateTime = LocalDateTime.parse(args.get(index++));
 
     } else if (args.get(index).equals("on")) {
       index++;
       isOn = true;
-      if (index >= args.size()) throw new IllegalArgumentException("Missing date after 'on'");
+      if (index >= args.size()){
+        throw new IllegalArgumentException("Missing date after 'on'");
+      }
       this.startDateTime = LocalDate.parse(args.get(index)).atStartOfDay();
       this.endDateTime = this.startDateTime.withHour(23).withMinute(59).withSecond(59);
       index++;
@@ -93,7 +99,9 @@ public class CreateEventCommand implements ICommand {
       if (index < args.size()) {
         if (args.get(index).equals("for")) {
           index++;
-          if (index >= args.size()) throw new IllegalArgumentException("Missing recurrence count after 'for'");
+          if (index >= args.size()) {
+            throw new IllegalArgumentException("Missing recurrence count after 'for'");
+          }
           count = Integer.parseInt(args.get(index++));
           if (index >= args.size() || !args.get(index).equals("times")) {
             throw new IllegalArgumentException("Missing keyword 'times'");
@@ -101,7 +109,9 @@ public class CreateEventCommand implements ICommand {
           index++;
         } else if (args.get(index).equals("until")) {
           index++;
-          if (index >= args.size()) throw new IllegalArgumentException("Missing end date after 'until'");
+          if (index >= args.size()) {
+            throw new IllegalArgumentException("Missing end date after 'until'");
+          }
           if(isOn){
             until = LocalDate.parse(args.get(index++)).atStartOfDay().withHour(23).withMinute(59).withSecond(59);
           }
@@ -116,21 +126,31 @@ public class CreateEventCommand implements ICommand {
       String keyword = args.get(index);
       switch (keyword) {
         case "--description":
-          if (descSet) throw new IllegalArgumentException("Duplicate --description flag");
+          if (descSet) {
+            throw new IllegalArgumentException("Duplicate --description flag");
+          }
           descSet = true;
           index++;
-          if (index >= args.size()) throw new IllegalArgumentException("Missing value for --description");
+          if (index >= args.size()){
+            throw new IllegalArgumentException("Missing value for --description");
+          }
           tempDescription = args.get(index++);
           break;
         case "--location":
-          if (locSet) throw new IllegalArgumentException("Duplicate --location flag");
+          if (locSet) {
+            throw new IllegalArgumentException("Duplicate --location flag");
+          }
           locSet = true;
           index++;
-          if (index >= args.size()) throw new IllegalArgumentException("Missing value for --location");
+          if (index >= args.size()) {
+            throw new IllegalArgumentException("Missing value for --location");
+          }
           tempLocation = args.get(index++);
           break;
         case "--private":
-          if (privateSet) throw new IllegalArgumentException("Duplicate --private flag");
+          if (privateSet){
+            throw new IllegalArgumentException("Duplicate --private flag");
+          }
           privateSet = true;
           tempIsPrivate = true;
           index++;
