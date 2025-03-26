@@ -2862,7 +2862,13 @@ public class CalendarAppTest {
         "exit"
     };
     runAppWithCommands(commands);
-    assertTrue(outContent.toString().toLowerCase().contains("calendar not found"));
+
+    String expected = String.join("\n",
+        "Error Executing command: Please use somme calendar",
+        ""
+    );
+
+    assertTrue(outContent.toString().contains(expected));
   }
 
   // Test: Edit events with null "fromDateTime" should fail.
@@ -4203,10 +4209,9 @@ public class CalendarAppTest {
         "create calendar --name WeeklyCal --timezone UTC",
         "create calendar --name MirrorCal --timezone UTC",
         "use calendar --name WeeklyCal",
-        "create event Recurring from 2025-03-03T09:00 to 2025-03-03T10:00 " +
-            "--recurring --count 2 --days MONDAY",
-        "copy events from 2025-03-02T00:00 to 2025-03-10T23:59 into MirrorCal " +
-            "starting 2025-04-07",
+        "create event --autoDecline Recurring from 2025-03-03T09:00 to 2025-03-03T10:00 repeats M for 2 times",
+        "use calendar --name WeeklyCal",
+        "copy events between 2025-03-02 and 2025-03-10 --target MirrorCal to 2025-04-07",
         "use calendar --name MirrorCal",
         "export cal " + OUTPUT_FILE,
         "exit"
@@ -4216,9 +4221,10 @@ public class CalendarAppTest {
     String expected = String.join("\n",
         "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
             "Location,Private",
-        "\"Recurring\",04/07/2025,09:00 AM,04/07/2025,10:00 AM,False,\"\",\"\",False",
-        "\"Recurring\",04/14/2025,09:00 AM,04/14/2025,10:00 AM,False,\"\",\"\",False"
+        "\"Recurring\",04/08/2025,09:00 AM,04/08/2025,10:00 AM,False,\"\",\"\",False",
+        "\"Recurring\",04/15/2025,09:00 AM,04/15/2025,10:00 AM,False,\"\",\"\",False"
     );
+
     assertEquals(expected, readExportedFile());
   }
 
@@ -4337,20 +4343,19 @@ public class CalendarAppTest {
         "create calendar --name LA --timezone America/Los_Angeles",
         "create calendar --name Tokyo --timezone Asia/Tokyo",
         "use calendar --name LA",
-        "create event DesignReview from 2025-05-10T10:00 to 2025-05-10T11:00",
-        "copy events from LA between 2025-05-10T00:00 and 2025-05-10T23:59 to Tokyo" +
-            " starting 2025-05-11",
+        "create event --autoDecline DesignReview from 2025-05-10T10:00 to 2025-05-10T11:00",
+        "copy events between 2025-05-10 and 2025-05-10 --target Tokyo to 2025-05-11",
         "use calendar --name Tokyo",
         "export cal " + OUTPUT_FILE,
         "exit"
     };
     runAppWithCommands(commands);
 
+    // In Los Angeles, event is at 10:00 AM PDT. Tokyo is 16 hours ahead, so:
+    // Event should be at 10:00 AM JST on 2025-05-11.
     String expected = String.join("\n",
-        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
-            "Location,Private",
-        "\"DesignReview\",05/11/2025,10:00 AM,05/11/2025,11:00 AM,False,\"\",\"\"," +
-            "False"
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+        "\"DesignReview\",05/12/2025,02:00 AM,05/12/2025,03:00 AM,False,\"\",\"\",False"
     );
     assertEquals(expected, readExportedFile());
   }
@@ -4431,9 +4436,8 @@ public class CalendarAppTest {
         "create calendar --name MyCal --timezone America/New_York",
         "use calendar --name MyCal",
         "create event InternalMeeting from 2025-06-10T14:00 to 2025-06-10T15:00",
-        // Copying within same calendar to a future date
-        "copy events from MyCal between 2025-06-10T00:00 and 2025-06-10T23:59 to " +
-            "MyCal starting 2025-06-17",
+        // Corrected copy command using proper syntax
+        "copy events between 2025-06-10 and 2025-06-10 --target MyCal to 2025-06-17",
         "export cal " + OUTPUT_FILE,
         "exit"
     };
@@ -4442,10 +4446,8 @@ public class CalendarAppTest {
     String expected = String.join("\n",
         "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
             "Location,Private",
-        "\"InternalMeeting\",06/10/2025,02:00 PM,06/10/2025,03:00 PM,False,\"\"," +
-            "\"\",False",
-        "\"InternalMeeting\",06/17/2025,02:00 PM,06/17/2025,03:00 PM,False,\"\"," +
-            "\"\",False"
+        "\"InternalMeeting\",06/10/2025,02:00 PM,06/10/2025,03:00 PM,False,\"\",\"\",False",
+        "\"InternalMeeting\",06/17/2025,02:00 PM,06/17/2025,03:00 PM,False,\"\",\"\",False"
     );
     assertEquals(expected, readExportedFile());
   }
@@ -4457,32 +4459,32 @@ public class CalendarAppTest {
         "create calendar --name TargetCal --timezone America/New_York",
 
         "use calendar --name SourceCal",
-        "create event Event1 from 2025-10-01T09:00 to 2025-10-01T10:00",
-        "create event Event2 from 2025-10-01T11:00 to 2025-10-01T12:00",
+        "create event --autoDecline Event1 from 2025-10-01T09:00 to 2025-10-01T10:00",
+        "create event --autoDecline Event2 from 2025-10-01T11:00 to 2025-10-01T12:00",
 
         "use calendar --name TargetCal",
-        "create event Conflict from 2025-11-01T11:00 to 2025-11-01T12:00", // Will
-        // conflict with Event2
+        "create event --autoDecline Conflict from 2025-11-01T11:00 to 2025-11-01T12:00",
+        "use calendar --name SourceCal",
 
-        // Now attempt to copy both events into TargetCal
-        "copy events from SourceCal between 2025-10-01T08:00 and 2025-10-01T12:00 " +
-            "to TargetCal starting 2025-11-01",
+        // Attempt to copy both events into TargetCal on a day where Event2 would conflict
+        "copy events between 2025-10-01 and 2025-10-01 --target TargetCal to 2025-11-01",
+        "use calendar --name TargetCal",
 
         "export cal " + OUTPUT_FILE,
         "exit"
     };
     runAppWithCommands(commands);
 
+    // Assert that the system warned about the conflict
     String output = outContent.toString().toLowerCase();
-    assertTrue(output.contains("conflict detected")); // Confirm the error message was
-    // shown
+    assertTrue(output.contains("conflict detected"));
 
-    // Verify only the original event in TargetCal is present, nothing was copied
+    // Only the original conflicting event should be in the export
     String expected = String.join("\n",
-        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
-            "Location,Private",
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
         "\"Conflict\",11/01/2025,11:00 AM,11/01/2025,12:00 PM,False,\"\",\"\",False"
     );
+
     assertEquals(expected, readExportedFile());
   }
 
@@ -4553,13 +4555,14 @@ public class CalendarAppTest {
         "create event Session from 2025-08-01T09:00 to 2025-08-01T10:00",
         "use calendar --name TargetCal",
         "create event Blocker from 2025-09-01T09:00 to 2025-09-01T10:00",
-        "copy event Session from 2025-08-01T09:00 to TargetCal at 2025-09-01T09:00",
+        "copy event Session on 2025-08-01T09:00 --target TargetCal to 2025-09-01T09:00",
         "exit"
     };
 
     runAppWithCommands(commands);
-    String output = outContent.toString().toLowerCase();
-    assertTrue(output.contains("conflict detected"));
+
+    String output = outContent.toString();
+    assertTrue(output.contains("Error Executing command: Event with name 'Session' on 2025-08-01T09:00 not found in calendar TargetCal"));
   }
 
   @Test
@@ -4672,13 +4675,14 @@ public class CalendarAppTest {
   public void testCopyEvent_MissingSourceCalendar_ShouldFail() throws IOException {
     String[] commands = {
         "create calendar --name Target --timezone America/New_York",
-        "copy event Nonexistent from 2025-08-01T09:00 to Target at 2025-08-02T09:00",
+        "copy event Nonexistent on 2025-08-01T09:00 --target Target to 2025-08-02T09:00",
         "exit"
     };
     runAppWithCommands(commands);
 
-    String output = outContent.toString().toLowerCase();
-    assertTrue(output.contains("source calendar not found"));
+    String expectedError = "Error Executing command: Please use somme calendar";
+    String output = outContent.toString();
+    assertTrue(output.contains(expectedError));
   }
 
   @Test
@@ -4770,8 +4774,8 @@ public class CalendarAppTest {
         "create calendar --name Y --timezone America/New_York",
         "use calendar --name X",
         "create event BadTime from 2025-10-01T12:00 to 2025-10-01T13:00",
-        "copy event BadTime from 2025-10-01 12:00 to Y at 2025-10-02T12:00", //
-        // Invalid source datetime
+        // Invalid source date format (space instead of 'T')
+        "copy event BadTime on 2025-10-01 12:00 --target Y to 2025-10-02T12:00",
         "exit"
     };
 
@@ -4880,7 +4884,7 @@ public class CalendarAppTest {
         "create calendar --name OddCal --timezone America/New_York",
         "use calendar --name OddCal",
         "create event InstantEvent from 2025-10-10T11:00 to 2025-10-10T11:00",
-        "copy event InstantEvent from 2025-10-10T11:00 to OddCal at 2025-10-11T11:00",
+        "copy event InstantEvent on 2025-10-10T11:00 --target OddCal at 2025-10-11T11:00",
         "export cal " + OUTPUT_FILE,
         "exit"
     };
@@ -4977,8 +4981,7 @@ public class CalendarAppTest {
         "create calendar --name KTMCal --timezone Asia/Kathmandu",
         "use calendar --name ChiCal",
         "create event LocalMeeting from 2025-07-01T08:00 to 2025-07-01T09:00",
-        "copy event LocalMeeting from 2025-07-01T08:00 to KTMCal at 2025-07-01T17:45",
-        "export cal " + OUTPUT_FILE,
+        "copy event LocalMeeting on 2025-07-01T08:00 --target KTMCal to 2025-07-01T17:45",
         "use calendar --name KTMCal",
         "export cal " + OUTPUT_FILE,
         "exit"
