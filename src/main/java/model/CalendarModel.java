@@ -351,7 +351,7 @@ public class CalendarModel implements ICalendarModel {
 
   @Override
   public boolean copyEvents(String sourceCalendarName, LocalDateTime sourceStart, LocalDateTime sourceEnd,
-                            String targetCalendarName, LocalDateTime targetStart) {
+                            String targetCalendarName, LocalDate targetStart) {
 
     //TODO: move these validations to another controller
     // Find the source calendar.
@@ -398,7 +398,7 @@ public class CalendarModel implements ICalendarModel {
     for (CalendarEvent event : eventsToCopy) {
 
 
-      LocalDateTime newStart = convertTimeToTargetDate(event.getStartDateTime(),sourceCal.getTimezone(), targetStart.toLocalDate(), targetCal.getTimezone());
+      LocalDateTime newStart = convertTimeToTargetDate(event.getStartDateTime(),sourceCal.getTimezone(), targetStart, targetCal.getTimezone());
       java.time.Duration duration = java.time.Duration.between(event.getStartDateTime(), event.getEndDateTime());
 
       LocalDateTime newEnd = newStart.plus(duration);

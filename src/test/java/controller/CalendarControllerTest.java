@@ -2194,9 +2194,10 @@ public class CalendarControllerTest {
     }
 
     @Override
-    public boolean copyEvents(String sourceCalendarName, LocalDateTime sourceStart, LocalDateTime sourceEnd, String targetCalendarName, LocalDateTime targetStart) {
+    public boolean copyEvents(String sourceCalendarName, LocalDateTime sourceStart, LocalDateTime sourceEnd, String targetCalendarName, LocalDate targetStart) {
       return false;
     }
+
 
     @Override
     public boolean copyEvent(String sourceCalendarName,LocalDateTime sourceStart, String eventName,

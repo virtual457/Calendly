@@ -1,5 +1,6 @@
 package command;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Scanner;
 import model.ICalendarModel;
@@ -13,7 +14,7 @@ public class CopyEventCommand implements ICommand {
   private final String eventName;
   private final LocalDateTime sourceDateTime;
   private final String targetCalendar;
-  private final LocalDateTime targetDateTime;
+  private final LocalDate targetDateTime;
 
   public CopyEventCommand(Scanner parts, ICalendarModel model, String currentCalendar) {
     this.model = model;
@@ -57,7 +58,7 @@ public class CopyEventCommand implements ICommand {
     if (!parts.hasNext()) {
       throw new IllegalArgumentException("Missing target date and time.");
     }
-    this.targetDateTime = LocalDateTime.parse(parts.next());
+    this.targetDateTime = LocalDate.parse(parts.next());
   }
 
   @Override

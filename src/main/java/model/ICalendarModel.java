@@ -59,7 +59,7 @@ public interface ICalendarModel {
   boolean copyEvents(String sourceCalendarName,
                      LocalDateTime sourceStart, LocalDateTime sourceEnd,
                      String targetCalendarName,
-                     LocalDateTime targetStart);
+                     LocalDate targetStart);
 
   boolean copyEvent(String sourceCalendarName,LocalDateTime sourceStart, String eventName,
                     String targetCalendarName,
