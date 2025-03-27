@@ -1861,6 +1861,53 @@ public class CalendarAppTest {
   }
 
   @Test
+  public void testCreateEvent_Successful() throws IOException {
+    String[] commands = {
+        "create calendar --name MyCal --timezone America/New_York",
+        "use calendar --name MyCal",
+        "create event --autoDecline TeamMeeting from 2025-08-01T09:00 to 2025-08-01T10:00",
+        "export cal " + OUTPUT_FILE,
+        "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    String expected = String.join("\n",
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+        "\"TeamMeeting\",08/01/2025,09:00 AM,08/01/2025,10:00 AM,False,\"\",\"\",False"
+    );
+    assertEquals(expected, readExportedFile());
+  }
+
+  @Test
+  public void testCreateEvent_MissingCalendar_ShouldFail() throws IOException {
+    String[] commands = {
+        "use calendar --name NoSuchCalendar",
+        "create event --autoDecline Meeting from 2025-09-10T11:00 to 2025-09-10T12:00",
+        "exit"
+    };
+
+    runAppWithCommands(commands);
+    String output = outContent.toString().toLowerCase();
+
+    assertTrue(output.contains("calendar not found") || output.contains("error"));
+  }
+
+  @Test
+  public void testCreateEvent_EndBeforeStart_ShouldFail() throws IOException {
+    String[] commands = {
+        "create calendar --name BadTimeCal --timezone America/New_York",
+        "use calendar --name BadTimeCal",
+        "create event --autoDecline InvalidMeeting from 2025-10-01T12:00 to 2025-10-01T11:00",
+        "exit"
+    };
+
+    runAppWithCommands(commands);
+    String output = outContent.toString().toLowerCase();
+    assertTrue(output.contains("end time must be after start time") || output.contains("error"));
+  }
+
+  @Test
   public void testCreateEventWithPrivateFlagAndValue_ShouldFail() throws IOException {
     String[] commands = {
         "create calendar --name PrivateWithValue --timezone America/New_York",
@@ -4221,6 +4268,146 @@ public class CalendarAppTest {
     assertEquals(expected, readExportedFile());
   }
 
+  @Test
+  public void testCopyEvents_MissingArguments_ShouldFail() throws IOException {
+    String[] commands = {
+        "create calendar --name SourceCal --timezone UTC",
+        "use calendar --name SourceCal",
+        "copy events",  // Incomplete command
+        "exit"
+    };
+
+    runAppWithCommands(commands);
+    String output = outContent.toString().toLowerCase();
+
+    assertTrue(output.contains("expected 'copy events on <date> --target <calendar> to <date>'"));
+  }
+
+  @Test
+  public void testCopyEvents_MissingTargetKeyword_ShouldFail() throws IOException {
+    String[] commands = {
+        "create calendar --name SourceCal --timezone UTC",
+        "create calendar --name TargetCal --timezone UTC",
+        "use calendar --name SourceCal",
+        "create event Sample from 2025-10-01T09:00 to 2025-10-01T10:00",
+        // Missing '--target' in copy command
+        "copy events on 2025-10-01 to TargetCal",
+        "exit"
+    };
+
+    runAppWithCommands(commands);
+    String output = outContent.toString().toLowerCase();
+
+    assertTrue(output.contains("expected '--target' after source date"));
+  }
+
+  @Test
+  public void testCopyEvents_MissingToKeyword_ShouldFail() throws IOException {
+    String[] commands = {
+        "create calendar --name SourceCal --timezone UTC",
+        "create calendar --name TargetCal --timezone UTC",
+        "use calendar --name SourceCal",
+        "create event Meeting from 2025-09-01T09:00 to 2025-09-01T10:00",
+        // Missing 'to' keyword after --target
+        "copy events on 2025-09-01 --target TargetCal 2025-09-05",
+        "exit"
+    };
+
+    runAppWithCommands(commands);
+    String output = outContent.toString().toLowerCase();
+
+    assertTrue(output.contains("expected 'to' after target calendar"));
+  }
+
+  @Test
+  public void testCopyEvents_MissingAndKeyword_ShouldFail() throws IOException {
+    String[] commands = {
+        "create calendar --name CalA --timezone UTC",
+        "create calendar --name CalB --timezone UTC",
+        "use calendar --name CalA",
+        "create event Workshop from 2025-10-10T14:00 to 2025-10-10T15:00",
+        // Missing 'and' keyword
+        "copy events between 2025-10-10 2025-10-11 --target CalB to 2025-11-01",
+        "exit"
+    };
+
+    runAppWithCommands(commands);
+    String output = outContent.toString().toLowerCase();
+
+    assertTrue(output.contains("expected 'and' after start date"));
+  }
+
+  @Test
+  public void testCopyEvents_MissingTargetKeywordAfterEndDate_ShouldFail() throws IOException {
+    String[] commands = {
+        "create calendar --name Cal1 --timezone UTC",
+        "create calendar --name Cal2 --timezone UTC",
+        "use calendar --name Cal1",
+        "create event Planning from 2025-07-01T10:00 to 2025-07-01T11:00",
+        // Missing '--target' keyword after end date
+        "copy events between 2025-07-01 and 2025-07-02 Cal2 to 2025-08-01",
+        "exit"
+    };
+
+    runAppWithCommands(commands);
+    String output = outContent.toString().toLowerCase();
+
+    assertTrue(output.contains("expected '--target' after end date"));
+  }
+
+  @Test
+  public void testCopyEvents_MissingToKeyword() throws IOException {
+    String[] commands = {
+        "create calendar --name Cal1 --timezone UTC",
+        "create calendar --name Cal2 --timezone UTC",
+        "use calendar --name Cal1",
+        "create event Demo from 2025-06-01T09:00 to 2025-06-01T10:00",
+        // Missing 'to' after target calendar
+        "copy events between 2025-06-01 and 2025-06-01 --target Cal2 2025-07-01",
+        "exit"
+    };
+
+    runAppWithCommands(commands);
+    String output = outContent.toString().toLowerCase();
+
+    assertTrue(output.contains("expected 'to' after target calendar"));
+  }
+
+  @Test
+  public void testCopyEvents_IncompleteCommand_ShouldFail() throws IOException {
+    String[] commands = {
+        "create calendar --name Cal1 --timezone UTC",
+        "create calendar --name Cal2 --timezone UTC",
+        "use calendar --name Cal1",
+        "create event Task from 2025-08-01T09:00 to 2025-08-01T10:00",
+        // Missing target calendar and 'to' part
+        "copy events between 2025-08-01 and",  // Incomplete command
+        "exit"
+    };
+
+    runAppWithCommands(commands);
+    String output = outContent.toString().toLowerCase();
+
+    assertTrue(output.contains("incomplete command") || output.contains("expected more arguments"));
+  }
+
+  @Test
+  public void testCopyEvents_CommandSuccessMessage() throws IOException {
+    String[] commands = {
+        "create calendar --name SourceCal --timezone UTC",
+        "create calendar --name TargetCal --timezone UTC",
+        "use calendar --name SourceCal",
+        "create event DemoEvent from 2025-08-01T09:00 to 2025-08-01T10:00",
+        "copy events on 2025-08-01 --target TargetCal to 2025-08-05",
+        "exit"
+    };
+
+    runAppWithCommands(commands);
+    String output = outContent.toString().toLowerCase();
+
+    assertTrue(output.contains("events copied successfully."));
+  }
+
 
   @Test
   public void testCopyEvents_ConflictPreventsCopy() throws IOException {
@@ -4563,6 +4750,142 @@ public class CalendarAppTest {
 
     assertEquals(expected, readExportedFile());
   }
+
+  @Test
+  public void testCopyEvents_SimpleSameCalendarCopy() throws IOException {
+    String[] commands = {
+        "create calendar --name SameCal --timezone UTC",
+        "use calendar --name SameCal",
+        "create event --autoDecline Standup from 2025-06-01T09:00 to 2025-06-01T09:30",
+        "copy events on 2025-06-01 --target SameCal to 2025-06-08",
+        "export cal " + OUTPUT_FILE,
+        "exit"
+    };
+    runAppWithCommands(commands);
+
+    String expected = String.join("\n",
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+        "\"Standup\",06/01/2025,09:00 AM,06/01/2025,09:30 AM,False,\"\",\"\",False",
+        "\"Standup\",06/08/2025,09:00 AM,06/08/2025,09:30 AM,False,\"\",\"\",False"
+    );
+    assertEquals(expected, readExportedFile());
+  }
+
+  @Test
+  public void testCopyEvents_CrossTimeZone() throws IOException {
+    String[] commands = {
+        "create calendar --name SourceCal --timezone America/New_York",
+        "create calendar --name TargetCal --timezone Asia/Kolkata",
+        "use calendar --name SourceCal",
+        "create event --autoDecline TeamCall from 2025-07-01T10:00 to 2025-07-01T11:00",
+        "copy events on 2025-07-01 --target TargetCal to 2025-07-02",
+        "use calendar --name TargetCal",
+        "export cal " + OUTPUT_FILE,
+        "exit"
+    };
+    runAppWithCommands(commands);
+
+    String expected = String.join("\n",
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+        "\"TeamCall\",07/02/2025,07:30 PM,07/02/2025,08:30 PM,False,\"\",\"\",False"
+    );
+    assertEquals(expected, readExportedFile());
+  }
+
+  @Test
+  public void testCopyEvents_InvalidDateFormat_ShouldFail() throws IOException {
+    String[] commands = {
+        "create calendar --name Source --timezone UTC",
+        "create calendar --name Target --timezone UTC",
+        "use calendar --name Source",
+        "create event --autoDecline MyEvent from 2025-05-01T10:00 to 2025-05-01T11:00",
+        "copy events on 2025/05/01 --target Target to 2025-05-10",
+        "exit"
+    };
+    runAppWithCommands(commands);
+
+    String output = outContent.toString().toLowerCase();
+    assertTrue(output.contains("invalid") || output.contains("could not parse"));
+  }
+
+  @Test
+  public void testCopyEvents_NoEventsFound_ShouldFailGracefully() throws IOException {
+    String[] commands = {
+        "create calendar --name EmptySource --timezone UTC",
+        "create calendar --name Target --timezone UTC",
+        "use calendar --name Target",
+        "copy events on 2025-12-25 --target Target to 2026-01-01",
+        "export cal " + OUTPUT_FILE,
+        "exit"
+    };
+    runAppWithCommands(commands);
+
+    // Exported CSV should be empty (header only)
+    String expected = String.join("\n",
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private"
+    );
+    assertEquals(expected, readExportedFile());
+  }
+
+  @Test
+  public void testCopyEvents_SameDaySameCalendar() throws IOException {
+    String[] commands = {
+        "create calendar --name MyCalendar --timezone America/New_York",
+        "use calendar --name MyCalendar",
+        "create event Task1 from 2025-07-01T09:00 to 2025-07-01T10:00",
+        "copy events on 2025-07-01 --target MyCalendar to 2025-07-02",
+        "export cal " + OUTPUT_FILE,
+        "exit"
+    };
+    runAppWithCommands(commands);
+
+    String expected = String.join("\n",
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+        "\"Task1\",07/01/2025,09:00 AM,07/01/2025,10:00 AM,False,\"\",\"\",False",
+        "\"Task1\",07/02/2025,09:00 AM,07/02/2025,10:00 AM,False,\"\",\"\",False"
+    );
+    assertEquals(expected, readExportedFile());
+  }
+
+  @Test
+  public void testCopyEvents_DifferentTimezones_OffsetPreserved() throws IOException {
+    String[] commands = {
+        "create calendar --name SourceCal --timezone Europe/London",
+        "create calendar --name TargetCal --timezone Asia/Kolkata",
+        "use calendar --name SourceCal",
+        "create event MorningSync from 2025-08-10T08:00 to 2025-08-10T09:00",
+        "copy events on 2025-08-10 --target TargetCal to 2025-08-15",
+        "use calendar --name TargetCal",
+        "export cal " + OUTPUT_FILE,
+        "exit"
+    };
+    runAppWithCommands(commands);
+
+    // 08:00 London = 12:30 Kolkata
+    String expected = String.join("\n",
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+        "\"MorningSync\",08/15/2025,12:30 PM,08/15/2025,01:30 PM,False,\"\",\"\",False"
+    );
+    assertEquals(expected, readExportedFile());
+  }
+
+  @Test
+  public void testCopyEvents_TargetCalendarMissing_ShouldFail() throws IOException {
+    String[] commands = {
+        "create calendar --name SourceCal --timezone UTC",
+        "use calendar --name SourceCal",
+        "create event LonelyEvent from 2025-10-01T08:00 to 2025-10-01T09:00",
+        "copy events on 2025-10-01 --target MissingCal to 2025-10-02",
+        "exit"
+    };
+    runAppWithCommands(commands);
+
+    String output = outContent.toString();
+    assertTrue(output.contains("Error Executing command: Calendar not found: MissingCal"));
+  }
+
+
+
 
 
 
@@ -5274,6 +5597,19 @@ public class CalendarAppTest {
   }
 
   @Test
+  public void testEditCalendar_MissingNameKeyword_ShouldFail() throws IOException {
+    String[] commands = {
+        "edit calendar America/New_York timezone UTC", // Missing '--name'
+        "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    String output = outContent.toString();
+    assertTrue(output.contains("Error Executing command: Expected '--name' keyword."));
+  }
+
+  @Test
   public void testEditCalendarName_Success() throws IOException {
     String[] commands = {
         "create calendar --name WorkCal --timezone America/New_York",
@@ -5367,6 +5703,75 @@ public class CalendarAppTest {
     );
     assertEquals(expected, readExportedFile());
   }
+
+  @Test
+  public void testEditCalendar_MissingCalendarName() throws IOException {
+    String[] commands = {
+        "edit calendar --name", // Missing the actual calendar name
+        "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    String output = outContent.toString().toLowerCase();
+    assertTrue(output.contains("missing calendar name"));
+  }
+
+  @Test
+  public void testEditCalendar_MissingPropertyKeyword_ShouldFail() throws IOException {
+    String[] commands = {
+        "edit calendar --name MyCal", // Missing '--property'
+        "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    String output = outContent.toString().toLowerCase();
+    assertTrue(output.contains("missing '--property'"));
+  }
+
+  @Test
+  public void testEditCalendar_MissingPropertyName_ShouldFail() throws IOException {
+    String[] commands = {
+        "edit calendar --name MyCal --property", // Missing actual property name
+        "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    String output = outContent.toString().toLowerCase();
+    assertTrue(output.contains("missing property name"));
+  }
+
+  @Test
+  public void testEditCalendar_MissingNewValue_ShouldFail() throws IOException {
+    String[] commands = {
+        "create calendar --name MyCal --timezone UTC",
+        "use calendar --name MyCal",
+        "edit calendar --name MyCal --property timezone", // Missing new value
+        "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    String output = outContent.toString();
+    assertTrue(output.contains("Error Executing command: Missing new property value."));
+  }
+
+  @Test
+  public void testEditCalendar_SuccessMessage() throws IOException {
+    String[] commands = {
+        "create calendar --name MyCal --timezone UTC",
+        "edit calendar --name MyCal --property timezone Asia/Tokyo",
+        "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    String output = outContent.toString().toLowerCase();
+    assertTrue(output.contains("calendar updated successfully"));
+  }
+
 
   @Test
   public void testEditCalendar_RenameCalendar_EventsStillExist() throws IOException {
