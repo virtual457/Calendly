@@ -5585,6 +5585,93 @@ public class CalendarAppTest {
   }
 
   @Test
+  public void testEditCalendar_MissingNameKeyword() throws IOException {
+    String[] commands = {
+        "create calendar --name MyCal --timezone UTC",
+        // Missing "--name" keyword
+        "edit calendar MyCal --property timezone Asia/Kolkata",
+        "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    String output = outContent.toString().toLowerCase();
+    assertTrue(output.contains("missing '--name' keyword") || output.contains("error"));
+  }
+
+  @Test
+  public void testEditCalendar_EmptyCalendarName_ShouldFail() throws IOException {
+    String[] commands = {
+        "create calendar --name MyCal --timezone UTC",
+        // Edit calendar with empty name (invalid usage)
+        "edit calendar --name --property timezone Asia/Kolkata",
+        "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    String output = outContent.toString().toLowerCase();
+    assertTrue(output.contains("calendar name cannot be empty") || output.contains("error"));
+  }
+
+  @Test
+  public void testEditCalendar_MissingPropertyFlag_ShouldFail() throws IOException {
+    String[] commands = {
+        "create calendar --name MyCal --timezone UTC",
+        // Missing '--property' keyword
+        "edit calendar --name MyCal timezone Asia/Kolkata",
+        "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    String output = outContent.toString().toLowerCase();
+    assertTrue(output.contains("expected '--property'"));
+  }
+
+  @Test
+  public void testEditCalendar_EmptyNewValue_ShouldFail() throws IOException {
+    String[] commands = {
+        "create calendar --name TestCal --timezone UTC",
+        "edit calendar --name TestCal --property timezone ",  // No new value provided
+        "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    String output = outContent.toString();
+    assertTrue(output.contains("Error Executing command: Missing new property value."));
+  }
+
+  @Test
+  public void testEditCalendar_UpdateFails_ShouldShowFailureMessage() throws IOException {
+    String[] commands = {
+        "edit calendar --name NonExistentCal --property timezone UTC",
+        "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    String output = outContent.toString().toLowerCase();
+    assertTrue(output.contains("calendar not found")); // model throws this before reaching "updated = false"
+  }
+
+  @Test
+  public void testEditCalendar_ModelReturnsFalse_ShouldShowFailureMessage() throws IOException {
+    // Use a stub model if necessary to simulate false return
+    String[] commands = {
+        "create calendar --name TestCal --timezone UTC",
+        "edit calendar --name TestCal --property invalidProp someValue",
+        "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    String output = outContent.toString();
+    assertTrue(output.contains("Error Executing command: Invalid property. Only 'name' or 'timezone' allowed."));
+  }
+
+  @Test
   public void testEditCalendarName_Conflict_ShouldFail() throws IOException {
     String[] commands = {
         "create calendar --name CalA --timezone UTC",
@@ -5901,6 +5988,58 @@ public class CalendarAppTest {
     runAppWithCommands(commands);
 
     assertTrue(outContent.toString().toLowerCase().contains("invalid timezone"));
+  }
+
+  @Test
+  public void testBasicCreateEvent_Success() throws IOException {
+    String[] commands = {
+        "create calendar --name MyCal --timezone UTC",
+        "use calendar --name MyCal",
+        "create event --autoDecline TeamMeeting from 2025-07-01T10:00 to 2025-07-01T11:00",
+        "export cal " + OUTPUT_FILE,
+        "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    String expected = String.join("\n",
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+        "\"TeamMeeting\",07/01/2025,10:00 AM,07/01/2025,11:00 AM,False,\"\",\"\",False"
+    );
+
+    assertEquals(expected, readExportedFile());
+  }
+
+  @Test
+  public void testBasicCreateEvent_InvalidTimeRange_ShouldFail() throws IOException {
+    String[] commands = {
+        "create calendar --name MyCal --timezone UTC",
+        "use calendar --name MyCal",
+        "create event --autoDecline MistakeEvent from 2025-07-01T11:00 to 2025-07-01T10:00", // invalid time range
+        "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    String output = outContent.toString().toLowerCase();
+    assertTrue(output.contains("end date and time must be after start date and time") ||
+        output.contains("error"));
+  }
+
+  @Test
+  public void testBasicCreateEvent_DuplicateAutoDecline_ShouldFail() throws IOException {
+    String[] commands = {
+        "create calendar --name MyCal --timezone UTC",
+        "use calendar --name MyCal",
+        "create event --autoDecline WeeklyCall from 2025-07-01T09:00 to 2025-07-01T10:00",
+        "create event --autoDecline WeeklyCall from 2025-07-01T09:00 to 2025-07-01T10:00", // duplicate
+        "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    String output = outContent.toString().toLowerCase();
+    assertTrue(output.contains("conflict detected") || output.contains("error"));
   }
 
 
