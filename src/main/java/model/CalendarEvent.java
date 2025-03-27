@@ -3,7 +3,7 @@ package model;
 import java.time.LocalDateTime;
 
 
-class CalendarEvent {
+class CalendarEvent implements ICalendarEvent {
   private String eventName;
   private LocalDateTime startDateTime;
   private LocalDateTime endDateTime;
@@ -24,7 +24,7 @@ class CalendarEvent {
     return new Builder();
   }
 
-  public static class Builder {
+  public static class Builder implements ICalendarEventBuilder<CalendarEvent> {
     private String eventName;
     private LocalDateTime startDateTime;
     private LocalDateTime endDateTime;
@@ -69,7 +69,7 @@ class CalendarEvent {
     }
   }
 
-  public boolean doesEventConflict(CalendarEvent event) {
+  public boolean doesEventConflict(ICalendarEvent event) {
     return this.getStartDateTime().isBefore(event.getEndDateTime()) && this.getEndDateTime().isAfter(event.getStartDateTime());
   }
 

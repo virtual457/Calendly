@@ -604,6 +604,20 @@ class CalendarModel implements ICalendarModel {
     }
 
     // Retrieve recurrence count and recurrence end date.
+    Integer recCount = getRecCount(eventDTO);
+    // If recurrence count is provided, it must be greater than 0.
+    if (recCount != null && recCount <= 0) {
+      throw new IllegalArgumentException("Recurrence count must be greater than 0.");
+    }
+
+    // Recurrence days must be provided.
+    if (eventDTO.getRecurrenceDays() == null) {
+      throw new IllegalArgumentException("Recurrence days must be provided for " +
+            "recurring events.");
+    }
+  }
+
+  private static Integer getRecCount(ICalendarEventDTO eventDTO) {
     Integer recCount = eventDTO.getRecurrenceCount();
     LocalDateTime recEndDate = eventDTO.getRecurrenceEndDate();
 
@@ -616,16 +630,7 @@ class CalendarModel implements ICalendarModel {
       throw new IllegalArgumentException("Cannot define both recurrence count and " +
             "recurrence end date for a recurring event.");
     }
-    // If recurrence count is provided, it must be greater than 0.
-    if (recCount != null && recCount <= 0) {
-      throw new IllegalArgumentException("Recurrence count must be greater than 0.");
-    }
-
-    // Recurrence days must be provided.
-    if (eventDTO.getRecurrenceDays() == null) {
-      throw new IllegalArgumentException("Recurrence days must be provided for " +
-            "recurring events.");
-    }
+    return recCount;
   }
 
   // Helper method for non-recurring event validation.
@@ -655,7 +660,9 @@ class CalendarModel implements ICalendarModel {
       if (eventDTO.getRecurrenceCount() != null && eventDTO.getRecurrenceCount() > 0) {
         if (count >= eventDTO.getRecurrenceCount()) break;
       } else if (recurrenceEnd != null) {
-        if (currentDate.isAfter(recurrenceEnd)) break;
+        if (currentDate.isAfter(recurrenceEnd)){
+          break;
+        }
       }
       if (eventDTO.getRecurrenceDays().contains(currentDate.getDayOfWeek())) {
         LocalDateTime occurrenceStart = LocalDateTime.of(currentDate, startTime);
@@ -682,7 +689,7 @@ class CalendarModel implements ICalendarModel {
   // Creates a single, non-recurring event.
   private CalendarEvent createSingleEvent(ICalendarEventDTO eventDTO) {
     Boolean isPrivate = eventDTO.isPrivate();
-    Boolean isPublic = (isPrivate == null) ? true : !isPrivate;
+    Boolean isPublic = isPrivate == null || !isPrivate;
     return CalendarEvent.builder()
           .setEventName(eventDTO.getEventName())
           .setStartDateTime(eventDTO.getStartDateTime())
