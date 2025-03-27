@@ -23,7 +23,7 @@ import view.IView;
  * Basic controller which works for the basic version of the application
  * supportring create edit print show and export.
  */
-class CalendarControllerBasic extends AbstractController implements ICalendarController{
+public class CalendarControllerBasic extends AbstractController implements ICalendarController{
   private final ICalendarModel model;
   private final IView view;
   private final CommandInvoker invoker;

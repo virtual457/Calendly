@@ -3595,6 +3595,7 @@ public class CalendarAppTest {
   public void testEditEvent_UpdateStart_ShouldExportCorrectly() throws IOException {
     String[] commands = {
         "create calendar --name EditStartSingle --timezone America/New_York",
+          "", //just to check if the logic works fine if empty lines arer added
         "use calendar --name EditStartSingle",
         "create event Briefing from 2025-06-15T14:00 to 2025-06-15T15:00",
         "edit event start Briefing from 2025-06-15T14:00 to 2025-06-15T15:00 with " +

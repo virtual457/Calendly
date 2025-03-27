@@ -26,6 +26,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * A set of parameterized JUnit tests for verifying the behavior of the
@@ -2207,6 +2208,37 @@ public class CalendarControllerTest {
     assertEquals("class controller.CalendarController", controller.getClass().toString());
   }
 
+  @Test
+  public void testCreateInstance_ValidInputs2() {
+    ICalendarModel model = ICalendarModel.createInstance("listbased");
+    IView view = IView.createInstance("consoleView");
+
+    ICalendarController controller = ICalendarController.createInstance("Basic",model,
+          view);
+
+    assertNotNull(controller);
+    assertEquals("class controller.CalendarControllerBasic",
+          controller.getClass().toString());
+  }
+
+  @Test
+  public void testCreateInstance_ValidInputs3() {
+    ICalendarModel model = ICalendarModel.createInstance("listbased");
+    IView view = IView.createInstance("consoleView");
+    try {
+      ICalendarController.createInstance("Random", model,
+            view);
+      fail("Exception expected for random type of controller");
+    }
+    catch (Exception e) {
+      assertTrue(e.getMessage().contains("Unsupported version:"));
+    }
+
+  }
+
+
+
+
   //checks for quoted text
   @Test
   public void testReadQuotedValue_SingleQuotedString() {
@@ -2417,7 +2449,7 @@ public class CalendarControllerTest {
   }
 
 
-  private class TestCalendarModel implements ICalendarModel {
+  protected static class TestCalendarModel implements ICalendarModel {
     ICalendarEventDTO lastAddedEvent;
     // Fields for edit event
     String lastEditEventProperty;
