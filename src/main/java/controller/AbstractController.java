@@ -46,6 +46,12 @@ abstract class AbstractController {
       String response = invoker.executeCommand(commandKey, args, model);
       if (displayMessage) {
         view.display(response);
+        if(!Boolean.getBoolean("run_mode")){
+          if(response.contains("Error") && Boolean.getBoolean("run.mode")) {
+            break;
+          }
+        }
+
       }
     }
   }

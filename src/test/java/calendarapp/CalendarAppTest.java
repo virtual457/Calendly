@@ -60,6 +60,7 @@ public class CalendarAppTest {
 
   @Before
   public void setUp() throws IOException {
+    System.setProperty("run_mode", "true");
     outContent = new ByteArrayOutputStream();
     System.setOut(new PrintStream(outContent));
     Files.deleteIfExists(Paths.get(OUTPUT_FILE));
