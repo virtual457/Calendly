@@ -15,7 +15,6 @@ public class EditEventCommand implements ICommand {
   private LocalDateTime fromDateTime;
   private LocalDateTime toDateTime;
   private final String newValue;
-  private final boolean editAll;
 
   public EditEventCommand(List<String> parts, ICalendarModel model, String currentCalendar) {
     this.model = model;
@@ -46,7 +45,6 @@ public class EditEventCommand implements ICommand {
     this.fromDateTime = LocalDateTime.parse(fromValue);
     this.toDateTime = LocalDateTime.parse(toValue);
     this.newValue = withValue;
-    this.editAll = false;
   }
 
 

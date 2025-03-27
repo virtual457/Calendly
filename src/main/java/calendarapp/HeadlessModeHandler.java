@@ -11,19 +11,22 @@ public class HeadlessModeHandler implements ModeHandler {
 
   @Override
   public Readable getReadable() throws IOException {
-    BufferedReader reader = new BufferedReader(new FileReader(filePath));
 
-    // Optional: check that file ends with "exit"
-    String lastLine = null, line;
-    while ((line = reader.readLine()) != null) {
-      lastLine = line;
-    }
+      BufferedReader reader = new BufferedReader(new FileReader(filePath));
 
-    if (lastLine == null || !lastLine.trim().equalsIgnoreCase("exit")) {
-      throw new IllegalStateException("File must end with 'exit' in headless mode.");
-    }
+      // Optional: check that file ends with "exit"
+      String lastLine = null;
+      String line;
+      while ((line = reader.readLine()) != null) {
+        lastLine = line;
+      }
 
-    // reopen reader for actual use
-    return new BufferedReader(new FileReader(filePath));
+      if (lastLine == null || !lastLine.trim().equalsIgnoreCase("exit")) {
+        throw new IllegalStateException("File must end with 'exit' in headless mode.");
+      }
+
+      // reopen reader for actual use
+      return new BufferedReader(new FileReader(filePath));
+
   }
 }

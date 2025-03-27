@@ -14,7 +14,6 @@ public class PrintEventsCommand implements ICommand {
   private final String calendarName;
   private final LocalDateTime fromDateTime;
   private final LocalDateTime toDateTime;
-  private final boolean isRange;
 
   public PrintEventsCommand(List<String> parts, ICalendarModel model, String currentCalendar) {
     this.model = model;
@@ -31,14 +30,13 @@ public class PrintEventsCommand implements ICommand {
       LocalDate date = LocalDate.parse(parts.get(1));
       this.fromDateTime = date.atStartOfDay();
       this.toDateTime = date.atTime(23, 59, 59);
-      this.isRange = false;
+
     } else if (parts.get(0).equals("from")) {
       if (parts.size() != 4 || !parts.get(2).equals("to")) {
         throw new IllegalArgumentException("Invalid format. Expected: print events from <datetime> to <datetime>");
       }
       this.fromDateTime = LocalDateTime.parse(parts.get(1));
       this.toDateTime = LocalDateTime.parse(parts.get(3));
-      this.isRange = true;
     } else {
       throw new IllegalArgumentException("Expected 'on' or 'from' at start of print events command.");
     }

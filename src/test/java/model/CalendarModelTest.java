@@ -796,7 +796,15 @@ public class CalendarModelTest {
     // Create a CalendarEvent instance manually.
     LocalDateTime start = LocalDateTime.of(2025, 3, 18, 10, 0);
     LocalDateTime end = LocalDateTime.of(2025, 3, 18, 11, 0);
-    CalendarEvent event = new CalendarEvent("TestEvent", start, end, "Desc", "RoomX", true, false, null, true);
+    CalendarEvent event = CalendarEvent.builder()
+          .setEventName("TestEvent")
+          .setStartDateTime(start)
+          .setEndDateTime(end)
+          .setEventDescription("Desc")
+          .setEventLocation("RoomX")
+          .setPublic(true)
+          .build();
+
 
     // Use reflection to call the private convertToDTO method.
     Method method = CalendarModel.class.getDeclaredMethod("convertToDTO", CalendarEvent.class);

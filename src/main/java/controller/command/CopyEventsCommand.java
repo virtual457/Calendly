@@ -15,7 +15,6 @@ public class CopyEventsCommand implements ICommand {
   private final String sourceCalendar;
 
   // Parsed values
-  private String copyType; // "on" or "between"
   private LocalDate fromDate;
   private LocalDate toDate;
   private String targetCalendar;
@@ -33,7 +32,6 @@ public class CopyEventsCommand implements ICommand {
 
     String type = safeGet(parts, index);
     if (type.equals("on")) {
-      copyType = "on";
       index++;
       fromDate = parseDate(safeGet(parts, index++), "Invalid source date.");
 
@@ -51,7 +49,6 @@ public class CopyEventsCommand implements ICommand {
       toDate = fromDate;
 
     } else if (type.equals("between")) {
-      copyType = "between";
       index++;
       fromDate = parseDate(safeGet(parts, index++), "Invalid start date.");
 

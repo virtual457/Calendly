@@ -1810,12 +1810,9 @@ public class CalendarControllerTest {
     Map<String, String> errorCases = new LinkedHashMap<>();
     errorCases.put("edit", "Error: Unknown command.");
     errorCases.put("events", "Error: Unknown command.");
-    errorCases.put("name", "Error Executing command: Invalid edit command. Not enough " +
-        "arguments.");
-    errorCases.put("TeamMeeting", "Error Executing command: Invalid edit command. Not " +
-        "enough arguments.");
-    errorCases.put("UpdatedMeeting", "Error Executing command: Invalid edit command. " +
-        "Not enough arguments.");
+    errorCases.put("name", "Error Executing command: Missing new property value.");
+    errorCases.put("TeamMeeting", "Error Executing command: Missing new property value.");
+    errorCases.put("UpdatedMeeting", "Error Executing command: Missing new property value.");
 
     for (Map.Entry<String, String> entry : errorCases.entrySet()) {
       String modifiedCommand = baseCommand.replaceFirst("\\b"

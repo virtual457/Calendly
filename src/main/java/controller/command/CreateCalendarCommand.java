@@ -8,11 +8,12 @@ import model.ICalendarModel;
  */
 public class CreateCalendarCommand implements ICommand {
   private final ICalendarModel model;
-  private final String calendarName;
+  private String calendarName;
   private final String timezone;
 
   public CreateCalendarCommand(List<String> args, ICalendarModel model, String currentCalendar) {
     this.model = model;
+    this.calendarName = currentCalendar;
 
     if (args.size() < 4) {
       throw new IllegalArgumentException("Usage: create calendar --name <name> --timezone <timezone>");

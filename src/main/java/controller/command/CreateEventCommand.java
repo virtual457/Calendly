@@ -17,35 +17,35 @@ public class CreateEventCommand implements ICommand {
   private final ICalendarModel model;
   private final String calendarName;
   private final String eventName;
-  private final LocalDateTime startDateTime;
-  private final LocalDateTime endDateTime;
+  private LocalDateTime startDateTime;
+  private LocalDateTime endDateTime;
   private final boolean autoDecline;
   private final boolean isRecurring;
   private final List<DayOfWeek> recurrenceDays;
   private final Integer recurrenceCount;
-  private final LocalDateTime recurrenceEndDate;
-  private final String description;
-  private final String location;
-  private final boolean isPrivate;
+  private LocalDateTime recurrenceEndDate;
+  private String description;
+  private String location;
+  private boolean isPrivate;
+  private List<String> args;
+  private Integer index;
+  private boolean isOn;
+  private Integer count = null;
 
-  public CreateEventCommand(List<String> args, ICalendarModel model, String calendarName) {
+  public CreateEventCommand(List<String> fromArgs, ICalendarModel model,
+                            String calendarName) {
     this.model = model;
     this.calendarName = calendarName;
     this.recurrenceDays = new ArrayList<>();
-    Integer count = null;
-    LocalDateTime until = null;
+    this.args = fromArgs;
+    this.index=0;
     boolean recurring = false;
     boolean autoDeclineFlag = false;
-    boolean isOn = false;
+    this.location = "";
+    this.isPrivate = false;
+    this.description = "";
 
-    String tempDescription = "";
-    String tempLocation = "";
-    boolean tempIsPrivate = false;
-    boolean descSet = false;
-    boolean locSet = false;
-    boolean privateSet = false;
 
-    int index = 0;
     if (index < args.size() && args.get(index).equals("--autoDecline")) {
       autoDeclineFlag = true;
       index++;
@@ -61,115 +61,26 @@ public class CreateEventCommand implements ICommand {
     }
 
     if (args.get(index).equals("from")) {
-      index++;
-      if (index >= args.size()) {
-        throw new IllegalArgumentException("Missing start datetime after 'from'");
-      }
-      this.startDateTime = LocalDateTime.parse(args.get(index++));
-
-      if (index >= args.size() || !args.get(index).equals("to")) {
-        throw new IllegalArgumentException("Expected 'to' after start time");
-      }
-      index++;
-      if (index >= args.size()){
-        throw new IllegalArgumentException("Missing end datetime after 'to'");
-      }
-      this.endDateTime = LocalDateTime.parse(args.get(index++));
-
-    } else if (args.get(index).equals("on")) {
-      index++;
+      parseFromPart();
+    }
+    else if (args.get(index).equals("on")) {
       isOn = true;
-      if (index >= args.size()){
-        throw new IllegalArgumentException("Missing date after 'on'");
-      }
-      this.startDateTime = LocalDate.parse(args.get(index)).atStartOfDay();
-      this.endDateTime = this.startDateTime.withHour(23).withMinute(59).withSecond(59);
-      index++;
+      parseOnPart();
     } else {
       throw new IllegalArgumentException("Expected 'from' or 'on' after event name");
     }
 
     if (index < args.size() && args.get(index).equals("repeats")) {
       recurring = true;
-      index++;
-      if (index >= args.size()) throw new IllegalArgumentException("Missing weekdays after 'repeats'");
-      for (char c : args.get(index++).toCharArray()) {
-        recurrenceDays.add(mapDay(c));
-      }
-      if (index < args.size()) {
-        if (args.get(index).equals("for")) {
-          index++;
-          if (index >= args.size()) {
-            throw new IllegalArgumentException("Missing recurrence count after 'for'");
-          }
-          count = Integer.parseInt(args.get(index++));
-          if (index >= args.size() || !args.get(index).equals("times")) {
-            throw new IllegalArgumentException("Missing keyword 'times'");
-          }
-          index++;
-        } else if (args.get(index).equals("until")) {
-          index++;
-          if (index >= args.size()) {
-            throw new IllegalArgumentException("Missing end date after 'until'");
-          }
-          if(isOn){
-            until = LocalDate.parse(args.get(index++)).atStartOfDay().withHour(23).withMinute(59).withSecond(59);
-          }
-          else {
-            until = LocalDateTime.parse(args.get(index++));
-          }
-        }
-      }
+      parseRepeatsPart();
     }
 
-    while (index < args.size()) {
-      String keyword = args.get(index);
-      switch (keyword) {
-        case "--description":
-          if (descSet) {
-            throw new IllegalArgumentException("Duplicate --description flag");
-          }
-          descSet = true;
-          index++;
-          if (index >= args.size()){
-            throw new IllegalArgumentException("Missing value for --description");
-          }
-          tempDescription = args.get(index++);
-          break;
-        case "--location":
-          if (locSet) {
-            throw new IllegalArgumentException("Duplicate --location flag");
-          }
-          locSet = true;
-          index++;
-          if (index >= args.size()) {
-            throw new IllegalArgumentException("Missing value for --location");
-          }
-          tempLocation = args.get(index++);
-          break;
-        case "--private":
-          if (privateSet){
-            throw new IllegalArgumentException("Duplicate --private flag");
-          }
-          privateSet = true;
-          tempIsPrivate = true;
-          index++;
-          if (index < args.size() && !args.get(index).startsWith("--")) {
-            throw new IllegalArgumentException("--private does not take a value");
-          }
-          break;
-        default:
-          throw new IllegalArgumentException("Unrecognized extra argument: " + keyword);
-      }
-    }
+    parseOptionalParams();
+
 
     this.autoDecline = autoDeclineFlag;
     this.isRecurring = recurring;
     this.recurrenceCount = count;
-    this.recurrenceEndDate = until;
-    this.description = tempDescription;
-    this.location = tempLocation;
-    this.isPrivate = tempIsPrivate;
   }
 
   @Override
@@ -208,6 +119,115 @@ public class CreateEventCommand implements ICommand {
       case 'S': return DayOfWeek.SATURDAY;
       case 'U': return DayOfWeek.SUNDAY;
       default: throw new IllegalArgumentException("Invalid weekday character: " + day);
+    }
+  }
+
+  private void parseFromPart(){
+    index++;
+    if (index >= args.size()) {
+      throw new IllegalArgumentException("Missing start datetime after 'from'");
+    }
+    this.startDateTime = LocalDateTime.parse(args.get(index++));
+
+    if (index >= args.size() || !args.get(index).equals("to")) {
+      throw new IllegalArgumentException("Expected 'to' after start time");
+    }
+    index++;
+    if (index >= args.size()){
+      throw new IllegalArgumentException("Missing end datetime after 'to'");
+    }
+    this.endDateTime = LocalDateTime.parse(args.get(index++));
+  }
+
+  private void parseOnPart(){
+    index++;
+    if (index >= args.size()){
+      throw new IllegalArgumentException("Missing date after 'on'");
+    }
+    this.startDateTime = LocalDate.parse(args.get(index)).atStartOfDay();
+    this.endDateTime = this.startDateTime.withHour(23).withMinute(59).withSecond(59);
+    index++;
+  }
+
+  private void parseRepeatsPart(){
+    index++;
+    if (index >= args.size()) throw new IllegalArgumentException("Missing weekdays after 'repeats'");
+    for (char c : args.get(index++).toCharArray()) {
+      recurrenceDays.add(mapDay(c));
+    }
+    if (index < args.size()) {
+      if (args.get(index).equals("for")) {
+        index++;
+        if (index >= args.size()) {
+          throw new IllegalArgumentException("Missing recurrence count after 'for'");
+        }
+        count = Integer.parseInt(args.get(index++));
+        if (index >= args.size() || !args.get(index).equals("times")) {
+          throw new IllegalArgumentException("Missing keyword 'times'");
+        }
+        index++;
+      } else if (args.get(index).equals("until")) {
+        index++;
+        if (index >= args.size()) {
+          throw new IllegalArgumentException("Missing end date after 'until'");
+        }
+        if(isOn){
+          this.recurrenceEndDate =
+                LocalDate.parse(args.get(index++)).atStartOfDay().withHour(23).withMinute(59).withSecond(59);
+        }
+        else {
+          this.recurrenceEndDate = LocalDateTime.parse(args.get(index++));
+        }
+      }
+    }
+  }
+
+
+  private void parseOptionalParams(){
+    boolean descSet = false;
+    boolean locSet = false;
+    boolean privateSet = false;
+
+    while (index < args.size()) {
+
+      String keyword = args.get(index);
+      switch (keyword) {
+        case "--description":
+          if (descSet) {
+            throw new IllegalArgumentException("Duplicate --description flag");
+          }
+          descSet = true;
+          index++;
+          if (index >= args.size()){
+            throw new IllegalArgumentException("Missing value for --description");
+          }
+          this.description = args.get(index++);
+          break;
+        case "--location":
+          if (locSet) {
+            throw new IllegalArgumentException("Duplicate --location flag");
+          }
+          locSet = true;
+          index++;
+          if (index >= args.size()) {
+            throw new IllegalArgumentException("Missing value for --location");
+          }
+          this.location = args.get(index++);
+          break;
+        case "--private":
+          if (privateSet){
+            throw new IllegalArgumentException("Duplicate --private flag");
+          }
+          privateSet = true;
+          this.isPrivate = true;
+          index++;
+          if (index < args.size() && !args.get(index).startsWith("--")) {
+            throw new IllegalArgumentException("--private does not take a value");
+          }
+          break;
+        default:
+          throw new IllegalArgumentException("Unrecognized extra argument: " + keyword);
+      }
     }
   }
 }

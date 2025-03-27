@@ -12,6 +12,7 @@ public class UseCalendarCommand implements ICommand {
   private final ICalendarModel model;
 
   public UseCalendarCommand(List<String> args, ICalendarModel model, String currentCalendar) {
+    this.calendarName = currentCalendar;
     if (Objects.isNull(model)) {
       throw new IllegalArgumentException("Model is null for use calendar command.");
     }

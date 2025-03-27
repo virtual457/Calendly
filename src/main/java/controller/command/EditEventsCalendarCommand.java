@@ -14,16 +14,13 @@ public class EditEventsCalendarCommand implements ICommand {
   private final String eventName;
   private final String newValue;
   private final LocalDateTime fromDateTime;
-  private  LocalDateTime toDateTime = null;
   private final boolean hasFromDateTime;
 
   public EditEventsCalendarCommand(List<String> parts, ICalendarModel model, String currentCalendar) {
     this.model = model;
     this.calendarName = currentCalendar;
 
-    if (parts.size() < 3) {
-      throw new IllegalArgumentException("Invalid edit command. Not enough arguments.");
-    }
+
 
     int index = 0;
     if (index >= parts.size()) {

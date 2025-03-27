@@ -26,9 +26,8 @@ class CalendarModel implements ICalendarModel {
   @Override
   public boolean createCalendar(String calName, String timezone) {
     // Validate the timezone.
-    ZoneId zone;
     try {
-      zone = ZoneId.of(timezone);
+      ZoneId.of(timezone);
     } catch (Exception e) {
       throw new IllegalArgumentException("Invalid timezone: " + timezone, e);
     }
@@ -408,17 +407,14 @@ class CalendarModel implements ICalendarModel {
 
       LocalDateTime newEnd = newStart.plus(duration);
       // Create a new event with the converted times.
-      CalendarEvent newEvent = new CalendarEvent(
-              event.getEventName(),
-              newStart,
-              newEnd,
-              event.getEventDescription(),
-              event.getEventLocation(),
-              event.isPublic(),
-              event.isRecurring(),
-              event.getRecurrenceDays(),
-              event.isAutoDecline()
-      );
+      CalendarEvent newEvent = CalendarEvent.builder()
+            .setEventName(event.getEventName())
+            .setStartDateTime(newStart)
+            .setEndDateTime(newEnd)
+            .setEventDescription(event.getEventDescription())
+            .setEventLocation(event.getEventLocation())
+            .setPublic(event.isPublic())
+            .build();
 
       // Check for conflicts in the target calendar.
       if (doesEventConflict(targetCal.getEvents(), convertToDTO(newEvent))) {
@@ -476,17 +472,14 @@ class CalendarModel implements ICalendarModel {
     LocalDateTime newEnd = newStart.plus(duration);
 
     // Create a new event with the same details but adjusted times.
-    CalendarEvent newEvent = new CalendarEvent(
-            eventToCopy.getEventName(),
-            newStart,
-            newEnd,
-            eventToCopy.getEventDescription(),
-            eventToCopy.getEventLocation(),
-            eventToCopy.isPublic(),
-            eventToCopy.isRecurring(),
-            eventToCopy.getRecurrenceDays(),
-            eventToCopy.isAutoDecline()
-    );
+    CalendarEvent newEvent = CalendarEvent.builder()
+          .setEventName(eventToCopy.getEventName())
+          .setStartDateTime(newStart)
+          .setEndDateTime(newEnd)
+          .setEventDescription(eventToCopy.getEventDescription())
+          .setEventLocation(eventToCopy.getEventLocation())
+          .setPublic(eventToCopy.isPublic())
+          .build();
 
     // Check for conflicts in the target calendar.
     if (doesEventConflict(targetCal.getEvents(), convertToDTO(newEvent))) {
@@ -622,25 +615,18 @@ class CalendarModel implements ICalendarModel {
       if (eventDTO.getRecurrenceDays().contains(currentDate.getDayOfWeek())) {
         LocalDateTime occurrenceStart = LocalDateTime.of(currentDate, startTime);
         LocalDateTime occurrenceEnd = LocalDateTime.of(currentDate, endTime);
-        CalendarEventDTO occurrenceDTO = CalendarEventDTO.builder()
-                .setEventName(eventDTO.getEventName())
-                .setStartDateTime(occurrenceStart)
-                .setEndDateTime(occurrenceEnd)
-                .setAutoDecline(true)
-                .build();
+
         Boolean isPrivate = eventDTO.isPrivate();
-        Boolean isPublic = (isPrivate == null) ? true : !isPrivate;
-        occurrences.add(new CalendarEvent(
-                eventDTO.getEventName(),
-                occurrenceStart,
-                occurrenceEnd,
-                eventDTO.getEventDescription(),
-                eventDTO.getEventLocation(),
-                Boolean.TRUE.equals(isPublic),
-                true,
-                eventDTO.getRecurrenceDays(),
-                true
-        ));
+        Boolean isPublic = isPrivate == null || !isPrivate;
+        occurrences.add(CalendarEvent.builder()
+              .setEventName(eventDTO.getEventName())
+              .setStartDateTime(occurrenceStart)
+              .setEndDateTime(occurrenceEnd)
+              .setEventDescription(eventDTO.getEventDescription())
+              .setEventLocation(eventDTO.getEventLocation())
+              .setPublic(Boolean.TRUE.equals(isPublic))
+              .build()
+        );
         count++;
       }
       currentDate = getNextRecurrenceDate(currentDate, eventDTO.getRecurrenceDays());
@@ -652,17 +638,14 @@ class CalendarModel implements ICalendarModel {
   private CalendarEvent createSingleEvent(ICalendarEventDTO eventDTO) {
     Boolean isPrivate = eventDTO.isPrivate();
     Boolean isPublic = (isPrivate == null) ? true : !isPrivate;
-    return new CalendarEvent(
-            eventDTO.getEventName(),
-            eventDTO.getStartDateTime(),
-            eventDTO.getEndDateTime(),
-            eventDTO.getEventDescription(),
-            eventDTO.getEventLocation(),
-            Boolean.TRUE.equals(isPublic),
-            false,
-            null,
-            true
-    );
+    return CalendarEvent.builder()
+          .setEventName(eventDTO.getEventName())
+          .setStartDateTime(eventDTO.getStartDateTime())
+          .setEndDateTime(eventDTO.getEndDateTime())
+          .setEventDescription(eventDTO.getEventDescription())
+          .setEventLocation(eventDTO.getEventLocation())
+          .setPublic(Boolean.TRUE.equals(isPublic))
+          .build();
   }
 
   // Converts a CalendarEvent to a DTO for conflict checking.
@@ -680,10 +663,9 @@ class CalendarModel implements ICalendarModel {
 
   // Checks if a new event conflicts with any existing events in the target list.
   private boolean doesEventConflict(List<CalendarEvent> eventList, ICalendarEventDTO newEventDTO) {
-    LocalDateTime newStart = newEventDTO.getStartDateTime();
-    LocalDateTime newEnd = newEventDTO.getEndDateTime();
+    CalendarEvent firstEvent = CalendarEvent.builder().setStartDateTime(newEventDTO.getStartDateTime()).setEndDateTime(newEventDTO.getEndDateTime()).build();
     for (CalendarEvent event : eventList) {
-      if (newStart.isBefore(event.getEndDateTime()) && newEnd.isAfter(event.getStartDateTime())) {
+      if(event.doesEventConflict(firstEvent)) {
         return true;
       }
     }

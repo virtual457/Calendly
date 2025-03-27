@@ -58,10 +58,12 @@ class CalendarController implements ICalendarController {
 
       while (scanner.hasNextLine()) {
         String line = scanner.nextLine().trim();
-        if (line.equalsIgnoreCase("exit")) break;
+        if (line.equalsIgnoreCase("exit")){ break;}
 
         List<String> tokens = tokenizeCommand(line);
-        if (tokens.isEmpty()) continue;
+        if (tokens.isEmpty()){
+          continue;
+        }
 
         String action = tokens.get(0);
         String subAction = tokens.size() > 1 ? tokens.get(1) : "";
