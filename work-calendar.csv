@@ -1,0 +1,6 @@
+Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private
+"Lecture1",10/01/2024,01:30 PM,10/01/2024,03:30 PM,False,"Intro to Java","Room 101",False
+"Lecture2",10/02/2024,09:30 AM,10/03/2024,09:29 AM,False,"All-day workshop","Room 102",True
+"Lecture1",10/10/2024,07:30 PM,10/10/2024,09:30 PM,False,"Intro to Java","Room 101",False
+"Lecture2",10/11/2024,09:30 AM,10/12/2024,09:29 AM,False,"All-day workshop","Room 102",True
+"WeeklySeminar",10/14/2024,12:30 AM,10/14/2024,02:30 AM,False,"Updated topic schedule","Main Auditorium",False
