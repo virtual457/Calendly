@@ -204,5 +204,80 @@ public class CopyEventsCommandTest {
     new CopyEventsCommand(args, new CopyEventsCommandTest.MockModel(), "Default");
   }
 
+  @Test(expected = IllegalArgumentException.class)
+  public void testMissingEventName_EmptyArgsList() {
+    new CopyEventCommand(Collections.emptyList(),new CopyEventsCommandTest.MockModel() , "CalA");
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testMissingEventName() {
+    new CopyEventCommand(Collections.emptyList(), new MockModel(), "Cal");
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testMissingOnKeyword() {
+    List<String> args = Arrays.asList("EventName");
+    new CopyEventCommand(args, new MockModel(), "Cal");
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testMissingSourceDateTime() {
+    List<String> args = Arrays.asList("EventName", "on");
+    new CopyEventCommand(args, new MockModel(), "Cal");
+  }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testMissingTargetCalendarName() {
+      List<String> args = Arrays.asList("EventName", "on", "2025-05-01T10:00", "--target");
+      new CopyEventCommand(args, new MockModel(), "Cal");
+    }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testMissingTargetDateTime() {
+    List<String> args = Arrays.asList(
+          "EventName", "on", "2025-05-01T10:00", "--target", "TargetCal", "to"
+    );
+    new CopyEventCommand(args, new MockModel(), "Cal");
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testInvalidTargetDateTime() {
+    List<String> args = Arrays.asList(
+          "EventName", "on", "2025-05-01T10:00", "--target", "TargetCal", "to", "not-a-date"
+    );
+    new CopyEventCommand(args, new MockModel(), "Cal");
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testIncompleteCommand_TriggersIndexOutOfBoundsFallback() {
+    List<String> args = Arrays.asList(
+          "EventName", "on", "2025-05-01T10:00", "--target", "TargetCal", "to"
+    );
+
+    new CopyEventCommand(args, new MockModel(), "Cal");
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testCopyEventsOn_MissingTargetDate() {
+    List<String> args = Arrays.asList("on", "2025-05-01", "--target", "TargetCal", "to");
+    new CopyEventsCommand(args, new MockModel(), "SourceCal");
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testCopyEventsBetween_MissingTargetStartDate() {
+    List<String> args = Arrays.asList("between", "2025-05-01", "and", "2025-05-05",
+          "--target", "TargetCal", "to");
+    new CopyEventsCommand(args, new MockModel(), "SourceCal");
+  }
+
+
+
+
+
+
+
 
 }
+
+
+

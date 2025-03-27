@@ -184,9 +184,6 @@ class CalendarModel implements ICalendarModel {
 
           // After the change, check for conflicts.
           if (checkConflictForEvent(event, targetCalendar.getEvents())) {
-            // Rollback to original values.
-            event.setStartDateTime(originalStart);
-            event.setEndDateTime(originalEnd);
             throw new IllegalStateException("Conflict detected after editing " + property);
           }
 

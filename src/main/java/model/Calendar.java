@@ -18,7 +18,7 @@ class Calendar implements ICalendar {
   private Calendar(Builder builder) {
     this.calendarName = builder.calendarName;
     this.timezone = builder.timezone;
-    this.events = builder.events;
+    this.events = new ArrayList<>(builder.events);
   }
 
   public static Builder builder() {
@@ -87,7 +87,8 @@ class Calendar implements ICalendar {
   }
 
   public void setEvents(List<ICalendarEvent> events) {
-    this.events = events;
+
+    this.events = new ArrayList<>(events);
   }
 
   public void addEvents(List<CalendarEvent> events) {
@@ -118,7 +119,7 @@ class Calendar implements ICalendar {
     }
 
     public Builder setEvents(List<ICalendarEvent> events) {
-      this.events = events;
+      this.events = new ArrayList<>(events);
       return this;
     }
 

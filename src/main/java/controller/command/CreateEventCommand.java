@@ -103,8 +103,6 @@ public class CreateEventCommand implements ICommand {
       return success ? "Event created successfully." : "Error: Event creation failed.";
     } catch (IllegalArgumentException | IllegalStateException e) {
       return "Error: " + e.getMessage();
-    } catch (Exception e) {
-      return "Unexpected error: " + e.getMessage();
     }
   }
 

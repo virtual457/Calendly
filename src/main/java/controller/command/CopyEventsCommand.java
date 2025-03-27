@@ -46,7 +46,7 @@ public class CopyEventsCommand implements ICommand {
         throw new IllegalArgumentException("Expected 'to' after target calendar.");
       }
 
-      targetStartDate = parseDate(safeGet(parts, index++), "Invalid target date.");
+      targetStartDate = parseDate(safeGet(parts, index), "Invalid target date.");
       toDate = fromDate;
 
     } else if (type.equals("between")) {
@@ -69,7 +69,7 @@ public class CopyEventsCommand implements ICommand {
         throw new IllegalArgumentException("Expected 'to' after target calendar.");
       }
 
-      targetStartDate = parseDate(safeGet(parts, index++), "Invalid target start date.");
+      targetStartDate = parseDate(safeGet(parts, index), "Invalid target start date.");
     } else {
       throw new IllegalArgumentException("Expected 'on' or 'between' after 'events'.");
     }

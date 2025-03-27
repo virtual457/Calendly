@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -25,6 +26,17 @@ public class CalendarModelTest {
   @Before
   public void setUp() {
     model = new CalendarModel();
+  }
+
+  @Test
+  public void createInstance_withValidType_returnsModel() {
+    ICalendarModel model = ICalendarModel.createInstance("listBased");
+    assertNotNull(model);
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void createInstance_withInvalidType_throwsException() {
+    ICalendarModel.createInstance("mongoBased");
   }
 
   // ===== Calendar Creation Tests =====
@@ -3182,6 +3194,56 @@ public class CalendarModelTest {
 
     assertEquals("End date and time are required.", ex.getMessage());
   }
+
+  @Test
+  public void testEditConflictTriggersRollbackAndRestoresOriginalTimes_ModelOnlyAPI() {
+    CalendarModel model = new CalendarModel();
+    model.createCalendar("Work", "America/New_York");
+
+
+    ICalendarEventDTO event1 = ICalendarEventDTO.builder()
+          .setEventName("A")
+          .setStartDateTime(LocalDateTime.of(2025, 5, 1, 10, 0))
+          .setEndDateTime(LocalDateTime.of(2025, 5, 1, 11, 0))
+          .setPrivate(false)
+          .build();
+    assertTrue(model.addEvent("Work", event1));
+
+
+    ICalendarEventDTO event2 = ICalendarEventDTO.builder()
+          .setEventName("B")
+          .setStartDateTime(LocalDateTime.of(2025, 5, 1, 11, 0))
+          .setEndDateTime(LocalDateTime.of(2025, 5, 1, 12, 0))
+          .setPrivate(false)
+          .build();
+    assertTrue(model.addEvent("Work", event2));
+
+    try {
+
+      model.editEvents("Work", "end", "A",
+            LocalDateTime.of(2025, 5, 1, 10, 0),
+            "2025-05-01T11:30", false);
+
+      fail("Expected conflict exception");
+    } catch (IllegalStateException e) {
+      assertEquals("Conflict detected after editing end", e.getMessage());
+
+      List<ICalendarEventDTO> updatedEvents = model.getEventsInRange(
+            "Work",
+            LocalDateTime.of(2025, 5, 1, 0, 0),
+            LocalDateTime.of(2025, 5, 1, 23, 59));
+
+      ICalendarEventDTO eventA = updatedEvents.stream()
+            .filter(ef -> ef.getEventName().equals("A"))
+            .findFirst()
+            .orElseThrow();
+
+      assertEquals(LocalDateTime.of(2025, 5, 1, 10, 0), eventA.getStartDateTime());
+      assertEquals(LocalDateTime.of(2025, 5, 1, 11, 0), eventA.getEndDateTime());
+    }
+  }
+
+
 
 
 }
