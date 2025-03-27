@@ -107,6 +107,43 @@ public class CalendarAppTest {
     tempFile.delete();
   }
 
+  @Test
+  public void testMain_ValidArguments_HeadlessMode_ShouldRunWithFile2() throws IOException {
+    File tempFile = File.createTempFile("commands", ".txt");
+    try (FileWriter writer = new FileWriter(tempFile)) {
+      writer.write("");
+    }
+    String[] args = {"--mode", "headless", tempFile.getAbsolutePath()};
+    CalendarApp.main(args);
+    assertTrue(outContent.toString().trim().contains("File must end with 'exit' in headless mode."));
+    tempFile.delete();
+  }
+
+  @Test
+  public void testMain_ValidArguments_HeadlessMode_ShouldRunWithFile3() throws IOException {
+    File tempFile = File.createTempFile("commands", ".txt");
+    try (FileWriter writer = new FileWriter(tempFile)) {
+      writer.write("");
+    }
+    String[] args = {"--mode", "Blast", tempFile.getAbsolutePath()};
+    CalendarApp.main(args);
+    assertTrue(outContent.toString().trim().contains("Unsupported mode"));
+    tempFile.delete();
+  }
+
+  @Test
+  public void testMain_ValidArguments_HeadlessMode_ShouldRunWithFile4() throws IOException {
+    File tempFile = File.createTempFile("commands", ".txt");
+    try (FileWriter writer = new FileWriter(tempFile)) {
+      writer.write("");
+    }
+    String[] args = {"--mode", "headless"};
+    CalendarApp.main(args);
+    assertTrue(outContent.toString().trim().contains("Missing filepath for headless " +
+          "mode"));
+    tempFile.delete();
+  }
+
 
   //Integrration tests
 

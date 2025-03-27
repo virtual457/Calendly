@@ -12,7 +12,7 @@ public class BasicCreateEventCommand extends CreateEventCommand implements IComm
 
   @Override
   public String execute() {
-    try {
+
       ICalendarEventDTO event = ICalendarEventDTO.builder()
           .setEventName(this.eventName)
           .setStartDateTime(startDateTime)
@@ -29,10 +29,6 @@ public class BasicCreateEventCommand extends CreateEventCommand implements IComm
 
       boolean success = model.addEvent(calendarName, event);
       return success ? "Event created successfully." : "Error: Event creation failed.";
-    } catch (IllegalArgumentException | IllegalStateException e) {
-      return "Error: " + e.getMessage();
-    } catch (Exception e) {
-      return "Unexpected error: " + e.getMessage();
-    }
+
   }
 }

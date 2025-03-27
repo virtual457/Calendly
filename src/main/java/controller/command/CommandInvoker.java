@@ -75,12 +75,4 @@ public class CommandInvoker {
     return "Error: Unknown command.";
   }
 
-  /**
-   * Gets the currently active calendar name.
-   *
-   * @return The current calendar name.
-   */
-  public String getCurrentCalendar() {
-    return currentCalendar;
-  }
 }

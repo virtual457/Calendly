@@ -15,18 +15,6 @@ class Calendar implements ICalendar {
   private String timezone;
   private List<ICalendarEvent> events;
 
-  /**
-   * Constructs a new Calendar with the specified name and timezone.
-   *
-   * @param calendarName the unique name of the calendar
-   * @param timezone     the IANA timezone string
-   */
-  public Calendar(String calendarName, String timezone) {
-    this.calendarName = calendarName;
-    this.timezone = timezone;
-    this.events = new ArrayList<>();
-  }
-
   private Calendar(Builder builder) {
     this.calendarName = builder.calendarName;
     this.timezone = builder.timezone;
