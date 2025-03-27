@@ -2731,6 +2731,74 @@ public class CalendarAppTest {
   }
 
   @Test
+  public void testEditRecurringEvents_CreatesConflict_ShouldEditNothing() throws IOException {
+    String[] commands = {
+          "create calendar --name ConflictCal --timezone America/New_York",
+          "use calendar --name ConflictCal",
+
+          // This goes first: 08:45–09:15
+          "create event Conflict from 2025-04-24T08:45 to 2025-04-24T09:15 repeats R for 3 times",
+
+          // Now safe: 09:30–10:00
+          "create event Standup from 2025-04-24T09:30 to 2025-04-24T10:00 repeats R for 3 times",
+
+          // Now shift Standup to 08:45 — will conflict with Conflict
+          "edit events start Standup from 2025-04-24T09:30 with \"2025-04-24T08:45:00\"",
+
+          "export cal " + OUTPUT_FILE,
+          "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    String expected = String.join("\n",
+          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+          "\"Conflict\",04/24/2025,08:45 AM,04/24/2025,09:15 AM,False,\"\",\"\",False",
+          "\"Conflict\",05/01/2025,08:45 AM,05/01/2025,09:15 AM,False,\"\",\"\",False",
+          "\"Conflict\",05/08/2025,08:45 AM,05/08/2025,09:15 AM,False,\"\",\"\",False",
+          "\"Standup\",04/24/2025,09:30 AM,04/24/2025,10:00 AM,False,\"\",\"\",False",
+          "\"Standup\",05/01/2025,09:30 AM,05/01/2025,10:00 AM,False,\"\",\"\",False",
+          "\"Standup\",05/08/2025,09:30 AM,05/08/2025,10:00 AM,False,\"\",\"\",False"
+    );
+
+    assertEquals(expected, readExportedFile());
+  }
+
+  @Test
+  public void testEditRecurringEvents_SecondConflict_ShouldRollbackAllEdits() throws IOException {
+    String[] commands = {
+          "create calendar --name PartialConflictCal --timezone America/New_York",
+          "use calendar --name PartialConflictCal",
+
+          // Recurring event: 09:00–09:30 on 3 Thursdays
+          "create event Standup from 2025-04-24T09:00 to 2025-04-24T09:30 repeats R for 3 times",
+
+          // Overlapping event ONLY on May 1st
+          "create event Overlap from 2025-05-01T08:45 to 2025-05-01T09:00",
+
+          // Attempt to edit recurring event to 08:45 — May 1st conflicts
+          "edit events start Standup from 2025-04-24T09:00 with \"2025-04-24T08:45:00\"",
+
+          "export cal " + OUTPUT_FILE,
+          "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    String expected = String.join("\n",
+          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+          "\"Standup\",04/24/2025,09:00 AM,04/24/2025,09:30 AM,False,\"\",\"\",False",
+          "\"Standup\",05/01/2025,09:00 AM,05/01/2025,09:30 AM,False,\"\",\"\",False",
+          "\"Standup\",05/08/2025,09:00 AM,05/08/2025,09:30 AM,False,\"\",\"\",False",
+          "\"Overlap\",05/01/2025,08:45 AM,05/01/2025,09:00 AM,False,\"\",\"\",False"
+    );
+
+    assertEquals(expected, readExportedFile());
+  }
+
+
+
+  @Test
   public void testEditRecurringEvents_UpdateEndTime_ShouldUpdateAll() throws IOException {
     String[] commands = {
         "create calendar --name RecurrEndNR --timezone America/New_York",

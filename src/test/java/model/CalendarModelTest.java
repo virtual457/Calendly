@@ -3063,7 +3063,7 @@ public class CalendarModelTest {
         model.copyEvent("SourceCal", start, "Planning", "MissingTarget", LocalDateTime.of(2025, 8, 1, 10, 0))
     );
 
-    assertEquals("Target calendar not found: MissingTarget", ex.getMessage());
+    assertEquals("Calendar not found: MissingTarget", ex.getMessage());
   }
 
   @Test

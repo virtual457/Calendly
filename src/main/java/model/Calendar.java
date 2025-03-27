@@ -4,6 +4,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Represents an individual calendar with a unique name, associated timezone,
@@ -59,6 +60,20 @@ class Calendar {
 
     }
   }
+
+  public List<CalendarEvent> getEventsCopy() {
+    return this.events.stream()
+          .map(event -> CalendarEvent.builder()
+                .setEventName(event.getEventName())
+                .setStartDateTime(event.getStartDateTime())
+                .setEndDateTime(event.getEndDateTime())
+                .setEventDescription(event.getEventDescription())
+                .setEventLocation(event.getEventLocation())
+                .setPublic(event.isPublic())
+                .build())
+          .collect(Collectors.toList());
+  }
+
 
   public List<CalendarEvent> getEvents() {
     return events;
