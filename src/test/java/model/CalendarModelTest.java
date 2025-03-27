@@ -2846,17 +2846,317 @@ public class CalendarModelTest {
   }
 
   @Test(expected = IllegalArgumentException.class)
-  public void testCreateCalendar_InvalidTimezone_ShouldThrow() {
-    model.createCalendar("InvalidTZCal", "Mars/SpaceTime");  // Invalid IANA timezone
+  public void testAddEvent_CalendarNotFound_ShouldThrow() {
+    CalendarModel model = new CalendarModel();
+
+    ICalendarEventDTO event = CalendarEventDTO.builder()
+        .setEventName("GhostEvent")
+        .setStartDateTime(LocalDateTime.of(2025, 1, 1, 9, 0))
+        .setEndDateTime(LocalDateTime.of(2025, 1, 1, 10, 0))
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .build();
+
+    // This should fail because the calendar doesn't exist
+    model.addEvent("MissingCal", event);
   }
 
+  @Test
+  public void testEditEvent_CalendarNotFound_ShouldThrow() {
+    CalendarModel model = new CalendarModel();
 
+    // Attempt to edit an event in a calendar that doesn't exist
+    IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
+        model.editEvent("NonExistentCal", "name", "SomeEvent",
+            LocalDateTime.of(2025, 1, 1, 10, 0),
+            LocalDateTime.of(2025, 1, 1, 11, 0),
+            "NewName")
+    );
 
+    assertEquals("Calendar not found: NonExistentCal", ex.getMessage());
+  }
 
+  @Test
+  public void testEditEvent_EndBeforeStart_ShouldThrow() {
+    CalendarModel model = new CalendarModel();
+    model.createCalendar("TestCal", "UTC");
 
+    // Create an event
+    LocalDateTime start = LocalDateTime.of(2025, 5, 1, 10, 0);
+    LocalDateTime end = LocalDateTime.of(2025, 5, 1, 11, 0);
 
+    ICalendarEventDTO event = CalendarEventDTO.builder()
+        .setEventName("CheckTime")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setRecurring(false)
+        .setAutoDecline(true)
+        .setPrivate(false)
+        .setEventDescription("Test")
+        .setEventLocation("Room 1")
+        .build();
 
+    assertTrue(model.addEvent("TestCal", event));
 
+    // Try to set a new end time that is before the start
+    String invalidNewEnd = "2025-05-01T09:00"; // before start
+
+    IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
+        model.editEvent("TestCal", "end", "CheckTime", start, end, invalidNewEnd)
+    );
+
+    assertEquals("New end must be after current start time.", ex.getMessage());
+  }
+
+  @Test
+  public void testEditEvent_UnsupportedProperty_ShouldThrow() {
+    CalendarModel model = new CalendarModel();
+    model.createCalendar("TestCal", "UTC");
+
+    LocalDateTime start = LocalDateTime.of(2025, 6, 1, 14, 0);
+    LocalDateTime end = LocalDateTime.of(2025, 6, 1, 15, 0);
+
+    ICalendarEventDTO event = CalendarEventDTO.builder()
+        .setEventName("TestEvent")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setRecurring(false)
+        .setAutoDecline(true)
+        .setPrivate(false)
+        .setEventDescription("Desc")
+        .setEventLocation("Room X")
+        .build();
+
+    assertTrue(model.addEvent("TestCal", event));
+
+    // Attempt to edit an unsupported property
+    IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
+        model.editEvent("TestCal", "unsupportedProperty", "TestEvent", start, end, "value")
+    );
+
+    assertEquals("Unsupported property for edit: unsupportedProperty", ex.getMessage());
+  }
+
+  @Test
+  public void testEditEvent_NoMatchingEvent_ShouldThrow() {
+    CalendarModel model = new CalendarModel();
+    model.createCalendar("TestCal", "UTC");
+
+    // Attempt to edit an event that doesn't exist
+    LocalDateTime dummyStart = LocalDateTime.of(2025, 7, 1, 9, 0);
+    LocalDateTime dummyEnd = dummyStart.plusHours(1);
+
+    IllegalStateException ex = assertThrows(IllegalStateException.class, () ->
+        model.editEvent("TestCal", "location", "NonExistentEvent", dummyStart, dummyEnd, "NewRoom")
+    );
+
+    assertEquals("No matching event found for editing: NonExistentEvent", ex.getMessage());
+  }
+
+  @Test
+  public void testDeleteCalendar_ExistingCalendar_ShouldReturnTrue() {
+    CalendarModel model = new CalendarModel();
+    model.createCalendar("Work", "UTC");
+
+    boolean deleted = model.deleteCalendar("Work");
+    assertTrue(deleted);
+  }
+
+  @Test
+  public void testDeleteCalendar_NonExistentCalendar_ShouldReturnFalse() {
+    CalendarModel model = new CalendarModel();
+    model.createCalendar("Personal", "UTC");
+
+    boolean deleted = model.deleteCalendar("DoesNotExist");
+    assertFalse(deleted);
+  }
+
+  @Test
+  public void testGetEventsInSpecificDateTime_Success() {
+    CalendarModel model = new CalendarModel();
+    model.createCalendar("Work", "UTC");
+
+    LocalDateTime start = LocalDateTime.of(2025, 6, 1, 9, 0);
+    LocalDateTime end = start.plusHours(1);
+
+    ICalendarEventDTO event = CalendarEventDTO.builder()
+        .setEventName("Meeting")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setPrivate(false)
+        .setEventDescription("Team meeting")
+        .setEventLocation("Room A")
+        .build();
+
+    model.addEvent("Work", event);
+
+    List<ICalendarEventDTO> result = model.getEventsInSpecificDateTime("Work", start);
+    assertEquals(1, result.size());
+    assertEquals("Meeting", result.get(0).getEventName());
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testGetEventsInSpecificDateTime_CalendarNotFound() {
+    CalendarModel model = new CalendarModel();
+    model.getEventsInSpecificDateTime("UnknownCal", LocalDateTime.now());
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testGetEventsInSpecificDateTime_NullDateTime_ShouldThrow() {
+    CalendarModel model = new CalendarModel();
+    model.createCalendar("TestCal", "UTC");
+
+    model.getEventsInSpecificDateTime("TestCal", null);
+  }
+
+  @Test
+  public void testGetEventsInSpecificRange_EndBeforeStart_ShouldThrow() {
+    CalendarModel model = new CalendarModel();
+    model.createCalendar("TestCal", "UTC");
+
+    LocalDateTime from = LocalDateTime.of(2025, 6, 5, 10, 0);
+    LocalDateTime to = LocalDateTime.of(2025, 6, 5, 9, 0); // Invalid: before from
+
+    IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
+        model.getEventsInRange("TestCal", from, to)
+    );
+
+    assertEquals("The end date-time must not be before the start date-time.", ex.getMessage());
+  }
+
+  @Test
+  public void testCopyEvent_TargetCalendarNotFound_ShouldThrow() {
+    CalendarModel model = new CalendarModel();
+
+    // Create only the source calendar
+    model.createCalendar("SourceCal", "UTC");
+
+    // Add a valid event to source calendar
+    LocalDateTime start = LocalDateTime.of(2025, 7, 1, 10, 0);
+    LocalDateTime end = start.plusHours(1);
+
+    ICalendarEventDTO event = CalendarEventDTO.builder()
+        .setEventName("Planning")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setRecurring(false)
+        .setAutoDecline(true)
+        .setPrivate(false)
+        .setEventDescription("Planning session")
+        .setEventLocation("Room A")
+        .build();
+
+    assertTrue(model.addEvent("SourceCal", event));
+
+    // Attempt to copy into a missing target calendar
+    IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
+        model.copyEvent("SourceCal", start, "Planning", "MissingTarget", LocalDateTime.of(2025, 8, 1, 10, 0))
+    );
+
+    assertEquals("Target calendar not found: MissingTarget", ex.getMessage());
+  }
+
+  @Test
+  public void testCopyEvents_EventsSortedByStartTime() {
+    CalendarModel model = new CalendarModel();
+    model.createCalendar("SourceCal", "UTC");
+    model.createCalendar("TargetCal", "UTC");
+
+    // Create events in reverse chronological order
+    LocalDateTime start1 = LocalDateTime.of(2025, 8, 1, 14, 0);
+    LocalDateTime end1 = start1.plusHours(1);
+
+    LocalDateTime start2 = LocalDateTime.of(2025, 8, 1, 9, 0);
+    LocalDateTime end2 = start2.plusHours(1);
+
+    ICalendarEventDTO event1 = CalendarEventDTO.builder()
+        .setEventName("LaterEvent")
+        .setStartDateTime(start1)
+        .setEndDateTime(end1)
+        .setRecurring(false)
+        .setAutoDecline(true)
+        .setPrivate(false)
+        .setEventLocation("Room 2")
+        .setEventDescription("Afternoon session")
+        .build();
+
+    ICalendarEventDTO event2 = CalendarEventDTO.builder()
+        .setEventName("EarlierEvent")
+        .setStartDateTime(start2)
+        .setEndDateTime(end2)
+        .setRecurring(false)
+        .setAutoDecline(true)
+        .setPrivate(false)
+        .setEventLocation("Room 1")
+        .setEventDescription("Morning session")
+        .build();
+
+    assertTrue(model.addEvent("SourceCal", event1));
+    assertTrue(model.addEvent("SourceCal", event2));
+
+    LocalDateTime copyStart = start2.minusMinutes(1);
+    LocalDateTime copyEnd = end1.plusMinutes(1);
+    LocalDate targetStart = LocalDate.of(2025, 9, 1);
+
+    assertTrue(model.copyEvents("SourceCal", copyStart, copyEnd, "TargetCal", targetStart));
+
+    List<ICalendarEventDTO> copied = model.getEventsInRange("TargetCal",
+        targetStart.atStartOfDay(), targetStart.atTime(23, 59));
+
+    assertEquals(2, copied.size());
+    assertEquals("EarlierEvent", copied.get(0).getEventName());
+    assertEquals("LaterEvent", copied.get(1).getEventName());
+  }
+
+  @Test
+  public void testEditCalendar_CalendarNotFound_ShouldThrowException() {
+    CalendarModel model = new CalendarModel();
+
+    IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
+        model.editCalendar("UnknownCalendar", "timezone", "Asia/Kolkata")
+    );
+
+    assertEquals("Calendar not found: UnknownCalendar", ex.getMessage());
+  }
+
+  @Test
+  public void testEditCalendar_InvalidTimezone_ShouldThrowException() {
+    CalendarModel model = new CalendarModel();
+    model.createCalendar("TestCal", "UTC");
+
+    IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
+        model.editCalendar("TestCal", "timezone", "Mars/SpaceTime") // Invalid IANA zone
+    );
+
+    assertTrue(ex.getMessage().startsWith("Invalid timezone: Mars/SpaceTime"));
+  }
+
+  @Test
+  public void testAddEvent_MissingEndDateTime_ShouldThrow() {
+    CalendarModel model = new CalendarModel();
+    model.createCalendar("TestCal", "UTC");
+
+    LocalDateTime start = LocalDateTime.of(2025, 10, 1, 9, 0);
+
+    ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
+        .setEventName("MissingEnd")
+        .setStartDateTime(start)
+        .setEndDateTime(null) // Missing end time
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Invalid event")
+        .setEventLocation("Room 404")
+        .setPrivate(false)
+        .build();
+
+    IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
+        model.addEvent("TestCal", eventDTO)
+    );
+
+    assertEquals("End date and time are required.", ex.getMessage());
+  }
 
 
 }

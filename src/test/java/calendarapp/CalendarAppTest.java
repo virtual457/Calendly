@@ -4494,6 +4494,8 @@ public class CalendarAppTest {
     assertEquals(expected, readExportedFile());
   }
 
+
+
   @Test
   public void testCopySingleEvent_WithConflict_ShouldFail() throws IOException {
     String[] commands = {
@@ -5002,6 +5004,431 @@ public class CalendarAppTest {
     );
     assertEquals(expected, readExportedFile());
   }
+
+  @Test
+  public void testIsCalendarPresent_ShouldReturnTrue() throws IOException {
+    String[] commands = {
+        "create calendar --name WorkCal --timezone America/New_York",
+        "use calendar --name WorkCal",
+        "export cal " + OUTPUT_FILE,
+        "exit"
+    };
+    runAppWithCommands(commands);
+
+    String expected = String.join("\n",
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private"
+    );
+    assertEquals(expected, readExportedFile());
+  }
+
+  @Test
+  public void testIsCalendarPresent_ShouldReturnFalseOnUnknown() throws IOException {
+    String[] commands = {
+        "use calendar --name DoesNotExist",
+        "exit"
+    };
+    runAppWithCommands(commands);
+
+    String output = outContent.toString().toLowerCase();
+    assertTrue(output.contains("calendar not found"));
+  }
+
+  @Test
+  public void testIsCalendarPresent_AfterCreate_ShouldBePresent() throws IOException {
+    String[] commands = {
+        "create calendar --name SchoolCal --timezone America/New_York",
+        "use calendar --name SchoolCal",
+        "exit"
+    };
+    runAppWithCommands(commands);
+
+    String output = outContent.toString().toLowerCase();
+    assertTrue(output.contains("using calendar: schoolcal"));
+  }
+
+  @Test
+  public void testIsCalendarPresent_WithEventAndExport() throws IOException {
+    String[] commands = {
+        "create calendar --name ProjectCal --timezone UTC",
+        "use calendar --name ProjectCal",
+        "create event --autoDecline DemoDay from 2025-08-20T14:00 to 2025-08-20T15:00",
+        "export cal " + OUTPUT_FILE,
+        "exit"
+    };
+    runAppWithCommands(commands);
+
+    String expected = String.join("\n",
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+        "\"DemoDay\",08/20/2025,02:00 PM,08/20/2025,03:00 PM,False,\"\",\"\",False"
+    );
+    assertEquals(expected, readExportedFile());
+  }
+
+  @Test
+  public void testIsCalendarPresent_ExportWithoutUseCalendar_ShouldFail() throws IOException {
+    String[] commands = {
+        "create calendar --name XCal --timezone UTC",
+        "create event --autoDecline NoUseEvent from 2025-07-01T09:00 to 2025-07-01T10:00",
+        "export cal " + OUTPUT_FILE,
+        "exit"
+    };
+    runAppWithCommands(commands);
+
+    String output = outContent.toString();
+    assertTrue(output.contains("Error Executing command: Please use somme calendar"));
+  }
+
+  @Test
+  public void testIsCalendarPresent_NonExistentThenExport_ShouldFail() throws IOException {
+    String[] commands = {
+        "use calendar --name DoesNotExist",
+        "export cal " + OUTPUT_FILE,
+        "exit"
+    };
+    runAppWithCommands(commands);
+
+    String output = outContent.toString().toLowerCase();
+    assertTrue(output.contains("calendar not found"));
+  }
+
+  @Test
+  public void testEditCalendar_ChangeName_Success() throws IOException {
+    String[] commands = {
+        "create calendar --name WorkCal --timezone UTC",
+        "edit calendar --name WorkCal --property name PersonalCal",
+        "use calendar --name PersonalCal",
+        "create event TeamCall from 2025-10-01T09:00 to 2025-10-01T10:00",
+        "export cal " + OUTPUT_FILE,
+        "exit"
+    };
+    runAppWithCommands(commands);
+
+    String expected = String.join("\n",
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+        "\"TeamCall\",10/01/2025,09:00 AM,10/01/2025,10:00 AM,False,\"\",\"\",False"
+    );
+    assertEquals(expected, readExportedFile());
+  }
+
+  @Test
+  public void testEditCalendar_ChangeTimezone_Success() throws IOException {
+    String[] commands = {
+        "create calendar --name TZCal --timezone UTC",
+        "edit calendar --name TZCal --property timezone America/New_York",
+        "use calendar --name TZCal",
+        "create event Meeting from 2025-11-15T14:00 to 2025-11-15T15:00",
+        "export cal " + OUTPUT_FILE,
+        "exit"
+    };
+    runAppWithCommands(commands);
+
+    String expected = String.join("\n",
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+        "\"Meeting\",11/15/2025,02:00 PM,11/15/2025,03:00 PM,False,\"\",\"\",False"
+    );
+    assertEquals(expected, readExportedFile());
+  }
+
+  @Test
+  public void testEditCalendar_InvalidTimezone_ShouldFail() {
+    String[] commands = {
+        "create calendar --name InvalidTZ --timezone UTC",
+        "edit calendar --name InvalidTZ --property timezone Invalid/Zone",
+        "exit"
+    };
+    runAppWithCommands(commands);
+    assertTrue(outContent.toString().toLowerCase().contains("invalid timezone"));
+  }
+
+  @Test
+  public void testEditCalendar_NameAlreadyExists_ShouldFail() {
+    String[] commands = {
+        "create calendar --name CalA --timezone UTC",
+        "create calendar --name CalB --timezone UTC",
+        "edit calendar --name CalA --property name CalB",
+        "exit"
+    };
+    runAppWithCommands(commands);
+    assertTrue(outContent.toString().toLowerCase().contains("already exists"));
+  }
+
+  @Test
+  public void testEditCalendarName_SuccessfulRenameAndExport() throws IOException {
+    String[] commands = {
+        "create calendar --name OldName --timezone UTC",
+        "use calendar --name OldName",
+        "create event Kickoff from 2025-06-01T09:00 to 2025-06-01T10:00",
+        "edit calendar --name OldName --property name NewName",
+        "use calendar --name NewName",
+        "export cal " + OUTPUT_FILE,
+        "exit"
+    };
+    runAppWithCommands(commands);
+
+    String expected = String.join("\n",
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+        "\"Kickoff\",06/01/2025,09:00 AM,06/01/2025,10:00 AM,False,\"\",\"\",False"
+    );
+    assertEquals(expected, readExportedFile());
+  }
+
+  @Test
+  public void testEditCalendarTimezone_SuccessAndExport() throws IOException {
+    String[] commands = {
+        "create calendar --name TZCal --timezone America/New_York",
+        "use calendar --name TZCal",
+        "create event MorningStandup from 2025-03-28T09:00 to 2025-03-28T10:00",
+        "edit calendar --name TZCal --property timezone Asia/Tokyo",
+        "export cal " + OUTPUT_FILE,
+        "exit"
+    };
+    runAppWithCommands(commands);
+
+    String expected = String.join("\n",
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+        "\"MorningStandup\",03/28/2025,10:00 PM,03/28/2025,11:00 PM,False,\"\",\"\",False"
+    );
+    assertEquals(expected, readExportedFile());
+  }
+
+  @Test
+  public void testEditCalendarName_Conflict_ShouldFail() throws IOException {
+    String[] commands = {
+        "create calendar --name CalA --timezone UTC",
+        "create calendar --name CalB --timezone UTC",
+        "edit calendar --name CalA --property name CalB",
+        "exit"
+    };
+    runAppWithCommands(commands);
+    assertTrue(outContent.toString().toLowerCase().contains("already exists"));
+  }
+
+  @Test
+  public void testEditCalendarName_Success() throws IOException {
+    String[] commands = {
+        "create calendar --name WorkCal --timezone America/New_York",
+        "edit calendar --name WorkCal --property name RenamedCal",
+        "use calendar --name RenamedCal",
+        "create event Standup from 2025-07-01T09:00 to 2025-07-01T09:30",
+        "export cal " + OUTPUT_FILE,
+        "exit"
+    };
+    runAppWithCommands(commands);
+
+    String expected = String.join("\n",
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+        "\"Standup\",07/01/2025,09:00 AM,07/01/2025,09:30 AM,False,\"\",\"\",False"
+    );
+    assertEquals(expected, readExportedFile());
+  }
+
+  @Test
+  public void testEditCalendarTimezone_Success() throws IOException {
+    String[] commands = {
+        "create calendar --name MyCal --timezone UTC",
+        "use calendar --name MyCal",
+        "create event Meeting from 2025-12-01T15:00 to 2025-12-01T16:00",
+        "edit calendar --name MyCal --property timezone Asia/Tokyo",
+        "export cal " + OUTPUT_FILE,
+        "exit"
+    };
+    runAppWithCommands(commands);
+
+    // Event time should be converted to Tokyo time
+    String expected = String.join("\n",
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+        "\"Meeting\",12/02/2025,12:00 AM,12/02/2025,01:00 AM,False,\"\",\"\",False"
+    );
+    assertEquals(expected, readExportedFile());
+  }
+
+  @Test
+  public void testEditCalendarName_AlreadyExists_ShouldFail() {
+    String[] commands = {
+        "create calendar --name A --timezone UTC",
+        "create calendar --name B --timezone UTC",
+        "edit calendar --name A --property name B",
+        "exit"
+    };
+    runAppWithCommands(commands);
+    assertTrue(outContent.toString().toLowerCase().contains("already exists"));
+  }
+
+  @Test
+  public void testEditCalendar_UnsupportedProperty_ShouldFail() {
+    String[] commands = {
+        "create calendar --name MyCal --timezone UTC",
+        "use calendar --name MyCal",
+        "edit calendar --name MyCal --property color Blue",
+        "exit"
+    };
+    runAppWithCommands(commands);
+
+    assertTrue(outContent.toString().contains("Error Executing command: Invalid property. Only 'name' or 'timezone' allowed."));
+  }
+
+  @Test
+  public void testEditCalendar_NonExistent_ShouldFail() {
+    String[] commands = {
+        "edit calendar --name Ghost --property name NewGhost",
+        "exit"
+    };
+    runAppWithCommands(commands);
+
+    assertTrue(outContent.toString().toLowerCase().contains("calendar not found"));
+  }
+
+  @Test
+  public void testEditCalendarTimezone_VerifyEventShift() throws IOException {
+    String[] commands = {
+        "create calendar --name ConvertCal --timezone UTC",
+        "use calendar --name ConvertCal",
+        "create event NightCall from 2025-12-31T23:00 to 2026-01-01T00:00",
+        "edit calendar --name ConvertCal --property timezone America/New_York",
+        "export cal " + OUTPUT_FILE,
+        "exit"
+    };
+    runAppWithCommands(commands);
+
+    // UTC 11PM -> 6PM New York time
+    String expected = String.join("\n",
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+        "\"NightCall\",12/31/2025,06:00 PM,12/31/2025,07:00 PM,False,\"\",\"\",False"
+    );
+    assertEquals(expected, readExportedFile());
+  }
+
+  @Test
+  public void testEditCalendar_RenameCalendar_EventsStillExist() throws IOException {
+    String[] commands = {
+        "create calendar --name OldCal --timezone UTC",
+        "use calendar --name OldCal",
+        "create event StatusCheck from 2025-09-01T10:00 to 2025-09-01T11:00",
+        "edit calendar --name OldCal --property name NewCal",
+        "use calendar --name NewCal",
+        "export cal " + OUTPUT_FILE,
+        "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    String expected = String.join("\n",
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+        "\"StatusCheck\",09/01/2025,10:00 AM,09/01/2025,11:00 AM,False,\"\",\"\",False"
+    );
+    assertEquals(expected, readExportedFile());
+  }
+
+  @Test
+  public void testEditCalendar_RenameToExistingName_ShouldFail() {
+    String[] commands = {
+        "create calendar --name Cal1 --timezone UTC",
+        "create calendar --name Cal2 --timezone UTC",
+        "edit calendar --name Cal1 --property name Cal2",
+        "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    assertTrue(outContent.toString().toLowerCase().contains("already exists"));
+  }
+
+  @Test
+  public void testEditCalendar_TimezoneShiftToIST() throws IOException {
+    String[] commands = {
+        "create calendar --name TZCal --timezone UTC",
+        "use calendar --name TZCal",
+        "create event DailyStandup from 2025-10-10T05:00 to 2025-10-10T06:00",
+        "edit calendar --name TZCal --property timezone Asia/Kolkata",
+        "export cal " + OUTPUT_FILE,
+        "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    // UTC 5:00 AM = 10:30 AM IST
+    String expected = String.join("\n",
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+        "\"DailyStandup\",10/10/2025,10:30 AM,10/10/2025,11:30 AM,False,\"\",\"\",False"
+    );
+    assertEquals(expected, readExportedFile());
+  }
+
+  @Test
+  public void testEditCalendar_MissingNewName_ShouldFail() {
+    String[] commands = {
+        "create calendar --name TestCal --timezone UTC",
+        "use calendar --name TestCal",
+        "edit calendar --name TestCal --property name",  // Missing new name
+        "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    assertTrue(outContent.toString().contains("Error Executing command: Missing new property value.") ||
+        outContent.toString().toLowerCase().contains("usage"));
+  }
+
+  @Test
+  public void testEditCalendar_MissingCalendarName_ShouldFail() {
+    String[] commands = {
+        "edit calendar --property timezone Asia/Kolkata",
+        "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    assertTrue(outContent.toString().contains("Error Executing command: Expected '--name' keyword."));
+  }
+
+  @Test
+  public void testEditCalendar_ChangeTimezoneToPST() throws IOException {
+    String[] commands = {
+        "create calendar --name PSTCal --timezone UTC",
+        "use calendar --name PSTCal",
+        "create event Meeting from 2025-12-01T16:00 to 2025-12-01T17:00",
+        "edit calendar --name PSTCal --property timezone America/Los_Angeles",
+        "export cal " + OUTPUT_FILE,
+        "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    // 16:00 UTC = 08:00 PST (Standard Time in December)
+    String expected = String.join("\n",
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+        "\"Meeting\",12/01/2025,08:00 AM,12/01/2025,09:00 AM,False,\"\",\"\",False"
+    );
+    assertEquals(expected, readExportedFile());
+  }
+
+  @Test
+  public void testEditCalendar_InvalidProperty_ShouldFail() {
+    String[] commands = {
+        "create calendar --name SomeCal --timezone UTC",
+        "edit calendar --name SomeCal --property unknownProperty Asia/Kolkata",
+        "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    assertTrue(outContent.toString().contains("Error Executing command: Invalid property. Only 'name' or 'timezone' allowed."));
+  }
+
+  @Test
+  public void testEditCalendar_InvalidTimezoneFormat_ShouldFail() {
+    String[] commands = {
+        "create calendar --name BadTZ --timezone UTC",
+        "edit calendar --name BadTZ --property timezone Mars/Invalid",
+        "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    assertTrue(outContent.toString().toLowerCase().contains("invalid timezone"));
+  }
+
+
 
 
 }
