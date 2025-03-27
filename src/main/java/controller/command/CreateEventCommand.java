@@ -14,23 +14,23 @@ import java.util.List;
  * with support for optional fields: description, location, and privacy.
  */
 public class CreateEventCommand implements ICommand {
-  private final ICalendarModel model;
-  private final String calendarName;
-  private final String eventName;
-  private LocalDateTime startDateTime;
-  private LocalDateTime endDateTime;
-  private final boolean autoDecline;
-  private final boolean isRecurring;
-  private final List<DayOfWeek> recurrenceDays;
-  private final Integer recurrenceCount;
-  private LocalDateTime recurrenceEndDate;
-  private String description;
-  private String location;
-  private boolean isPrivate;
-  private List<String> args;
-  private Integer index;
-  private boolean isOn;
-  private Integer count = null;
+   final ICalendarModel model;
+   final String calendarName;
+  final String eventName;
+   LocalDateTime startDateTime;
+   LocalDateTime endDateTime;
+   final boolean autoDecline;
+   final boolean isRecurring;
+   final List<DayOfWeek> recurrenceDays;
+  final Integer recurrenceCount;
+   LocalDateTime recurrenceEndDate;
+  String description;
+   String location;
+  boolean isPrivate;
+  List<String> args;
+  Integer index;
+  boolean isOn;
+  Integer count = null;
 
   public CreateEventCommand(List<String> fromArgs, ICalendarModel model,
                             String calendarName) {
@@ -94,7 +94,7 @@ public class CreateEventCommand implements ICommand {
               .setRecurrenceDays(recurrenceDays)
               .setRecurrenceCount(recurrenceCount)
               .setRecurrenceEndDate(recurrenceEndDate)
-              .setAutoDecline(autoDecline)
+              .setAutoDecline(Boolean.TRUE)
               .setEventDescription(description)
               .setEventLocation(location)
               .setPrivate(isPrivate)

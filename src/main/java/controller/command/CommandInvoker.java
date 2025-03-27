@@ -16,8 +16,8 @@ public class CommandInvoker {
   private final Map<String, Class<? extends ICommand>> commandRegistry = new HashMap<>();
   private String currentCalendar; // Stores the currently selected calendar
 
-  public CommandInvoker() {
-    this.currentCalendar = null;
+  public CommandInvoker(String currentCalendar) {
+    this.currentCalendar = currentCalendar;
   }
 
   /**
@@ -28,6 +28,10 @@ public class CommandInvoker {
    */
   public void registerCommand(String commandName, Class<? extends ICommand> commandClass) {
     commandRegistry.put(commandName, commandClass);
+  }
+
+  public void deregisterCommand(String commandName) {
+    commandRegistry.remove(commandName);
   }
 
   /**

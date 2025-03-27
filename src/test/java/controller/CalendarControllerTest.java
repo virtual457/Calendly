@@ -2210,7 +2210,8 @@ public class CalendarControllerTest {
     ICalendarModel model = ICalendarModel.createInstance("listbased");
     IView view = IView.createInstance("consoleView");
 
-    ICalendarController controller = ICalendarController.createInstance(model, view);
+    ICalendarController controller = ICalendarController.createInstance("Advanced",model,
+          view);
 
     assertNotNull(controller);
     assertEquals("class controller.CalendarController", controller.getClass().toString());

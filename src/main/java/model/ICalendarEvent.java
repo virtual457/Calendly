@@ -2,18 +2,24 @@ package model;
 
 import java.time.LocalDateTime;
 
-/**
- * Represents a calendar event within the domain model.
- * Implementations must provide details such as timing, name, visibility,
- * and logic to detect scheduling conflicts with other events.
- */
 public interface ICalendarEvent {
   String getEventName();
+  void setEventName(String name);
+
   LocalDateTime getStartDateTime();
+  void setStartDateTime(LocalDateTime start);
+
   LocalDateTime getEndDateTime();
+  void setEndDateTime(LocalDateTime end);
+
   String getEventDescription();
+  void setEventDescription(String desc);
+
   String getEventLocation();
+  void setEventLocation(String location);
+
   boolean isPublic();
+  void setPublic(boolean isPublic);
 
   boolean doesEventConflict(ICalendarEvent other);
 

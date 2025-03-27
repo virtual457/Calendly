@@ -10,14 +10,16 @@ import view.IView;
  */
 public class CalendarApp {
   public static void main(String[] args) {
+
+    try {
     ICalendarModel model = createModel();
     IView view = createView();
     ICalendarController controller = createController(model, view);
-    try {
+
       ModeHandler handler = ModeHandler.fromArgs(args); // handles mode + file logic
       controller.run(handler.getReadable());  // pass just the input stream
     } catch (Exception e) {
-      view.display(e.getMessage());
+      System.out.println(e.getMessage());
     }
   }
 
@@ -30,6 +32,6 @@ public class CalendarApp {
   }
 
   private static ICalendarController createController(ICalendarModel model, IView view) {
-    return ICalendarController.createInstance(model, view);
+    return ICalendarController.createInstance("Basic",model, view);
   }
 }

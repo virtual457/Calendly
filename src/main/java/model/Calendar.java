@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 class Calendar {
   private String calendarName;
   private String timezone;
-  private List<CalendarEvent> events;
+  private List<ICalendarEvent> events;
 
   /**
    * Constructs a new Calendar with the specified name and timezone.
@@ -41,27 +41,36 @@ class Calendar {
   }
 
   public void setTimezone(String newTimezone) {
-    String oldTimezone = this.timezone;
-    this.timezone = newTimezone;
+    List<ICalendarEvent> updatedEvents = new ArrayList<>();
 
-    ZoneId oldZone = ZoneId.of(oldTimezone);
+    ZoneId oldZone = ZoneId.of(this.timezone);
     ZoneId newZone = ZoneId.of(newTimezone);
 
-    for (CalendarEvent event : events) {
-      // Convert start time
+
+    for (ICalendarEvent event : events) {
       ZonedDateTime oldStartZoned = event.getStartDateTime().atZone(oldZone);
       ZonedDateTime newStartZoned = oldStartZoned.withZoneSameInstant(newZone);
-      event.setStartDateTime(newStartZoned.toLocalDateTime());
 
-      // Convert end time
       ZonedDateTime oldEndZoned = event.getEndDateTime().atZone(oldZone);
       ZonedDateTime newEndZoned = oldEndZoned.withZoneSameInstant(newZone);
-      event.setEndDateTime(newEndZoned.toLocalDateTime());
 
+      ICalendarEvent updated = ICalendarEvent.builder()
+            .setEventName(event.getEventName())
+            .setStartDateTime(newStartZoned.toLocalDateTime())
+            .setEndDateTime(newEndZoned.toLocalDateTime())
+            .setEventDescription(event.getEventDescription())
+            .setEventLocation(event.getEventLocation())
+            .setPublic(event.isPublic())
+            .build();
+
+      updatedEvents.add(updated);
     }
+
+    this.events = updatedEvents;
+    this.timezone = newTimezone;
   }
 
-  public List<CalendarEvent> getEventsCopy() {
+  public List<ICalendarEvent> getEventsCopy() {
     return this.events.stream()
           .map(event -> CalendarEvent.builder()
                 .setEventName(event.getEventName())
@@ -75,11 +84,11 @@ class Calendar {
   }
 
 
-  public List<CalendarEvent> getEvents() {
+  public List<ICalendarEvent> getEvents() {
     return events;
   }
 
-  public void setEvents(List<CalendarEvent> events) {
+  public void setEvents(List<ICalendarEvent> events) {
     this.events = events;
   }
 
