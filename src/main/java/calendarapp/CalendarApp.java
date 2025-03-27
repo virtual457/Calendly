@@ -9,6 +9,14 @@ import view.IView;
  * Entry point for the Calendar application.
  */
 public class CalendarApp {
+
+  /**
+   * The main entry point of the calendar application.
+   *
+   * @param args the command-line arguments used to
+   *             determine the mode of execution (interactive or headless).
+   */
+
   public static void main(String[] args) {
 
     try {

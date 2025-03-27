@@ -1,6 +1,16 @@
 package calendarapp;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+
+/**
+ * Handles the headless mode of the calendar application.
+ * <p>
+ * This class processes a sequence of pre-defined commands without user interaction,
+ * typically for automated testing or batch processing scenarios.
+ * </p>
+ */
 
 public class HeadlessModeHandler implements ModeHandler {
   private final String filePath;

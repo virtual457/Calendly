@@ -3,6 +3,7 @@ package controller.command;
 import controller.command.CreateCalendarCommand;
 import model.ICalendarEventDTO;
 import model.ICalendarModel;
+
 import org.junit.Test;
 
 import java.time.LocalDate;
@@ -11,7 +12,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+
+/**
+ * Unit tests for the {@link CreateCalendarCommand} class.
+ * Verifies the correct behavior of calendar creation commands, including
+ * name and timezone validation, and proper updates to the model.
+ */
 
 public class CreateCalendarCommandTest {
 
@@ -33,12 +40,15 @@ public class CreateCalendarCommandTest {
     }
 
     @Override
-    public boolean editEvents(String calendarName, String property, String eventName, LocalDateTime fromDateTime, String newValue, boolean editAll) {
+    public boolean editEvents(String calendarName, String property, String eventName,
+                              LocalDateTime fromDateTime, String newValue, boolean editAll) {
       return false;
     }
 
     @Override
-    public boolean editEvent(String calendarName, String property, String eventName, LocalDateTime fromDateTime, LocalDateTime toDateTime, String newValue) {
+    public boolean editEvent(String calendarName, String property, String eventName,
+                             LocalDateTime fromDateTime, LocalDateTime toDateTime,
+                             String newValue) {
       return false;
     }
 
@@ -53,22 +63,29 @@ public class CreateCalendarCommandTest {
     }
 
     @Override
-    public List<ICalendarEventDTO> getEventsInRange(String calendarName, LocalDateTime fromDateTime, LocalDateTime toDateTime) {
+    public List<ICalendarEventDTO> getEventsInRange(String calendarName,
+                                                    LocalDateTime fromDateTime,
+                                                    LocalDateTime toDateTime) {
       return List.of();
     }
 
     @Override
-    public List<ICalendarEventDTO> getEventsInSpecificDateTime(String calendarName, LocalDateTime dateTime) {
+    public List<ICalendarEventDTO> getEventsInSpecificDateTime(String calendarName,
+                                                               LocalDateTime dateTime) {
       return List.of();
     }
 
     @Override
-    public boolean copyEvents(String sourceCalendarName, LocalDateTime sourceStart, LocalDateTime sourceEnd, String targetCalendarName, LocalDate targetStart) {
+    public boolean copyEvents(String sourceCalendarName, LocalDateTime sourceStart,
+                              LocalDateTime sourceEnd, String targetCalendarName,
+                              LocalDate targetStart) {
       return false;
     }
 
     @Override
-    public boolean copyEvent(String sourceCalendarName, LocalDateTime sourceStart, String eventName, String targetCalendarName, LocalDateTime targetStart) {
+    public boolean copyEvent(String sourceCalendarName, LocalDateTime sourceStart,
+                             String eventName, String targetCalendarName,
+                             LocalDateTime targetStart) {
       return false;
     }
 

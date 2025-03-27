@@ -3,6 +3,7 @@ package controller.command;
 import controller.command.ShowStatusCommand;
 import model.ICalendarEventDTO;
 import model.ICalendarModel;
+
 import org.junit.Test;
 
 import java.time.DayOfWeek;
@@ -12,7 +13,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+
+/**
+ * Unit tests for the {@link ShowStatusCommand} class.
+ * This class verifies that the status of calendars and events is displayed
+ * correctly based on the provided date and time input.
+ */
 
 public class ShowStatusCommandTest {
 
@@ -25,9 +32,20 @@ public class ShowStatusCommandTest {
       this.end = LocalDateTime.parse(end);
     }
 
-    @Override public String getEventName() { return "Mock"; }
-    @Override public LocalDateTime getStartDateTime() { return start; }
-    @Override public LocalDateTime getEndDateTime() { return end; }
+    @Override
+    public String getEventName() {
+      return "Mock";
+    }
+
+    @Override
+    public LocalDateTime getStartDateTime() {
+      return start;
+    }
+
+    @Override
+    public LocalDateTime getEndDateTime() {
+      return end;
+    }
 
     @Override
     public Boolean isRecurring() {
@@ -59,7 +77,10 @@ public class ShowStatusCommandTest {
       return "";
     }
 
-    @Override public String getEventLocation() { return ""; }
+    @Override
+    public String getEventLocation() {
+      return "";
+    }
 
     @Override
     public Boolean isPrivate() {
@@ -81,12 +102,15 @@ public class ShowStatusCommandTest {
     }
 
     @Override
-    public boolean editEvents(String calendarName, String property, String eventName, LocalDateTime fromDateTime, String newValue, boolean editAll) {
+    public boolean editEvents(String calendarName, String property, String eventName,
+                              LocalDateTime fromDateTime, String newValue, boolean editAll) {
       return false;
     }
 
     @Override
-    public boolean editEvent(String calendarName, String property, String eventName, LocalDateTime fromDateTime, LocalDateTime toDateTime, String newValue) {
+    public boolean editEvent(String calendarName, String property, String eventName,
+                             LocalDateTime fromDateTime, LocalDateTime toDateTime,
+                             String newValue) {
       return false;
     }
 
@@ -101,7 +125,9 @@ public class ShowStatusCommandTest {
     }
 
     @Override
-    public List<ICalendarEventDTO> getEventsInRange(String calendarName, LocalDateTime fromDateTime, LocalDateTime toDateTime) {
+    public List<ICalendarEventDTO> getEventsInRange(String calendarName,
+                                                    LocalDateTime fromDateTime,
+                                                    LocalDateTime toDateTime) {
       return List.of();
     }
 
@@ -111,12 +137,16 @@ public class ShowStatusCommandTest {
     }
 
     @Override
-    public boolean copyEvents(String sourceCalendarName, LocalDateTime sourceStart, LocalDateTime sourceEnd, String targetCalendarName, LocalDate targetStart) {
+    public boolean copyEvents(String sourceCalendarName, LocalDateTime sourceStart,
+                              LocalDateTime sourceEnd, String targetCalendarName,
+                              LocalDate targetStart) {
       return false;
     }
 
     @Override
-    public boolean copyEvent(String sourceCalendarName, LocalDateTime sourceStart, String eventName, String targetCalendarName, LocalDateTime targetStart) {
+    public boolean copyEvent(String sourceCalendarName, LocalDateTime sourceStart,
+                             String eventName, String targetCalendarName,
+                             LocalDateTime targetStart) {
       return false;
     }
 
@@ -139,8 +169,8 @@ public class ShowStatusCommandTest {
     model.returnEvents = Collections.emptyList();
 
     ShowStatusCommand command = new ShowStatusCommand(
-          Arrays.asList("on", "2025-05-01T10:00"),
-          model, "Default"
+        Arrays.asList("on", "2025-05-01T10:00"),
+        model, "Default"
     );
 
     String result = command.execute();
@@ -153,8 +183,8 @@ public class ShowStatusCommandTest {
     model.returnEvents = Arrays.asList(new MockEvent("2025-05-01T09:00", "2025-05-01T11:00"));
 
     ShowStatusCommand command = new ShowStatusCommand(
-          Arrays.asList("on", "2025-05-01T10:00"),
-          model, "Default"
+        Arrays.asList("on", "2025-05-01T10:00"),
+        model, "Default"
     );
 
     String result = command.execute();

@@ -12,6 +12,15 @@ public class CreateCalendarCommand implements ICommand {
   private String calendarName;
   private final String timezone;
 
+  /**
+   * Constructs a {@code CreateCalendarCommand}
+   * that creates a new calendar based on the provided arguments.
+   *
+   * @param args             the list of arguments used to specify the calendar name and timezone
+   * @param model            the calendar model responsible for handling calendar creation logic
+   * @param currentCalendar  the name of the currently active calendar (if any)
+   */
+
   public CreateCalendarCommand(List<String> args, ICalendarModel model, String currentCalendar) {
     this.model = model;
     this.calendarName = currentCalendar;

@@ -10,6 +10,12 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Test suite for the {@link CalendarEventDTO} class.
+ * Ensures proper construction, equality, and behavior of DTO instances
+ * used for calendar event data transfer between components.
+ */
+
 public class CalendarEventDTOTest {
   private CalendarEventDTO eventDTO;
   private final String eventName = "Meeting";

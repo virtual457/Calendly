@@ -3,6 +3,7 @@ package controller.command;
 import controller.command.EditCalendarCommand;
 import model.ICalendarEventDTO;
 import model.ICalendarModel;
+
 import org.junit.Test;
 
 import java.time.LocalDate;
@@ -11,7 +12,14 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+/**
+ * Unit tests for the {@link EditCalendarCommand} class.
+ * Verifies the correctness of calendar property editing operations such as renaming a calendar
+ * or changing its time zone.
+ */
 
 public class EditCalendarCommandTest {
 
@@ -32,12 +40,15 @@ public class EditCalendarCommandTest {
     }
 
     @Override
-    public boolean editEvents(String calendarName, String property, String eventName, LocalDateTime fromDateTime, String newValue, boolean editAll) {
+    public boolean editEvents(String calendarName, String property, String eventName,
+                              LocalDateTime fromDateTime, String newValue, boolean editAll) {
       return false;
     }
 
     @Override
-    public boolean editEvent(String calendarName, String property, String eventName, LocalDateTime fromDateTime, LocalDateTime toDateTime, String newValue) {
+    public boolean editEvent(String calendarName, String property, String eventName,
+                             LocalDateTime fromDateTime, LocalDateTime toDateTime,
+                             String newValue) {
       return false;
     }
 
@@ -52,22 +63,29 @@ public class EditCalendarCommandTest {
     }
 
     @Override
-    public List<ICalendarEventDTO> getEventsInRange(String calendarName, LocalDateTime fromDateTime, LocalDateTime toDateTime) {
+    public List<ICalendarEventDTO> getEventsInRange(String calendarName,
+                                                    LocalDateTime fromDateTime,
+                                                    LocalDateTime toDateTime) {
       return List.of();
     }
 
     @Override
-    public List<ICalendarEventDTO> getEventsInSpecificDateTime(String calendarName, LocalDateTime dateTime) {
+    public List<ICalendarEventDTO> getEventsInSpecificDateTime(String calendarName,
+                                                               LocalDateTime dateTime) {
       return List.of();
     }
 
     @Override
-    public boolean copyEvents(String sourceCalendarName, LocalDateTime sourceStart, LocalDateTime sourceEnd, String targetCalendarName, LocalDate targetStart) {
+    public boolean copyEvents(String sourceCalendarName, LocalDateTime sourceStart,
+                              LocalDateTime sourceEnd, String targetCalendarName,
+                              LocalDate targetStart) {
       return false;
     }
 
     @Override
-    public boolean copyEvent(String sourceCalendarName, LocalDateTime sourceStart, String eventName, String targetCalendarName, LocalDateTime targetStart) {
+    public boolean copyEvent(String sourceCalendarName, LocalDateTime sourceStart,
+                             String eventName, String targetCalendarName,
+                             LocalDateTime targetStart) {
       return false;
     }
 
@@ -90,8 +108,8 @@ public class EditCalendarCommandTest {
   public void testEditCalendarNameSuccess() {
     MockModel model = new MockModel();
     EditCalendarCommand command = new EditCalendarCommand(
-          Arrays.asList("--name", "Work", "--property", "name", "Work2025"),
-          model, "Default"
+        Arrays.asList("--name", "Work", "--property", "name", "Work2025"),
+        model, "Default"
     );
 
     String result = command.execute();
@@ -105,8 +123,8 @@ public class EditCalendarCommandTest {
   public void testEditCalendarTimezoneSuccess() {
     MockModel model = new MockModel();
     EditCalendarCommand command = new EditCalendarCommand(
-          Arrays.asList("--name", "Work", "--property", "timezone", "Asia/Kolkata"),
-          model, "Default"
+        Arrays.asList("--name", "Work", "--property", "timezone", "Asia/Kolkata"),
+        model, "Default"
     );
 
     String result = command.execute();
@@ -120,8 +138,8 @@ public class EditCalendarCommandTest {
     MockModel model = new MockModel();
     model.shouldSucceed = false;
     EditCalendarCommand command = new EditCalendarCommand(
-          Arrays.asList("--name", "Work", "--property", "name", "NewName"),
-          model, "Default"
+        Arrays.asList("--name", "Work", "--property", "name", "NewName"),
+        model, "Default"
     );
 
     String result = command.execute();
@@ -133,56 +151,56 @@ public class EditCalendarCommandTest {
   @Test(expected = IllegalArgumentException.class)
   public void testMissingNameFlag() {
     new EditCalendarCommand(
-          Arrays.asList("Work", "--property", "name", "NewName"),
-          new MockModel(), "Default"
+        Arrays.asList("Work", "--property", "name", "NewName"),
+        new MockModel(), "Default"
     );
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testMissingCalendarName() {
     new EditCalendarCommand(
-          Arrays.asList("--name", "", "--property", "name", "NewName"),
-          new MockModel(), "Default"
+        Arrays.asList("--name", "", "--property", "name", "NewName"),
+        new MockModel(), "Default"
     );
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testMissingPropertyFlag() {
     new EditCalendarCommand(
-          Arrays.asList("--name", "Work", "WRONG", "name", "NewName"),
-          new MockModel(), "Default"
+        Arrays.asList("--name", "Work", "WRONG", "name", "NewName"),
+        new MockModel(), "Default"
     );
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testMissingPropertyName() {
     new EditCalendarCommand(
-          Arrays.asList("--name", "Work", "--property"),
-          new MockModel(), "Default"
+        Arrays.asList("--name", "Work", "--property"),
+        new MockModel(), "Default"
     );
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testInvalidPropertyName() {
     new EditCalendarCommand(
-          Arrays.asList("--name", "Work", "--property", "color", "blue"),
-          new MockModel(), "Default"
+        Arrays.asList("--name", "Work", "--property", "color", "blue"),
+        new MockModel(), "Default"
     );
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testMissingNewValue() {
     new EditCalendarCommand(
-          Arrays.asList("--name", "Work", "--property", "name"),
-          new MockModel(), "Default"
+        Arrays.asList("--name", "Work", "--property", "name"),
+        new MockModel(), "Default"
     );
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testEmptyNewValue() {
     new EditCalendarCommand(
-          Arrays.asList("--name", "Work", "--property", "name", ""),
-          new MockModel(), "Default"
+        Arrays.asList("--name", "Work", "--property", "name", ""),
+        new MockModel(), "Default"
     );
   }
 

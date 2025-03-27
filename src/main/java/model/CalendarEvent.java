@@ -70,7 +70,8 @@ class CalendarEvent implements ICalendarEvent {
   }
 
   public boolean doesEventConflict(ICalendarEvent event) {
-    return this.getStartDateTime().isBefore(event.getEndDateTime()) && this.getEndDateTime().isAfter(event.getStartDateTime());
+    return this.getStartDateTime().isBefore(event.getEndDateTime()) &&
+        this.getEndDateTime().isAfter(event.getStartDateTime());
   }
 
   public String getEventName() {

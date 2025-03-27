@@ -16,6 +16,15 @@ public class PrintEventsCommand implements ICommand {
   private final LocalDateTime fromDateTime;
   private final LocalDateTime toDateTime;
 
+  /**
+   * Constructs a {@code PrintEventsCommand}
+   * with the given input parts, model, and selected calendar.
+   *
+   * @param parts           the command arguments parsed from user input
+   * @param model           the calendar model used to perform actions
+   * @param currentCalendar the name of the currently selected calendar
+   */
+
   public PrintEventsCommand(List<String> parts, ICalendarModel model, String currentCalendar) {
     this.model = model;
     this.calendarName = currentCalendar;

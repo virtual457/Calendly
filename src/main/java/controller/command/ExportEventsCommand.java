@@ -20,6 +20,15 @@ public class ExportEventsCommand implements ICommand {
   private final String calendarName;
   private final String fileName;
 
+  /**
+   * Constructs an {@code ExportEventsCommand}
+   * using the provided arguments, model, and active calendar.
+   *
+   * @param args            the list of command-line arguments
+   * @param model           the calendar model to interact with
+   * @param currentCalendar the name of the currently selected calendar
+   */
+
   public ExportEventsCommand(List<String> args, ICalendarModel model, String currentCalendar) {
     this.model = model;
     this.calendarName = currentCalendar;

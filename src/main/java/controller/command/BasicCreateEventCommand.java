@@ -5,6 +5,16 @@ import java.util.List;
 import model.ICalendarEventDTO;
 import model.ICalendarModel;
 
+/**
+ * Represents a basic implementation of the {@code CreateEventCommand} used to handle
+ * the creation of a calendar event in a straightforward, non-interactive manner.
+ * <p>
+ * This command constructs an event using the provided arguments and delegates the creation
+ * logic to the underlying model.
+ * </p>
+ * Implements the {@code ICommand} interface for execution through the calendar controller.
+ */
+
 public class BasicCreateEventCommand extends CreateEventCommand implements ICommand {
   public BasicCreateEventCommand(List<String> fromArgs, ICalendarModel model, String calendarName) {
     super(fromArgs, model, calendarName);
@@ -13,7 +23,7 @@ public class BasicCreateEventCommand extends CreateEventCommand implements IComm
   @Override
   public String execute() {
 
-      ICalendarEventDTO event = ICalendarEventDTO.builder()
+    ICalendarEventDTO event = ICalendarEventDTO.builder()
           .setEventName(this.eventName)
           .setStartDateTime(startDateTime)
           .setEndDateTime(endDateTime)
@@ -27,8 +37,8 @@ public class BasicCreateEventCommand extends CreateEventCommand implements IComm
           .setPrivate(isPrivate)
           .build();
 
-      boolean success = model.addEvent(calendarName, event);
-      return success ? "Event created successfully." : "Error: Event creation failed.";
+    boolean success = model.addEvent(calendarName, event);
+    return success ? "Event created successfully." : "Error: Event creation failed.";
 
   }
 }

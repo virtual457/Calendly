@@ -14,6 +14,16 @@ import view.IView;
  */
 
 public interface ICalendarController {
+
+  /**
+   * Creates an instance of {@code ICalendarController} based on the specified version.
+   *
+   * @param version the version of the controller to instantiate (e.g., "basic", "interactive")
+   * @param model   the calendar model to associate with the controller
+   * @return an instance of {@code ICalendarController} corresponding to the given version
+   * @throws IllegalArgumentException if the version is unsupported or null
+   */
+
   static ICalendarController createInstance(String version, ICalendarModel model,
                                             IView view) {
     if (version.equalsIgnoreCase("basic")) {

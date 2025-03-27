@@ -1,9 +1,5 @@
 package controller.command;
 
-import java.util.Scanner;
-
-import model.ICalendarModel;
-
 /**
  * ICommand is the interface for all commands in the Calendar application.
  * It defines the structure for executing commands and handling user input.

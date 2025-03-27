@@ -3,6 +3,7 @@ package controller.command;
 import controller.command.PrintEventsCommand;
 import model.ICalendarEventDTO;
 import model.ICalendarModel;
+
 import org.junit.Test;
 
 import java.time.DayOfWeek;
@@ -12,7 +13,15 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+/**
+ * Unit tests for the {@link PrintEventsCommand} class.
+ * This test class verifies correct parsing and execution of commands that
+ * print events either on a specific date or between a range of date-times.
+ */
 
 public class PrintEventsCommandTest {
 
@@ -29,9 +38,20 @@ public class PrintEventsCommandTest {
       this.location = location;
     }
 
-    @Override public String getEventName() { return name; }
-    @Override public LocalDateTime getStartDateTime() { return start; }
-    @Override public LocalDateTime getEndDateTime() { return end; }
+    @Override
+    public String getEventName() {
+      return name;
+    }
+
+    @Override
+    public LocalDateTime getStartDateTime() {
+      return start;
+    }
+
+    @Override
+    public LocalDateTime getEndDateTime() {
+      return end;
+    }
 
     @Override
     public Boolean isRecurring() {
@@ -63,7 +83,10 @@ public class PrintEventsCommandTest {
       return "";
     }
 
-    @Override public String getEventLocation() { return location; }
+    @Override
+    public String getEventLocation() {
+      return location;
+    }
 
     @Override
     public Boolean isPrivate() {
@@ -85,12 +108,15 @@ public class PrintEventsCommandTest {
     }
 
     @Override
-    public boolean editEvents(String calendarName, String property, String eventName, LocalDateTime fromDateTime, String newValue, boolean editAll) {
+    public boolean editEvents(String calendarName, String property, String eventName,
+                              LocalDateTime fromDateTime, String newValue, boolean editAll) {
       return false;
     }
 
     @Override
-    public boolean editEvent(String calendarName, String property, String eventName, LocalDateTime fromDateTime, LocalDateTime toDateTime, String newValue) {
+    public boolean editEvent(String calendarName, String property, String eventName,
+                             LocalDateTime fromDateTime, LocalDateTime toDateTime,
+                             String newValue) {
       return false;
     }
 
@@ -105,22 +131,28 @@ public class PrintEventsCommandTest {
     }
 
     @Override
-    public List<ICalendarEventDTO> getEventsInRange(String calendar, LocalDateTime from, LocalDateTime to) {
+    public List<ICalendarEventDTO> getEventsInRange(String calendar, LocalDateTime from,
+                                                    LocalDateTime to) {
       return eventsToReturn;
     }
 
     @Override
-    public List<ICalendarEventDTO> getEventsInSpecificDateTime(String calendarName, LocalDateTime dateTime) {
+    public List<ICalendarEventDTO> getEventsInSpecificDateTime(String calendarName,
+                                                               LocalDateTime dateTime) {
       return List.of();
     }
 
     @Override
-    public boolean copyEvents(String sourceCalendarName, LocalDateTime sourceStart, LocalDateTime sourceEnd, String targetCalendarName, LocalDate targetStart) {
+    public boolean copyEvents(String sourceCalendarName, LocalDateTime sourceStart,
+                              LocalDateTime sourceEnd, String targetCalendarName,
+                              LocalDate targetStart) {
       return false;
     }
 
     @Override
-    public boolean copyEvent(String sourceCalendarName, LocalDateTime sourceStart, String eventName, String targetCalendarName, LocalDateTime targetStart) {
+    public boolean copyEvent(String sourceCalendarName, LocalDateTime sourceStart,
+                             String eventName, String targetCalendarName,
+                             LocalDateTime targetStart) {
       return false;
     }
 
@@ -142,8 +174,8 @@ public class PrintEventsCommandTest {
     model.eventsToReturn = Collections.emptyList();
 
     PrintEventsCommand cmd = new PrintEventsCommand(
-          Arrays.asList("on", "2025-05-01"),
-          model, "Default"
+        Arrays.asList("on", "2025-05-01"),
+        model, "Default"
     );
 
     String result = cmd.execute();
@@ -154,12 +186,12 @@ public class PrintEventsCommandTest {
   public void testPrintEventsOnWithEvents() {
     MockModel model = new MockModel();
     model.eventsToReturn = Arrays.asList(
-          new MockEvent("Meeting", "2025-05-01T10:00", "2025-05-01T11:00", "Room 101")
+        new MockEvent("Meeting", "2025-05-01T10:00", "2025-05-01T11:00", "Room 101")
     );
 
     PrintEventsCommand cmd = new PrintEventsCommand(
-          Arrays.asList("on", "2025-05-01"),
-          model, "Default"
+        Arrays.asList("on", "2025-05-01"),
+        model, "Default"
     );
 
     String result = cmd.execute();
@@ -172,12 +204,12 @@ public class PrintEventsCommandTest {
   public void testPrintEventsFromTo() {
     MockModel model = new MockModel();
     model.eventsToReturn = Arrays.asList(
-          new MockEvent("Lecture", "2025-06-01T09:00", "2025-06-01T10:30", "")
+        new MockEvent("Lecture", "2025-06-01T09:00", "2025-06-01T10:30", "")
     );
 
     PrintEventsCommand cmd = new PrintEventsCommand(
-          Arrays.asList("from", "2025-06-01T08:00", "to", "2025-06-01T12:00"),
-          model, "Uni"
+        Arrays.asList("from", "2025-06-01T08:00", "to", "2025-06-01T12:00"),
+        model, "Uni"
     );
 
     String result = cmd.execute();
@@ -206,16 +238,16 @@ public class PrintEventsCommandTest {
   @Test(expected = IllegalArgumentException.class)
   public void testFromToWrongKeyword() {
     new PrintEventsCommand(
-          Arrays.asList("from", "2025-06-01T08:00", "until", "2025-06-01T12:00"),
-          new MockModel(), "Cal"
+        Arrays.asList("from", "2025-06-01T08:00", "until", "2025-06-01T12:00"),
+        new MockModel(), "Cal"
     );
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testFromToWrongArgCount() {
     new PrintEventsCommand(
-          Arrays.asList("from", "2025-06-01T08:00", "to"),
-          new MockModel(), "Cal"
+        Arrays.asList("from", "2025-06-01T08:00", "to"),
+        new MockModel(), "Cal"
     );
   }
 }

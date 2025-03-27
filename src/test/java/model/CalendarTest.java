@@ -1,4 +1,5 @@
 package model;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -12,14 +13,20 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 
+/**
+ * Unit tests for the {@link Calendar} class.
+ * Verifies calendar creation, event management, and timezone behavior.
+ */
+
 public class CalendarTest {
 
   private Calendar calendar;
-  private CalendarEvent sampleEvent1;
-  private CalendarEvent sampleEvent2;
+
 
   @Before
   public void setup() {
+    CalendarEvent sampleEvent1;
+    CalendarEvent sampleEvent2;
     sampleEvent1 = CalendarEvent.builder()
           .setEventName("Meeting")
           .setStartDateTime(LocalDateTime.of(2025, 5, 1, 10, 0))
@@ -88,6 +95,18 @@ public class CalendarTest {
 
   @Test
   public void testTimezoneConversion() {
+
+    CalendarEvent sampleEvent1;
+    sampleEvent1 = CalendarEvent.builder()
+        .setEventName("Meeting")
+        .setStartDateTime(LocalDateTime.of(2025, 5, 1, 10, 0))
+        .setEndDateTime(LocalDateTime.of(2025, 5, 1, 11, 0))
+        .setEventLocation("Room 101")
+        .setEventDescription("Project sync")
+        .setPublic(false)
+        .build();
+
+
     calendar.setTimezone("Europe/London"); // New timezone ahead of New York
     assertEquals("Europe/London", calendar.getTimezone());
 
@@ -101,6 +120,16 @@ public class CalendarTest {
 
   @Test
   public void testSetEventsOverridesList() {
+    CalendarEvent sampleEvent1;
+    sampleEvent1 = CalendarEvent.builder()
+        .setEventName("Meeting")
+        .setStartDateTime(LocalDateTime.of(2025, 5, 1, 10, 0))
+        .setEndDateTime(LocalDateTime.of(2025, 5, 1, 11, 0))
+        .setEventLocation("Room 101")
+        .setEventDescription("Project sync")
+        .setPublic(false)
+        .build();
+
     calendar.setEvents(Arrays.asList(sampleEvent1));
     assertEquals(1, calendar.getEvents().size());
     assertEquals("Meeting", calendar.getEvents().get(0).getEventName());
@@ -108,6 +137,17 @@ public class CalendarTest {
 
   @Test
   public void testBuilderCreatesCalendarProperly() {
+
+    CalendarEvent sampleEvent1;
+    sampleEvent1 = CalendarEvent.builder()
+        .setEventName("Meeting")
+        .setStartDateTime(LocalDateTime.of(2025, 5, 1, 10, 0))
+        .setEndDateTime(LocalDateTime.of(2025, 5, 1, 11, 0))
+        .setEventLocation("Room 101")
+        .setEventDescription("Project sync")
+        .setPublic(false)
+        .build();
+
     ICalendar cal = Calendar.builder()
           .setCalendarName("TestCal")
           .setTimezone("Asia/Kolkata")

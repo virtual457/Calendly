@@ -28,6 +28,13 @@ public class CalendarControllerBasic extends AbstractController implements ICale
   private final IView view;
   private final CommandInvoker invoker;
 
+  /**
+   * Constructs a basic calendar controller with the given model and view.
+   *
+   * @param model the calendar model that manages the application data
+   * @param view  the view responsible for user interaction and output
+   */
+
   public CalendarControllerBasic(ICalendarModel model, IView view) {
     this.model = model;
     this.view = view;
@@ -48,9 +55,9 @@ public class CalendarControllerBasic extends AbstractController implements ICale
   @Override
   public void run(Readable input) {
     Scanner scanner = new Scanner(input);
-      view.display("Welcome to the Calendar App!");
-      initBasicMode();
-      runScanner(scanner, true, view, invoker, model);
+    view.display("Welcome to the Calendar App!");
+    initBasicMode();
+    runScanner(scanner, true, view, invoker, model);
 
   }
 

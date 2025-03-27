@@ -3,6 +3,7 @@ package controller.command;
 import controller.command.EditEventsCalendarCommand;
 import model.ICalendarEventDTO;
 import model.ICalendarModel;
+
 import org.junit.Test;
 
 import java.time.LocalDate;
@@ -11,13 +12,23 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+/**
+ * Unit tests for the {@link EditEventsCalendarCommand} class.
+ * This class ensures correct behavior of editing events in the calendar via commands,
+ * including property updates, error handling, and validation.
+ */
 
 public class EditEventsCalendarCommandTest {
 
   private static class MockModel implements ICalendarModel {
     boolean called = false;
-    String lastProperty, lastEventName, lastNewValue;
+    String lastProperty;
+    String lastEventName;
+    String lastNewValue;
     LocalDateTime lastFrom;
     boolean lastHasFrom;
 
@@ -44,7 +55,9 @@ public class EditEventsCalendarCommandTest {
     }
 
     @Override
-    public boolean editEvent(String calendarName, String property, String eventName, LocalDateTime fromDateTime, LocalDateTime toDateTime, String newValue) {
+    public boolean editEvent(String calendarName, String property, String eventName,
+                             LocalDateTime fromDateTime, LocalDateTime toDateTime,
+                             String newValue) {
       return false;
     }
 
@@ -59,22 +72,29 @@ public class EditEventsCalendarCommandTest {
     }
 
     @Override
-    public List<ICalendarEventDTO> getEventsInRange(String calendarName, LocalDateTime fromDateTime, LocalDateTime toDateTime) {
+    public List<ICalendarEventDTO> getEventsInRange(String calendarName,
+                                                    LocalDateTime fromDateTime,
+                                                    LocalDateTime toDateTime) {
       return List.of();
     }
 
     @Override
-    public List<ICalendarEventDTO> getEventsInSpecificDateTime(String calendarName, LocalDateTime dateTime) {
+    public List<ICalendarEventDTO> getEventsInSpecificDateTime(String calendarName,
+                                                               LocalDateTime dateTime) {
       return List.of();
     }
 
     @Override
-    public boolean copyEvents(String sourceCalendarName, LocalDateTime sourceStart, LocalDateTime sourceEnd, String targetCalendarName, LocalDate targetStart) {
+    public boolean copyEvents(String sourceCalendarName, LocalDateTime sourceStart,
+                              LocalDateTime sourceEnd, String targetCalendarName,
+                              LocalDate targetStart) {
       return false;
     }
 
     @Override
-    public boolean copyEvent(String sourceCalendarName, LocalDateTime sourceStart, String eventName, String targetCalendarName, LocalDateTime targetStart) {
+    public boolean copyEvent(String sourceCalendarName, LocalDateTime sourceStart,
+                             String eventName, String targetCalendarName,
+                             LocalDateTime targetStart) {
       return false;
     }
 
@@ -93,8 +113,8 @@ public class EditEventsCalendarCommandTest {
   public void testEditWithoutFrom() {
     MockModel model = new MockModel();
     EditEventsCalendarCommand command = new EditEventsCalendarCommand(
-          Arrays.asList("location", "EventName", "NewRoom"),
-          model, "Default"
+        Arrays.asList("location", "EventName", "NewRoom"),
+        model, "Default"
     );
 
     String result = command.execute();
@@ -109,8 +129,8 @@ public class EditEventsCalendarCommandTest {
   public void testEditWithFrom() {
     MockModel model = new MockModel();
     EditEventsCalendarCommand command = new EditEventsCalendarCommand(
-          Arrays.asList("name", "ProjectSync", "from", "2025-05-01T10:00", "with", "Team Sync"),
-          model, "WorkCal"
+        Arrays.asList("name", "ProjectSync", "from", "2025-05-01T10:00", "with", "Team Sync"),
+        model, "WorkCal"
     );
 
     String result = command.execute();
@@ -135,12 +155,15 @@ public class EditEventsCalendarCommandTest {
       }
 
       @Override
-      public boolean editEvents(String c, String p, String e, LocalDateTime d, String v, boolean s) {
+      public boolean editEvents(String c, String p, String e, LocalDateTime d, String v,
+                                boolean s) {
         return false;
       }
 
       @Override
-      public boolean editEvent(String calendarName, String property, String eventName, LocalDateTime fromDateTime, LocalDateTime toDateTime, String newValue) {
+      public boolean editEvent(String calendarName, String property, String eventName,
+                               LocalDateTime fromDateTime, LocalDateTime toDateTime,
+                               String newValue) {
         return false;
       }
 
@@ -155,22 +178,29 @@ public class EditEventsCalendarCommandTest {
       }
 
       @Override
-      public List<ICalendarEventDTO> getEventsInRange(String calendarName, LocalDateTime fromDateTime, LocalDateTime toDateTime) {
+      public List<ICalendarEventDTO> getEventsInRange(String calendarName,
+                                                      LocalDateTime fromDateTime,
+                                                      LocalDateTime toDateTime) {
         return List.of();
       }
 
       @Override
-      public List<ICalendarEventDTO> getEventsInSpecificDateTime(String calendarName, LocalDateTime dateTime) {
+      public List<ICalendarEventDTO> getEventsInSpecificDateTime(String calendarName,
+                                                                 LocalDateTime dateTime) {
         return List.of();
       }
 
       @Override
-      public boolean copyEvents(String sourceCalendarName, LocalDateTime sourceStart, LocalDateTime sourceEnd, String targetCalendarName, LocalDate targetStart) {
+      public boolean copyEvents(String sourceCalendarName, LocalDateTime sourceStart,
+                                LocalDateTime sourceEnd, String targetCalendarName,
+                                LocalDate targetStart) {
         return false;
       }
 
       @Override
-      public boolean copyEvent(String sourceCalendarName, LocalDateTime sourceStart, String eventName, String targetCalendarName, LocalDateTime targetStart) {
+      public boolean copyEvent(String sourceCalendarName, LocalDateTime sourceStart,
+                               String eventName, String targetCalendarName,
+                               LocalDateTime targetStart) {
         return false;
       }
 
@@ -186,8 +216,8 @@ public class EditEventsCalendarCommandTest {
     };
 
     EditEventsCalendarCommand command = new EditEventsCalendarCommand(
-          Arrays.asList("name", "ProjectSync", "from", "2025-05-01T10:00", "with", "Team Sync"),
-          model, "Any"
+        Arrays.asList("name", "ProjectSync", "from", "2025-05-01T10:00", "with", "Team Sync"),
+        model, "Any"
     );
 
     String result = command.execute();
@@ -208,32 +238,32 @@ public class EditEventsCalendarCommandTest {
   @Test(expected = IllegalArgumentException.class)
   public void testMissingFromDatetime() {
     new EditEventsCalendarCommand(
-          Arrays.asList("name", "Meeting", "from"),
-          new MockModel(), "Cal"
+        Arrays.asList("name", "Meeting", "from"),
+        new MockModel(), "Cal"
     );
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testMissingWithKeyword() {
     new EditEventsCalendarCommand(
-          Arrays.asList("name", "Meeting", "from", "2025-01-01T10:00"),
-          new MockModel(), "Cal"
+        Arrays.asList("name", "Meeting", "from", "2025-01-01T10:00"),
+        new MockModel(), "Cal"
     );
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testMissingNewValueAfterWith() {
     new EditEventsCalendarCommand(
-          Arrays.asList("name", "Meeting", "from", "2025-01-01T10:00", "with"),
-          new MockModel(), "Cal"
+        Arrays.asList("name", "Meeting", "from", "2025-01-01T10:00", "with"),
+        new MockModel(), "Cal"
     );
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testMissingNewValueWithoutFrom() {
     new EditEventsCalendarCommand(
-          Arrays.asList("name", "Meeting"),
-          new MockModel(), "Cal"
+        Arrays.asList("name", "Meeting"),
+        new MockModel(), "Cal"
     );
   }
 }

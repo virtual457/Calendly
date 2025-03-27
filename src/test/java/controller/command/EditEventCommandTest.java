@@ -3,6 +3,7 @@ package controller.command;
 import controller.command.EditEventCommand;
 import model.ICalendarEventDTO;
 import model.ICalendarModel;
+
 import org.junit.Test;
 
 import java.time.LocalDate;
@@ -11,13 +12,22 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+
+/**
+ * Unit tests for the {@link EditEventCommand} class.
+ * This test class verifies the behavior of editing individual calendar events,
+ * including updates to event properties and validation of input.
+ */
 
 public class EditEventCommandTest {
 
   private static class MockModel implements ICalendarModel {
-    String property, eventName, newValue;
-    LocalDateTime from, to;
+    String property;
+    String eventName;
+    String newValue;
+    LocalDateTime from;
+    LocalDateTime to;
     boolean shouldSucceed = true;
 
     @Override
@@ -31,7 +41,8 @@ public class EditEventCommandTest {
     }
 
     @Override
-    public boolean editEvents(String calendarName, String property, String eventName, LocalDateTime fromDateTime, String newValue, boolean editAll) {
+    public boolean editEvents(String calendarName, String property, String eventName,
+                              LocalDateTime fromDateTime, String newValue, boolean editAll) {
       return false;
     }
 
@@ -57,22 +68,29 @@ public class EditEventCommandTest {
     }
 
     @Override
-    public List<ICalendarEventDTO> getEventsInRange(String calendarName, LocalDateTime fromDateTime, LocalDateTime toDateTime) {
+    public List<ICalendarEventDTO> getEventsInRange(String calendarName,
+                                                    LocalDateTime fromDateTime,
+                                                    LocalDateTime toDateTime) {
       return List.of();
     }
 
     @Override
-    public List<ICalendarEventDTO> getEventsInSpecificDateTime(String calendarName, LocalDateTime dateTime) {
+    public List<ICalendarEventDTO> getEventsInSpecificDateTime(String calendarName,
+                                                               LocalDateTime dateTime) {
       return List.of();
     }
 
     @Override
-    public boolean copyEvents(String sourceCalendarName, LocalDateTime sourceStart, LocalDateTime sourceEnd, String targetCalendarName, LocalDate targetStart) {
+    public boolean copyEvents(String sourceCalendarName, LocalDateTime sourceStart,
+                              LocalDateTime sourceEnd, String targetCalendarName,
+                              LocalDate targetStart) {
       return false;
     }
 
     @Override
-    public boolean copyEvent(String sourceCalendarName, LocalDateTime sourceStart, String eventName, String targetCalendarName, LocalDateTime targetStart) {
+    public boolean copyEvent(String sourceCalendarName, LocalDateTime sourceStart,
+                             String eventName, String targetCalendarName,
+                             LocalDateTime targetStart) {
       return false;
     }
 
@@ -91,13 +109,13 @@ public class EditEventCommandTest {
   public void testValidEditEventCommand() {
     MockModel model = new MockModel();
     EditEventCommand command = new EditEventCommand(
-          Arrays.asList(
-                "name", "Meeting",
-                "from", "2025-05-01T10:00",
-                "to", "2025-05-01T11:00",
-                "with", "SyncCall"
-          ),
-          model, "Work"
+        Arrays.asList(
+            "name", "Meeting",
+            "from", "2025-05-01T10:00",
+            "to", "2025-05-01T11:00",
+            "with", "SyncCall"
+        ),
+        model, "Work"
     );
 
     String result = command.execute();
@@ -112,13 +130,13 @@ public class EditEventCommandTest {
     model.shouldSucceed = false;
 
     EditEventCommand command = new EditEventCommand(
-          Arrays.asList(
-                "location", "EventA",
-                "from", "2025-06-01T09:00",
-                "to", "2025-06-01T10:00",
-                "with", "Room 202"
-          ),
-          model, "Default"
+        Arrays.asList(
+            "location", "EventA",
+            "from", "2025-06-01T09:00",
+            "to", "2025-06-01T10:00",
+            "with", "Room 202"
+        ),
+        model, "Default"
     );
 
     String result = command.execute();
@@ -130,32 +148,35 @@ public class EditEventCommandTest {
   @Test(expected = IllegalArgumentException.class)
   public void testMissingFromKeyword() {
     new EditEventCommand(
-          Arrays.asList("name", "Meeting", "WRONG", "2025-05-01T10:00", "to", "2025-05-01T11:00", "with", "NewName"),
-          new MockModel(), "Cal"
+        Arrays.asList("name", "Meeting", "WRONG", "2025-05-01T10:00", "to", "2025-05-01T11:00",
+            "with", "NewName"),
+        new MockModel(), "Cal"
     );
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testMissingToKeyword() {
     new EditEventCommand(
-          Arrays.asList("name", "Meeting", "from", "2025-05-01T10:00", "WRONG", "2025-05-01T11:00", "with", "NewName"),
-          new MockModel(), "Cal"
+        Arrays.asList("name", "Meeting", "from", "2025-05-01T10:00", "WRONG", "2025-05-01T11:00",
+            "with", "NewName"),
+        new MockModel(), "Cal"
     );
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testMissingWithKeyword() {
     new EditEventCommand(
-          Arrays.asList("name", "Meeting", "from", "2025-05-01T10:00", "to", "2025-05-01T11:00", "WRONG", "NewName"),
-          new MockModel(), "Cal"
+        Arrays.asList("name", "Meeting", "from", "2025-05-01T10:00", "to", "2025-05-01T11:00",
+            "WRONG", "NewName"),
+        new MockModel(), "Cal"
     );
   }
 
   @Test(expected = IndexOutOfBoundsException.class)
   public void testTooFewArguments() {
     new EditEventCommand(
-          Collections.singletonList("name"),
-          new MockModel(), "Cal"
+        Collections.singletonList("name"),
+        new MockModel(), "Cal"
     );
   }
 }

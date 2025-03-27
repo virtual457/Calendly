@@ -13,7 +13,17 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+/**
+ * Unit tests for the {@link CalendarController} class covering basic command scenarios.
+ * <p>
+ * These tests verify correct parsing and execution of core calendar commands,
+ * including creating calendars, adding events, and switching between calendars.
+ * </p>
+ */
 
 public class CalendarControllerBasicTest {
 
@@ -31,11 +41,11 @@ public class CalendarControllerBasicTest {
   @Test
   public void testRunWithValidInput() {
     String input = "create event Meeting from 2025-01-01T10:00 to 2025-01-01T10:30\n" +
-          "edit event name Meeting from 2025-01-01T10:00 to 2025-01-01T11:00 with" +
-          " \"Team Sync\"\n" +
-          "print events on 2025-01-01\n" +
-          "show status on 2025-01-01T10:30\n" +
-          "export cal calendar.csv\n";
+        "edit event name Meeting from 2025-01-01T10:00 to 2025-01-01T11:00 with" +
+        " \"Team Sync\"\n" +
+        "print events on 2025-01-01\n" +
+        "show status on 2025-01-01T10:30\n" +
+        "export cal calendar.csv\n";
 
     controller.run(new StringReader(input));
 
@@ -67,7 +77,8 @@ public class CalendarControllerBasicTest {
     List<String> outputs = view.getMessages();
     assertFalse(outputs.isEmpty());
     assertTrue(outputs.get(0).contains("Welcome to the Calendar App!"));
-    assertTrue(outputs.stream().anyMatch(msg -> msg.contains("Error Executing command: Expected 'from' or 'on' after event name")));
+    assertTrue(outputs.stream().anyMatch(msg -> msg.contains("Error Executing command: Expected " +
+        "'from' or 'on' after event name")));
   }
 
   @Test
@@ -86,8 +97,8 @@ public class CalendarControllerBasicTest {
   @Test
   public void testRunWithValidInputForEdit() {
     String input =
-          "edit event name Meeting from 2025-01-01T10:00 to 2025-01-01T11:00 with" +
-                " \"Team Sync\"\n";
+        "edit event name Meeting from 2025-01-01T10:00 to 2025-01-01T11:00 with" +
+            " \"Team Sync\"\n";
 
     controller.run(new StringReader(input));
 
@@ -130,8 +141,6 @@ public class CalendarControllerBasicTest {
     assertTrue(outputs.stream().anyMatch(msg -> msg.contains("No events found.")));
 
   }
-
-
 
 
   @Test
@@ -177,21 +186,22 @@ public class CalendarControllerBasicTest {
     assertTrue(view.getMessages().stream().anyMatch(msg -> msg.contains("Unknown command")));
   }
 
-  private static class TestCalendarModelBasic extends CalendarControllerTest.TestCalendarModel implements ICalendarModel {
+  private static class TestCalendarModelBasic extends CalendarControllerTest.TestCalendarModel
+      implements ICalendarModel {
     @Override
     public boolean addEvent(String calendarName, ICalendarEventDTO event) {
-      if(!this.lastCreatedCalendarName.equals("Default")) {
+      if (!this.lastCreatedCalendarName.equals("Default")) {
         return false;
       }
       this.lastAddedEvent = event;
       return true;
     }
 
-    public String getLastUsedCalendar(){
+    public String getLastUsedCalendar() {
       return this.lastUsedCalendarName;
     }
 
-    public String getLastCreatedCalendar(){
+    public String getLastCreatedCalendar() {
       return this.lastCreatedCalendarName;
     }
   }

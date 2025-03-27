@@ -2,6 +2,7 @@ package controller.command;
 
 import model.ICalendarEventDTO;
 import model.ICalendarModel;
+
 import org.junit.After;
 import org.junit.Test;
 
@@ -15,7 +16,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
+
+/**
+ * Unit tests for the {@link ExportEventsCommand} class.
+ * This class verifies the correct export of calendar events into a CSV file format,
+ * including edge cases like empty calendars or invalid file paths.
+ */
 
 public class ExportEventsCommandTest {
 
@@ -23,8 +30,10 @@ public class ExportEventsCommandTest {
 
   private static class MockEvent implements ICalendarEventDTO {
     private final String name;
-    private final LocalDateTime start, end;
-    private final String desc, loc;
+    private final LocalDateTime start;
+    private final LocalDateTime end;
+    private final String desc;
+    private final String loc;
     private final boolean priv;
 
     public MockEvent(String name, String start, String end, String desc, String loc, boolean priv) {
@@ -36,9 +45,17 @@ public class ExportEventsCommandTest {
       this.priv = priv;
     }
 
-    public String getEventName() { return name; }
-    public LocalDateTime getStartDateTime() { return start; }
-    public LocalDateTime getEndDateTime() { return end; }
+    public String getEventName() {
+      return name;
+    }
+
+    public LocalDateTime getStartDateTime() {
+      return start;
+    }
+
+    public LocalDateTime getEndDateTime() {
+      return end;
+    }
 
     @Override
     public Boolean isRecurring() {
@@ -65,9 +82,17 @@ public class ExportEventsCommandTest {
       return null;
     }
 
-    public String getEventDescription() { return desc; }
-    public String getEventLocation() { return loc; }
-    public Boolean isPrivate() { return priv; }
+    public String getEventDescription() {
+      return desc;
+    }
+
+    public String getEventLocation() {
+      return loc;
+    }
+
+    public Boolean isPrivate() {
+      return priv;
+    }
   }
 
   private static class MockModel implements ICalendarModel {
@@ -84,12 +109,15 @@ public class ExportEventsCommandTest {
     }
 
     @Override
-    public boolean editEvents(String calendarName, String property, String eventName, LocalDateTime fromDateTime, String newValue, boolean editAll) {
+    public boolean editEvents(String calendarName, String property, String eventName,
+                              LocalDateTime fromDateTime, String newValue, boolean editAll) {
       return false;
     }
 
     @Override
-    public boolean editEvent(String calendarName, String property, String eventName, LocalDateTime fromDateTime, LocalDateTime toDateTime, String newValue) {
+    public boolean editEvent(String calendarName, String property, String eventName,
+                             LocalDateTime fromDateTime, LocalDateTime toDateTime,
+                             String newValue) {
       return false;
     }
 
@@ -103,22 +131,28 @@ public class ExportEventsCommandTest {
       return false;
     }
 
-    public List<ICalendarEventDTO> getEventsInRange(String cal, LocalDateTime start, LocalDateTime end) {
+    public List<ICalendarEventDTO> getEventsInRange(String cal, LocalDateTime start,
+                                                    LocalDateTime end) {
       return events;
     }
 
     @Override
-    public List<ICalendarEventDTO> getEventsInSpecificDateTime(String calendarName, LocalDateTime dateTime) {
+    public List<ICalendarEventDTO> getEventsInSpecificDateTime(String calendarName,
+                                                               LocalDateTime dateTime) {
       return List.of();
     }
 
     @Override
-    public boolean copyEvents(String sourceCalendarName, LocalDateTime sourceStart, LocalDateTime sourceEnd, String targetCalendarName, LocalDate targetStart) {
+    public boolean copyEvents(String sourceCalendarName, LocalDateTime sourceStart,
+                              LocalDateTime sourceEnd, String targetCalendarName,
+                              LocalDate targetStart) {
       return false;
     }
 
     @Override
-    public boolean copyEvent(String sourceCalendarName, LocalDateTime sourceStart, String eventName, String targetCalendarName, LocalDateTime targetStart) {
+    public boolean copyEvent(String sourceCalendarName, LocalDateTime sourceStart,
+                             String eventName, String targetCalendarName,
+                             LocalDateTime targetStart) {
       return false;
     }
 
@@ -136,18 +170,23 @@ public class ExportEventsCommandTest {
   @After
   public void tearDown() {
     File file = new File(TEST_FILE);
-    if (file.exists()) file.delete();
+    if (file.exists()) {
+      file.delete();
+    }
   }
 
   @Test
   public void testSuccessfulExport() throws Exception {
     MockModel model = new MockModel();
     model.events = Arrays.asList(
-          new MockEvent("Event A", "2025-05-01T10:00", "2025-05-01T11:00", "Description", "Room 101", true),
-          new MockEvent("Event B", "2025-05-02T00:00", "2025-05-02T23:59:59", "", "", false) // all-day
+        new MockEvent("Event A", "2025-05-01T10:00", "2025-05-01T11:00", "Description", "Room " +
+            "101", true),
+        new MockEvent("Event B", "2025-05-02T00:00", "2025-05-02T23:59:59", "", "", false) //
+
     );
 
-    ExportEventsCommand cmd = new ExportEventsCommand(Collections.singletonList(TEST_FILE), model, "Work");
+    ExportEventsCommand cmd = new ExportEventsCommand(Collections.singletonList(TEST_FILE), model
+        , "Work");
     String result = cmd.execute();
 
     assertTrue(result.contains("Events exported successfully"));
@@ -168,7 +207,8 @@ public class ExportEventsCommandTest {
     MockModel model = new MockModel();
     model.events = Collections.emptyList();
 
-    ExportEventsCommand cmd = new ExportEventsCommand(Collections.singletonList(TEST_FILE), model, "Default");
+    ExportEventsCommand cmd = new ExportEventsCommand(Collections.singletonList(TEST_FILE), model
+        , "Default");
     String result = cmd.execute();
 
     assertTrue(result.contains("exported"));
@@ -192,7 +232,8 @@ public class ExportEventsCommandTest {
 
     // Use an invalid filename to force an exception
     String badFile = "/dev/null/invalid.csv";
-    ExportEventsCommand cmd = new ExportEventsCommand(Collections.singletonList(badFile), model, "Default");
+    ExportEventsCommand cmd = new ExportEventsCommand(Collections.singletonList(badFile), model,
+        "Default");
     String result = cmd.execute();
 
     assertTrue(result.startsWith("Error exporting events:"));

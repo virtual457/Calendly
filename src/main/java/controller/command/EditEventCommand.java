@@ -17,6 +17,14 @@ public class EditEventCommand implements ICommand {
   private LocalDateTime toDateTime;
   private final String newValue;
 
+  /**
+   * Constructs an {@code EditEventCommand} to edit a specific event in the given calendar.
+   *
+   * @param parts           the list of command arguments
+   * @param model           the calendar model to interact with
+   * @param currentCalendar the name of the currently selected calendar
+   */
+
   public EditEventCommand(List<String> parts, ICalendarModel model, String currentCalendar) {
     this.model = model;
     this.calendarName = currentCalendar;

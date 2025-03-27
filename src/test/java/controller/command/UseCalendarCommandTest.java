@@ -2,6 +2,7 @@ package controller.command;
 
 import model.ICalendarEventDTO;
 import model.ICalendarModel;
+
 import org.junit.Test;
 
 import java.time.LocalDate;
@@ -10,7 +11,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+
+/**
+ * Unit tests for the {@link UseCalendarCommand} class.
+ * Verifies that the command correctly switches between calendars
+ * and handles invalid inputs or nonexistent calendars appropriately.
+ */
 
 public class UseCalendarCommandTest {
 
@@ -29,12 +36,15 @@ public class UseCalendarCommandTest {
     }
 
     @Override
-    public boolean editEvents(String calendarName, String property, String eventName, LocalDateTime fromDateTime, String newValue, boolean editAll) {
+    public boolean editEvents(String calendarName, String property, String eventName,
+                              LocalDateTime fromDateTime, String newValue, boolean editAll) {
       return false;
     }
 
     @Override
-    public boolean editEvent(String calendarName, String property, String eventName, LocalDateTime fromDateTime, LocalDateTime toDateTime, String newValue) {
+    public boolean editEvent(String calendarName, String property, String eventName,
+                             LocalDateTime fromDateTime, LocalDateTime toDateTime,
+                             String newValue) {
       return false;
     }
 
@@ -49,22 +59,29 @@ public class UseCalendarCommandTest {
     }
 
     @Override
-    public List<ICalendarEventDTO> getEventsInRange(String calendarName, LocalDateTime fromDateTime, LocalDateTime toDateTime) {
+    public List<ICalendarEventDTO> getEventsInRange(String calendarName,
+                                                    LocalDateTime fromDateTime,
+                                                    LocalDateTime toDateTime) {
       return List.of();
     }
 
     @Override
-    public List<ICalendarEventDTO> getEventsInSpecificDateTime(String calendarName, LocalDateTime dateTime) {
+    public List<ICalendarEventDTO> getEventsInSpecificDateTime(String calendarName,
+                                                               LocalDateTime dateTime) {
       return List.of();
     }
 
     @Override
-    public boolean copyEvents(String sourceCalendarName, LocalDateTime sourceStart, LocalDateTime sourceEnd, String targetCalendarName, LocalDate targetStart) {
+    public boolean copyEvents(String sourceCalendarName, LocalDateTime sourceStart,
+                              LocalDateTime sourceEnd, String targetCalendarName,
+                              LocalDate targetStart) {
       return false;
     }
 
     @Override
-    public boolean copyEvent(String sourceCalendarName, LocalDateTime sourceStart, String eventName, String targetCalendarName, LocalDateTime targetStart) {
+    public boolean copyEvent(String sourceCalendarName, LocalDateTime sourceStart,
+                             String eventName, String targetCalendarName,
+                             LocalDateTime targetStart) {
       return false;
     }
 
@@ -86,9 +103,9 @@ public class UseCalendarCommandTest {
   public void testValidCalendarUse() {
     MockModel model = new MockModel();
     UseCalendarCommand command = new UseCalendarCommand(
-          Arrays.asList("--name", "Work"),
-          model,
-          "Default"
+        Arrays.asList("--name", "Work"),
+        model,
+        "Default"
     );
 
     String result = command.execute();
@@ -103,15 +120,14 @@ public class UseCalendarCommandTest {
     model.calendarExists = false;
 
     UseCalendarCommand command = new UseCalendarCommand(
-          Arrays.asList("--name", "Ghost"),
-          model,
-          "Default"
+        Arrays.asList("--name", "Ghost"),
+        model,
+        "Default"
     );
 
     String result = command.execute();
     assertEquals("Error: calendar not found", result);
   }
-
 
 
   @Test(expected = IllegalArgumentException.class)
@@ -132,9 +148,9 @@ public class UseCalendarCommandTest {
   @Test(expected = IllegalArgumentException.class)
   public void testExtraArguments() {
     new UseCalendarCommand(
-          Arrays.asList("--name", "Work", "extraArg"),
-          new MockModel(),
-          "Default"
+        Arrays.asList("--name", "Work", "extraArg"),
+        new MockModel(),
+        "Default"
     );
   }
 }

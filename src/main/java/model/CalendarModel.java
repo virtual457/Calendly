@@ -76,7 +76,8 @@ class CalendarModel implements ICalendarModel {
       if (eventDTO.isAutoDecline()) {
         occurrences.forEach(occurrence -> targetCalendar.getEvents().forEach(event -> {
           if (event.doesEventConflict(occurrence)) {
-            throw new IllegalStateException("Conflict detected on " + occurrence.getStartDateTime() + ", event not created");
+            throw new IllegalStateException("Conflict detected on "
+                + occurrence.getStartDateTime() + ", event not created");
           }
         }));
       }
@@ -214,7 +215,8 @@ class CalendarModel implements ICalendarModel {
     for (ICalendarEvent event : targetCalendar.getEvents()) {
       // Check if the event matches the criteria.
       if (event.getEventName().equals(eventName)
-          && (event.getStartDateTime().isEqual(fromDateTime) && event.getEndDateTime().equals(toDateTime))) {
+          && (event.getStartDateTime().isEqual(fromDateTime)
+          && event.getEndDateTime().equals(toDateTime))) {
 
         // Save original values for rollback.
         LocalDateTime originalStart = event.getStartDateTime();
@@ -342,7 +344,8 @@ class CalendarModel implements ICalendarModel {
 
     List<ICalendarEvent> rangeEvents = new ArrayList<>();
     for (ICalendarEvent event : targetCalendar.getEvents()) {
-      if ((event.getStartDateTime().isBefore(dateTime) || event.getStartDateTime().equals(dateTime)) &&
+      if ((event.getStartDateTime().isBefore(dateTime) ||
+          event.getStartDateTime().equals(dateTime)) &&
           (event.getEndDateTime().isAfter(dateTime) || event.getEndDateTime().equals(dateTime))) {
         rangeEvents.add(event);
       }
@@ -374,7 +377,9 @@ class CalendarModel implements ICalendarModel {
     for (ICalendarEvent event : targetCalendar.getEvents()) {
       // Check if the event's start time falls within the specified range (inclusive).
       if ((!event.getStartDateTime().isBefore(fromDateTime) &&
-          !event.getStartDateTime().isAfter(toDateTime)) || (event.getEndDateTime().isAfter(fromDateTime) && event.getEndDateTime().isBefore(toDateTime))) {
+          !event.getStartDateTime().isAfter(toDateTime)) ||
+          (event.getEndDateTime().isAfter(fromDateTime) &&
+              event.getEndDateTime().isBefore(toDateTime))) {
         rangeEvents.add(event);
       }
     }
@@ -454,7 +459,8 @@ class CalendarModel implements ICalendarModel {
 
       // Check for conflicts in the target calendar.
       if (doesEventConflict(targetCal.getEvents(), convertToDTO(newEvent))) {
-        throw new IllegalStateException("Conflict detected when copying event: " + event.getEventName());
+        throw new IllegalStateException("Conflict detected when copying event: " +
+            event.getEventName());
       }
 
       // Add the new event to the target calendar.
@@ -498,7 +504,8 @@ class CalendarModel implements ICalendarModel {
       }
     }
     if (eventToCopy == null) {
-      throw new IllegalStateException("Event with name '" + eventName + "' on " + eventDateTime + " not found in calendar " + sourceCalendarName);
+      throw new IllegalStateException("Event with name '" +
+          eventName + "' on " + eventDateTime + " not found in calendar " + sourceCalendarName);
     }
 
     // Compute the duration of the event.
@@ -522,7 +529,8 @@ class CalendarModel implements ICalendarModel {
 
     // Check for conflicts in the target calendar.
     if (doesEventConflict(targetCal.getEvents(), convertToDTO(newEvent))) {
-      throw new IllegalStateException("Conflict detected when copying event: " + eventToCopy.getEventName());
+      throw new IllegalStateException("Conflict detected when copying event: " +
+          eventToCopy.getEventName());
     }
 
     // Add the new event to the target calendar.
@@ -599,7 +607,8 @@ class CalendarModel implements ICalendarModel {
   // Validates properties specific to recurring events.
   private void validateRecurringEvent(ICalendarEventDTO eventDTO) {
     // Ensure the event's start and end occur on the same day.
-    if (!eventDTO.getStartDateTime().toLocalDate().equals(eventDTO.getEndDateTime().toLocalDate())) {
+    if (!eventDTO.getStartDateTime().toLocalDate().
+        equals(eventDTO.getEndDateTime().toLocalDate())) {
       throw new IllegalArgumentException("Recurring events must have start and end on " +
           "the same day.");
     }
@@ -659,7 +668,9 @@ class CalendarModel implements ICalendarModel {
     // Loop until termination condition (by count or recurrence end date) is met.
     while (true) {
       if (eventDTO.getRecurrenceCount() != null && eventDTO.getRecurrenceCount() > 0) {
-        if (count >= eventDTO.getRecurrenceCount()) break;
+        if (count >= eventDTO.getRecurrenceCount()) {
+          break;
+        }
       } else if (recurrenceEnd != null) {
         if (currentDate.isAfter(recurrenceEnd)) {
           break;
@@ -718,7 +729,8 @@ class CalendarModel implements ICalendarModel {
   private boolean doesEventConflict(List<ICalendarEvent> eventList,
                                     ICalendarEventDTO newEventDTO) {
     CalendarEvent firstEvent =
-        CalendarEvent.builder().setStartDateTime(newEventDTO.getStartDateTime()).setEndDateTime(newEventDTO.getEndDateTime()).build();
+        CalendarEvent.builder().setStartDateTime(newEventDTO.getStartDateTime()).
+            setEndDateTime(newEventDTO.getEndDateTime()).build();
     for (ICalendarEvent event : eventList) {
       if (event.doesEventConflict(firstEvent)) {
         return true;

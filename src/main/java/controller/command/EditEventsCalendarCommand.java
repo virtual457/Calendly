@@ -17,6 +17,14 @@ public class EditEventsCalendarCommand implements ICommand {
   private final LocalDateTime fromDateTime;
   private final boolean hasFromDateTime;
 
+  /**
+   * Constructs an {@code EditEventsCalendarCommand} to edit multiple events in a calendar.
+   *
+   * @param parts           the list of command arguments
+   * @param model           the calendar model to interact with
+   * @param currentCalendar the name of the currently selected calendar
+   */
+
   public EditEventsCalendarCommand(List<String> parts, ICalendarModel model,
                                    String currentCalendar) {
     this.model = model;

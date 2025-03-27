@@ -12,6 +12,14 @@ public class UseCalendarCommand implements ICommand {
   private String calendarName;
   private final ICalendarModel model;
 
+  /**
+   * Constructs a {@code UseCalendarCommand} with the given arguments, model, and current calendar.
+   *
+   * @param args             the command arguments
+   * @param model            the calendar model to operate on
+   * @param currentCalendar  the name of the currently active calendar
+   */
+
   public UseCalendarCommand(List<String> args, ICalendarModel model, String currentCalendar) {
     this.calendarName = currentCalendar;
     if (Objects.isNull(model)) {

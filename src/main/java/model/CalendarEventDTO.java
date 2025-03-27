@@ -4,6 +4,15 @@ import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * A Data Transfer Object (DTO) that represents a calendar event.
+ * <p>
+ * This class encapsulates all the details of a calendar event such as
+ * name, start and end times, recurrence rules, description, location,
+ * privacy settings, and auto-decline behavior.
+ * </p>
+ */
+
 public class CalendarEventDTO implements ICalendarEventDTO {
   private String eventName;
   private LocalDateTime startDateTime;

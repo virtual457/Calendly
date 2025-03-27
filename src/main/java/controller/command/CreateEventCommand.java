@@ -32,6 +32,15 @@ public class CreateEventCommand implements ICommand {
   boolean isOn;
   Integer count = null;
 
+  /**
+   * Constructs a {@code CreateEventCommand} used to create a new event in the specified calendar.
+   *
+   * @param fromArgs     the list of arguments
+   *                     for creating the event, such as name, date, time, etc.
+   * @param model        the calendar model that handles the event creation logic
+   * @param calendarName the name of the calendar in which the event is to be created
+   */
+
   public CreateEventCommand(List<String> fromArgs, ICalendarModel model,
                             String calendarName) {
     this.model = model;
@@ -156,8 +165,9 @@ public class CreateEventCommand implements ICommand {
 
   private void parseRepeatsPart() {
     index++;
-    if (index >= args.size())
+    if (index >= args.size()) {
       throw new IllegalArgumentException("Missing weekdays after 'repeats'");
+    }
     for (char c : args.get(index++).toCharArray()) {
       recurrenceDays.add(mapDay(c));
     }
@@ -179,7 +189,8 @@ public class CreateEventCommand implements ICommand {
         }
         if (isOn) {
           this.recurrenceEndDate =
-              LocalDate.parse(args.get(index++)).atStartOfDay().withHour(23).withMinute(59).withSecond(59);
+              LocalDate.parse(args.get(index++)).atStartOfDay().
+                  withHour(23).withMinute(59).withSecond(59);
         } else {
           this.recurrenceEndDate = LocalDateTime.parse(args.get(index++));
         }

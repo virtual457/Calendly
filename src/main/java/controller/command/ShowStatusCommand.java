@@ -14,6 +14,15 @@ public class ShowStatusCommand implements ICommand {
   private final String calendarName;
   private final LocalDateTime dateTime;
 
+  /**
+   * Constructs a {@code ShowStatusCommand}
+   * with the specified arguments, model, and current calendar.
+   *
+   * @param parts            the list of command arguments
+   * @param model            the calendar model to interact with
+   * @param currentCalendar  the currently selected calendar name
+   */
+
   public ShowStatusCommand(List<String> parts, ICalendarModel model, String currentCalendar) {
     this.model = model;
     this.calendarName = currentCalendar;

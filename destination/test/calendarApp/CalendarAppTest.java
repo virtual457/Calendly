@@ -25,12 +25,6 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Test class using parameterized testing for validating multiple scenarios.
- */
-
-@RunWith(Parameterized.class)
-
-/**
  * A JUnit test suite for verifying the behavior of the Calendar application's entry
  * point.
  * <p>
@@ -40,6 +34,7 @@ import java.util.List;
  * different conditions.
  * </p>
  */
+@RunWith(Parameterized.class)
 
 public class CalendarAppTest {
 
@@ -60,6 +55,7 @@ public class CalendarAppTest {
 
   @Before
   public void setUp() throws IOException {
+    System.setProperty("run_mode", "true");
     outContent = new ByteArrayOutputStream();
     System.setOut(new PrintStream(outContent));
     Files.deleteIfExists(Paths.get(OUTPUT_FILE));
@@ -104,6 +100,44 @@ public class CalendarAppTest {
     String[] args = {"--mode", "headless", tempFile.getAbsolutePath()};
     CalendarApp.main(args);
     assertTrue(outContent.toString().trim().contains("Welcome to the Calendar App!"));
+    tempFile.delete();
+  }
+
+  @Test
+  public void testMain_ValidArguments_HeadlessMode_ShouldRunWithFile2() throws IOException {
+    File tempFile = File.createTempFile("commands", ".txt");
+    try (FileWriter writer = new FileWriter(tempFile)) {
+      writer.write("");
+    }
+    String[] args = {"--mode", "headless", tempFile.getAbsolutePath()};
+    CalendarApp.main(args);
+    assertTrue(outContent.toString().trim().contains("File must end with" +
+        " 'exit' in headless mode."));
+    tempFile.delete();
+  }
+
+  @Test
+  public void testMain_ValidArguments_HeadlessMode_ShouldRunWithFile3() throws IOException {
+    File tempFile = File.createTempFile("commands", ".txt");
+    try (FileWriter writer = new FileWriter(tempFile)) {
+      writer.write("");
+    }
+    String[] args = {"--mode", "Blast", tempFile.getAbsolutePath()};
+    CalendarApp.main(args);
+    assertTrue(outContent.toString().trim().contains("Unsupported mode"));
+    tempFile.delete();
+  }
+
+  @Test
+  public void testMain_ValidArguments_HeadlessMode_ShouldRunWithFile4() throws IOException {
+    File tempFile = File.createTempFile("commands", ".txt");
+    try (FileWriter writer = new FileWriter(tempFile)) {
+      writer.write("");
+    }
+    String[] args = {"--mode", "headless"};
+    CalendarApp.main(args);
+    assertTrue(outContent.toString().trim().contains("Missing filepath for headless " +
+          "mode"));
     tempFile.delete();
   }
 
@@ -2315,7 +2349,8 @@ public class CalendarAppTest {
   }
 
   @Test
-  public void testCreateRecurringTimedEventWithAutoDecline_ShouldExportCorrectly() throws IOException {
+  public void testCreateRecurringTimedEventWithAutoDecline_ShouldExportCorrectly()
+      throws IOException {
     String[] commands = {
         "create calendar --name AutoRecurring --timezone America/New_York",
         "use calendar --name AutoRecurring",
@@ -2537,7 +2572,8 @@ public class CalendarAppTest {
 
   // Test: Editing a recurring event with editAll = true should update all occurrences.
   @Test
-  public void testEditRecurringEvent_UpdateAllOccurrences_ShouldExportCorrectly() throws IOException {
+  public void testEditRecurringEvent_UpdateAllOccurrences_ShouldExportCorrectly()
+      throws IOException {
     String[] commands = {
         "create calendar --name EditRecurrCal --timezone America/New_York",
         "use calendar --name EditRecurrCal",
@@ -2624,7 +2660,8 @@ public class CalendarAppTest {
   }
 
   @Test
-  public void testEditNonRecurringEvent_UpdateDescription_ShouldExportCorrectly() throws IOException {
+  public void testEditNonRecurringEvent_UpdateDescription_ShouldExportCorrectly()
+      throws IOException {
     String[] commands = {
         "create calendar --name EditDescNR --timezone America/New_York",
         "use calendar --name EditDescNR",

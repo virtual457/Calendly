@@ -1895,12 +1895,6 @@ public class CalendarControllerTest {
     }
   }
 
-  @Test
-  public void testTest() {
-    testCommandInBothModes(mode, "create event TeamMeeting from 2024-03-20T10:00 "
-        + "to 2024-03-20T10:30 repeats until 2024-04-20T10:30");
-  }
-
 
   @Test
   public void testCreateEventMissingWords() {
@@ -2448,7 +2442,7 @@ public class CalendarControllerTest {
   protected static class TestCalendarModel implements ICalendarModel {
     ICalendarEventDTO lastAddedEvent;
     // Fields for edit event
-    String lastEditEventProperty;
+    public String lastEditEventProperty;
     String lastEditEventName;
     LocalDateTime lastEditEventStartDateTime;
     LocalDateTime lastEditEventEndDateTime;
@@ -2588,6 +2582,7 @@ public class CalendarControllerTest {
 
     @Override
     public boolean isCalendarPresent(String calName) {
+      this.lastUsedCalendarName = calName;
       this.lastCalendarPresentName = calName;
       return true;
     }

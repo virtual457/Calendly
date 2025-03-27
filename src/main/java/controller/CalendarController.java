@@ -54,7 +54,7 @@ class CalendarController extends AbstractController implements ICalendarControll
   public void run(Readable input) {
     try (Scanner scanner = new Scanner(input)) {
       view.display("Welcome to the Calendar App!");
-      if(input instanceof BufferedReader){
+      if (input instanceof BufferedReader) {
         System.setProperty("run.mode","true");
       }
       runScanner(scanner, true, view, invoker, model);

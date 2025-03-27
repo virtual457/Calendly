@@ -12,6 +12,12 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+/**
+ * Unit tests for the ConsoleView class.
+ * Verifies console interactions such as displaying messages,
+ * reading user input, and formatting outputs.
+ */
+
 public class ConsoleViewTest {
   private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
   private final PrintStream originalOut = System.out;

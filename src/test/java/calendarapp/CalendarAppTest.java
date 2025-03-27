@@ -25,12 +25,6 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Test class using parameterized testing for validating multiple scenarios.
- */
-
-@RunWith(Parameterized.class)
-
-/**
  * A JUnit test suite for verifying the behavior of the Calendar application's entry
  * point.
  * <p>
@@ -40,6 +34,7 @@ import java.util.List;
  * different conditions.
  * </p>
  */
+@RunWith(Parameterized.class)
 
 public class CalendarAppTest {
 
@@ -116,7 +111,8 @@ public class CalendarAppTest {
     }
     String[] args = {"--mode", "headless", tempFile.getAbsolutePath()};
     CalendarApp.main(args);
-    assertTrue(outContent.toString().trim().contains("File must end with 'exit' in headless mode."));
+    assertTrue(outContent.toString().trim().contains("File must end with" +
+        " 'exit' in headless mode."));
     tempFile.delete();
   }
 

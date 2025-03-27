@@ -20,6 +20,17 @@ public class CopyEventsCommand implements ICommand {
   private String targetCalendar;
   private LocalDate targetStartDate;
 
+  /**
+   * Constructs a {@code CopyEventsCommand}
+   * for copying events from a source calendar to a target calendar.
+   *
+   * @param parts            the parsed command parts
+   *                         containing source/target dates and calendar names
+   * @param model            the calendar model that performs the copy logic
+   * @param currentCalendar  the name of the currently active (source) calendar
+   * @throws IllegalArgumentException if the command format is invalid or arguments are missing
+   */
+
   public CopyEventsCommand(List<String> parts, ICalendarModel model, String currentCalendar) {
     this.model = model;
     this.sourceCalendar = currentCalendar;

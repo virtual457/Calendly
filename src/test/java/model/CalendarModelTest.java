@@ -1,8 +1,14 @@
 package model;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
-import java.lang.reflect.Method;
+
 import java.time.DayOfWeek;
 
 import java.time.LocalDate;
@@ -10,7 +16,6 @@ import java.time.LocalDateTime;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -18,6 +23,12 @@ import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
+
+/**
+ * Test suite for the {@link CalendarModel} class.
+ * Verifies functionality such as calendar creation, event manipulation,
+ * timezone adjustments, recurrence handling, and conflict detection.
+ */
 
 public class CalendarModelTest {
 
@@ -2016,7 +2027,7 @@ public class CalendarModelTest {
     assertTrue(edited);
 
     List<ICalendarEventDTO> events = model.getEventsInRange("TestCal", start.minusMinutes(1),
-      end.plusMinutes(1));
+        end.plusMinutes(1));
     assertEquals("Room B", events.get(0).getEventLocation());
   }
 
