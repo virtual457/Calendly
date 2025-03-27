@@ -41,7 +41,7 @@ public class CalendarControllerBasic extends AbstractController implements ICale
 
     this.invoker = new CommandInvoker("Default");
 
-    // Register commands
+
 
     invoker.registerCommand("create event", BasicCreateEventCommand.class);
     invoker.registerCommand("export cal", ExportEventsCommand.class);
@@ -69,7 +69,6 @@ public class CalendarControllerBasic extends AbstractController implements ICale
         "create calendar --name Default --timezone America/New_York\n" +
             "use calendar --name Default\n";
 
-    // Combine prepended lines with the original input
     Readable combinedInput = new StringReader(preLines);
     runScanner(new Scanner(combinedInput), false, view, invoker, model);
     invoker.deregisterCommand("use calendar");

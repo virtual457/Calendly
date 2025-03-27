@@ -45,7 +45,7 @@ public interface ModeHandler {
    * and lookup of shared instances like the controller, model, or view.
    */
 
-  // Static inner class to hold the mode map
+
   class Registry {
     static final Map<String, Function<String[], ModeHandler>> modeMap = new HashMap<>();
 

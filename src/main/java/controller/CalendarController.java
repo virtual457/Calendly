@@ -35,7 +35,6 @@ class CalendarController extends AbstractController implements ICalendarControll
     this.view = view;
     this.invoker = new CommandInvoker(null);
 
-    // Register commands
     invoker.registerCommand("create calendar", CreateCalendarCommand.class);
     invoker.registerCommand("create event", CreateEventCommand.class);
     invoker.registerCommand("use calendar", UseCalendarCommand.class);

@@ -160,7 +160,6 @@ public class ShowStatusCommandTest {
       return false;
     }
 
-    // Other methods can be left unimplemented if not used
   }
 
   @Test

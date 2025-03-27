@@ -247,7 +247,7 @@ public class CalendarAppTest {
     String[] commands = {
         "create calendar --name BadFormat --timezone America/New_York",
         "use calendar --name BadFormat",
-        "show status on 06-08-2024T09:00", // Invalid format
+        "show status on 06-08-2024T09:00",
         "exit"
     };
     runAppWithCommands(commands);
@@ -261,7 +261,7 @@ public class CalendarAppTest {
     String[] commands = {
         "create calendar --name MissingOn --timezone America/New_York",
         "use calendar --name MissingOn",
-        "show status 2024-06-09T09:00", // Missing 'on'
+        "show status 2024-06-09T09:00",
         "exit"
     };
     runAppWithCommands(commands);
@@ -275,7 +275,7 @@ public class CalendarAppTest {
     String[] commands = {
         "create calendar --name ExtraArgs --timezone America/New_York",
         "use calendar --name ExtraArgs",
-        "show status on 2024-06-10T09:00 now", // Extra token
+        "show status on 2024-06-10T09:00 now",
         "exit"
     };
     runAppWithCommands(commands);
@@ -321,7 +321,7 @@ public class CalendarAppTest {
     assertTrue(outContent.toString().toLowerCase().contains("busy"));
   }
 
-  //Print calendarrr command tests
+  //Print calendar command tests
   @Test
   public void testPrintEventsOnExactOutputMatch() throws IOException {
     String[] commands = {
@@ -714,7 +714,7 @@ public class CalendarAppTest {
     String[] commands = {
         "create calendar --name InvalidDate --timezone America/New_York",
         "use calendar --name InvalidDate",
-        "print events on 07/16/2024", // Invalid format
+        "print events on 07/16/2024",
         "exit"
     };
     runAppWithCommands(commands);
@@ -727,7 +727,7 @@ public class CalendarAppTest {
     String[] commands = {
         "create calendar --name MissingTo --timezone America/New_York",
         "use calendar --name MissingTo",
-        "print events from 2024-07-17T10:00 2024-07-17T11:00", // Missing 'to'
+        "print events from 2024-07-17T10:00 2024-07-17T11:00",
         "exit"
     };
     runAppWithCommands(commands);
@@ -857,7 +857,6 @@ public class CalendarAppTest {
     assertTrue(outContent.toString().toLowerCase().contains("not found"));
   }
 
-  //
   @Test
   public void testCreateCalendar_MissingName_ShouldFail() {
     String[] commands = {
@@ -2479,7 +2478,6 @@ public class CalendarAppTest {
         "exit"
     };
     runAppWithCommands(commands);
-    // Expect output to mention an error about the new start time.
     assertTrue(outContent.toString().toLowerCase().contains("new start must be before " +
         "current end time"));
   }
@@ -2492,7 +2490,6 @@ public class CalendarAppTest {
         "create calendar --name EditInvalidEnd --timezone America/New_York",
         "use calendar --name EditInvalidEnd",
         "create event Meeting from 2025-06-10T10:00 to 2025-06-10T11:00",
-        // Attempt to edit end time to 10:00 which is equal to the current start time.
         "edit events end Meeting from 2025-06-10T10:00 with \"2025-06-10T10:00:00\"",
         "exit"
     };

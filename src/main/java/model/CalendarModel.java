@@ -25,14 +25,14 @@ class CalendarModel implements ICalendarModel {
 
   @Override
   public boolean createCalendar(String calName, String timezone) {
-    // Validate the timezone.
+
     try {
       ZoneId.of(timezone);
     } catch (Exception e) {
       throw new IllegalArgumentException("Invalid timezone: " + timezone, e);
     }
 
-    // Check if a calendar with the given name already exists.
+
     for (ICalendar cal : calendars) {
       if (cal.getCalendarName().equalsIgnoreCase(calName)) {
         throw new IllegalArgumentException("Calendar with name '" + calName + "' " +
@@ -40,7 +40,7 @@ class CalendarModel implements ICalendarModel {
       }
     }
 
-    // Create a new Calendar using a builder
+
     Calendar newCalendar = Calendar.builder()
         .setCalendarName(calName)
         .setTimezone(timezone)
@@ -62,17 +62,17 @@ class CalendarModel implements ICalendarModel {
 
   @Override
   public boolean addEvent(String calendarName, ICalendarEventDTO eventDTO) {
-    // Look up the target calendar by name.
+
     ICalendar targetCalendar = getCalendarByName(calendarName);
 
-    // Validate basic event fields.
+
     validateBasicEvent(eventDTO);
 
     if (Boolean.TRUE.equals(eventDTO.isRecurring())) {
       validateRecurringEvent(eventDTO);
       List<CalendarEvent> occurrences = generateRecurringOccurrences(eventDTO);
 
-      // Check each occurrence for conflicts in the target calendar.
+
       if (eventDTO.isAutoDecline()) {
         occurrences.forEach(occurrence -> targetCalendar.getEvents().forEach(event -> {
           if (event.doesEventConflict(occurrence)) {
@@ -82,10 +82,10 @@ class CalendarModel implements ICalendarModel {
         }));
       }
 
-      //No conflicts proceed with adding
+
       targetCalendar.addEvents(occurrences);
     } else {
-      // Validate that non-recurring events do not include recurrence info.
+
       validateNonRecurringEvent(eventDTO);
       if (eventDTO.isAutoDecline()) {
         if (doesEventConflict(targetCalendar.getEvents(), eventDTO)) {
@@ -102,11 +102,11 @@ class CalendarModel implements ICalendarModel {
   public boolean editEvents(String calendarName, String property, String eventName,
                             LocalDateTime fromDateTime,
                             String newValue, boolean editAll) {
-    // Find the target calendar by name.
+
     ICalendar targetCalendar = getCalendarByName(calendarName);
 
 
-    // For properties other than "name", require a non-empty value.
+
     if (newValue == null || (newValue.trim().isEmpty() && !property.equalsIgnoreCase(
         "name"))) {
       throw new IllegalArgumentException("Missing value for property update.");
@@ -115,27 +115,25 @@ class CalendarModel implements ICalendarModel {
     List<ICalendarEvent> originalEvents = targetCalendar.getEventsCopy();
 
     boolean found = false;
-    // Iterate through the events in the target calendar.
+
     try {
       for (ICalendarEvent event : targetCalendar.getEvents()) {
-        // Check if the event matches the criteria.
+
         if (event.getEventName().equals(eventName)
             && (event.getStartDateTime().isAfter(fromDateTime)
             || event.getStartDateTime().equals(fromDateTime))) {
 
-          // Save original values for rollback.
           LocalDateTime originalStart = event.getStartDateTime();
           LocalDateTime originalEnd = event.getEndDateTime();
 
-          // Update the specified property.
+
           switch (property.toLowerCase()) {
             case "name":
               event.setEventName(newValue);
               found = true;
               break;
             case "start":
-              // Parse new value and update only the time portion, preserving the
-              // original date.
+
               LocalDateTime parsedNewStart = LocalDateTime.parse(newValue);
               LocalDateTime newStart =
                   LocalDateTime.of(event.getStartDateTime().toLocalDate(),
@@ -148,8 +146,7 @@ class CalendarModel implements ICalendarModel {
               found = true;
               break;
             case "end":
-              // Parse new value and update only the time portion, preserving the
-              // original date.
+
               LocalDateTime parsedNewEnd = LocalDateTime.parse(newValue);
               LocalDateTime newEnd = LocalDateTime.of(event.getEndDateTime().toLocalDate(),
                   parsedNewEnd.toLocalTime());
@@ -169,8 +166,7 @@ class CalendarModel implements ICalendarModel {
               found = true;
               break;
             case "isprivate":
-              // If newValue is not exactly "true" or "false" (ignoring case), throw an
-              // exception.
+
               if (!newValue.equalsIgnoreCase("true") && !newValue.equalsIgnoreCase("false"
               )) {
                 throw new IllegalArgumentException("For input string: \"" + newValue +
@@ -183,12 +179,11 @@ class CalendarModel implements ICalendarModel {
               throw new IllegalArgumentException("Unsupported property for edit: " + property);
           }
 
-          // After the change, check for conflicts.
+
           if (checkConflictForEvent(event, targetCalendar.getEvents())) {
             throw new IllegalStateException("Conflict detected after editing " + property);
           }
 
-          // If not editing all matching events, return immediately.
           if (!editAll) {
             return true;
           }
@@ -211,31 +206,28 @@ class CalendarModel implements ICalendarModel {
     ICalendar targetCalendar = getCalendarByName(calendarName);
     boolean editAll = true;
     boolean found = false;
-    // Iterate through the events in the target calendar.
+
     for (ICalendarEvent event : targetCalendar.getEvents()) {
-      // Check if the event matches the criteria.
+
       if (event.getEventName().equals(eventName)
           && (event.getStartDateTime().isEqual(fromDateTime)
           && event.getEndDateTime().equals(toDateTime))) {
 
-        // Save original values for rollback.
         LocalDateTime originalStart = event.getStartDateTime();
         LocalDateTime originalEnd = event.getEndDateTime();
 
         found = true;
-        // Update the specified property.
+
         updateSpecifiedProperty(event, property, newValue);
 
 
-        // After the change, check for conflicts.
         if (checkConflictForEvent(event, targetCalendar.getEvents())) {
-          // Rollback to original values.
+
           event.setStartDateTime(originalStart);
           event.setEndDateTime(originalEnd);
           throw new IllegalStateException("Conflict detected after editing " + property);
         }
 
-        // If not editing all matching events, return immediately.
         if (!editAll) {
           return true;
         }
@@ -296,21 +288,20 @@ class CalendarModel implements ICalendarModel {
   }
 
   public boolean isCalendarAvailable(String calName, LocalDate date) {
-    // Iterate through the stored calendars.
+
     for (ICalendar cal : calendars) {
       if (cal.getCalendarName().equalsIgnoreCase(calName)) {
         // If no specific date is provided, return true since the calendar exists.
         if (date == null) {
           return true;
         }
-        // If a date is provided, check if there are any events on that date.
-        // If at least one event exists, the calendar is busy (not available).
+
         for (ICalendarEvent event : cal.getEvents()) {
           if (event.getStartDateTime().toLocalDate().equals(date)) {
-            return false; // busy, not available
+            return false;
           }
         }
-        // No events on the given date, so the calendar is available (free).
+        // No events on the given date, so the calendar is available.
         return true;
       }
     }
@@ -332,7 +323,7 @@ class CalendarModel implements ICalendarModel {
   @Override
   public List<ICalendarEventDTO> getEventsInSpecificDateTime(String calendarName,
                                                              LocalDateTime dateTime) {
-    // Look up the target calendar by its name.
+    // Find the target calendar by its name.
     ICalendar targetCalendar = getCalendarByName(calendarName);
     if (targetCalendar == null) {
       throw new IllegalArgumentException("Calendar not found: " + calendarName);
@@ -357,7 +348,7 @@ class CalendarModel implements ICalendarModel {
   public List<ICalendarEventDTO> getEventsInRange(String calendarName,
                                                   LocalDateTime fromDateTime,
                                                   LocalDateTime toDateTime) {
-    // Look up the target calendar by its name.
+    // find the target calendar by its name.
     ICalendar targetCalendar = getCalendarByName(calendarName);
     if (targetCalendar == null) {
       throw new IllegalArgumentException("Calendar not found: " + calendarName);
@@ -373,9 +364,9 @@ class CalendarModel implements ICalendarModel {
     }
 
     List<ICalendarEvent> rangeEvents = new ArrayList<>();
-    // Iterate over the events in the target calendar.
+    // Iterates over the events in the target calendar.
     for (ICalendarEvent event : targetCalendar.getEvents()) {
-      // Check if the event's start time falls within the specified range (inclusive).
+
       if ((!event.getStartDateTime().isBefore(fromDateTime) &&
           !event.getStartDateTime().isAfter(toDateTime)) ||
           (event.getEndDateTime().isAfter(fromDateTime) &&
@@ -391,19 +382,17 @@ class CalendarModel implements ICalendarModel {
                             LocalDateTime sourceEnd,
                             String targetCalendarName, LocalDate targetStart) {
 
-    //TODO: move these validations to another controller
-    // Find the source calendar.
+
     ICalendar sourceCal = getCalendarByName(sourceCalendarName);
     if (sourceCal == null) {
       throw new IllegalArgumentException("Source calendar not found: " + sourceCalendarName);
     }
-    // Find the target calendar.
+
     ICalendar targetCal = getCalendarByName(targetCalendarName);
     if (targetCal == null) {
       throw new IllegalArgumentException("Target calendar not found: " + targetCalendarName);
     }
 
-    // Validate the date-time parameters.
     if (sourceStart == null || sourceEnd == null) {
       throw new IllegalArgumentException("Source start and source end times must be " +
           "provided.");
@@ -413,7 +402,6 @@ class CalendarModel implements ICalendarModel {
           "start time.");
     }
 
-    // Collect all events from the source calendar that start within the source interval.
     List<ICalendarEvent> eventsToCopy = new ArrayList<>();
     for (ICalendarEvent event : sourceCal.getEvents()) {
       if (!event.getStartDateTime().isBefore(sourceStart) &&
@@ -426,16 +414,14 @@ class CalendarModel implements ICalendarModel {
       throw new IllegalArgumentException("Events to be copied are empty");
     }
 
-    // Sort events by start time.
+
     eventsToCopy.sort((e1, e2) -> e1.getStartDateTime().compareTo(e2.getStartDateTime()));
 
-    // Get the ZoneIds for the source and target calendars.
+
     java.time.ZoneId sourceZone = java.time.ZoneId.of(sourceCal.getTimezone());
     java.time.ZoneId targetZone = java.time.ZoneId.of(targetCal.getTimezone());
 
     List<CalendarEvent> eventsToBeCopied = new ArrayList<>();
-    // For each event to be copied, convert its start and end times from the source to
-    // the target timezone.
     for (ICalendarEvent event : eventsToCopy) {
 
       LocalDate calculatedTargetStart =
@@ -447,7 +433,6 @@ class CalendarModel implements ICalendarModel {
           , event.getEndDateTime());
 
       LocalDateTime newEnd = newStart.plus(duration);
-      // Create a new event with the converted times.
       CalendarEvent newEvent = CalendarEvent.builder()
           .setEventName(event.getEventName())
           .setStartDateTime(newStart)
@@ -457,13 +442,12 @@ class CalendarModel implements ICalendarModel {
           .setPublic(event.isPublic())
           .build();
 
-      // Check for conflicts in the target calendar.
+
       if (doesEventConflict(targetCal.getEvents(), convertToDTO(newEvent))) {
         throw new IllegalStateException("Conflict detected when copying event: " +
             event.getEventName());
       }
 
-      // Add the new event to the target calendar.
       eventsToBeCopied.add(newEvent);
     }
 
@@ -476,25 +460,25 @@ class CalendarModel implements ICalendarModel {
   public boolean copyEvent(String sourceCalendarName, LocalDateTime eventDateTime,
                            String eventName,
                            String targetCalendarName, LocalDateTime targetStart) {
-    // Validate input parameters.
+
     if (sourceCalendarName == null || eventDateTime == null || eventName == null ||
         targetCalendarName == null || targetStart == null) {
       throw new IllegalArgumentException("All parameters must be provided and non-null.");
     }
 
-    // Look up source calendar.
+
     ICalendar sourceCal = getCalendarByName(sourceCalendarName);
     if (sourceCal == null) {
       throw new IllegalArgumentException("Source calendar not found: " + sourceCalendarName);
     }
 
-    // Look up target calendar.
+
     ICalendar targetCal = getCalendarByName(targetCalendarName);
     if (targetCal == null) {
       throw new IllegalArgumentException("Target calendar not found: " + targetCalendarName);
     }
 
-    // Find the specific event in the source calendar with the given name and start time.
+
     ICalendarEvent eventToCopy = null;
     for (ICalendarEvent event : sourceCal.getEvents()) {
       if (event.getEventName().equalsIgnoreCase(eventName) &&
@@ -508,16 +492,15 @@ class CalendarModel implements ICalendarModel {
           eventName + "' on " + eventDateTime + " not found in calendar " + sourceCalendarName);
     }
 
-    // Compute the duration of the event.
     java.time.Duration duration =
         java.time.Duration.between(eventToCopy.getStartDateTime(),
             eventToCopy.getEndDateTime());
 
-    // New event's start time is targetStart, and end time is targetStart plus duration.
+
     LocalDateTime newStart = targetStart;
     LocalDateTime newEnd = newStart.plus(duration);
 
-    // Create a new event with the same details but adjusted times.
+
     CalendarEvent newEvent = CalendarEvent.builder()
         .setEventName(eventToCopy.getEventName())
         .setStartDateTime(newStart)
@@ -527,13 +510,13 @@ class CalendarModel implements ICalendarModel {
         .setPublic(eventToCopy.isPublic())
         .build();
 
-    // Check for conflicts in the target calendar.
+
     if (doesEventConflict(targetCal.getEvents(), convertToDTO(newEvent))) {
       throw new IllegalStateException("Conflict detected when copying event: " +
           eventToCopy.getEventName());
     }
 
-    // Add the new event to the target calendar.
+
     targetCal.addEvent(newEvent);
     return true;
   }
@@ -546,7 +529,7 @@ class CalendarModel implements ICalendarModel {
 
   @Override
   public boolean editCalendar(String calendarName, String property, String newValue) {
-    // Look up the target calendar by name.
+
     ICalendar targetCalendar = getCalendarByName(calendarName);
     if (targetCalendar == null) {
       throw new IllegalArgumentException("Calendar not found: " + calendarName);
@@ -554,7 +537,7 @@ class CalendarModel implements ICalendarModel {
 
     switch (property.toLowerCase()) {
       case "name":
-        // Check if another calendar already has the new name.
+
         for (ICalendar cal : calendars) {
           if (cal.getCalendarName().equalsIgnoreCase(newValue)) {
             throw new IllegalArgumentException("Calendar with name '" + newValue + "' " +
@@ -564,7 +547,7 @@ class CalendarModel implements ICalendarModel {
         targetCalendar.setCalendarName(newValue);
         return true;
       case "timezone":
-        // Validate the new timezone.
+
         try {
           ZoneId.of(newValue);
         } catch (Exception e) {
@@ -577,7 +560,6 @@ class CalendarModel implements ICalendarModel {
     }
   }
 
-  // Helper method to retrieve a calendar by its name.
   private ICalendar getCalendarByName(String calName) {
     for (ICalendar cal : calendars) {
       if (cal.getCalendarName().equalsIgnoreCase(calName)) {
@@ -587,7 +569,7 @@ class CalendarModel implements ICalendarModel {
     throw new IllegalArgumentException("Calendar not found: " + calName);
   }
 
-  // Validates required basic event fields.
+
   private void validateBasicEvent(ICalendarEventDTO eventDTO) {
     if (eventDTO.getEventName() == null || eventDTO.getEventName().trim().isEmpty()) {
       throw new IllegalArgumentException("Event name is required.");
@@ -604,18 +586,18 @@ class CalendarModel implements ICalendarModel {
     }
   }
 
-  // Validates properties specific to recurring events.
+
   private void validateRecurringEvent(ICalendarEventDTO eventDTO) {
-    // Ensure the event's start and end occur on the same day.
+
     if (!eventDTO.getStartDateTime().toLocalDate().
         equals(eventDTO.getEndDateTime().toLocalDate())) {
       throw new IllegalArgumentException("Recurring events must have start and end on " +
           "the same day.");
     }
 
-    // Retrieve recurrence count and recurrence end date.
+
     Integer recCount = getRecCount(eventDTO);
-    // If recurrence count is provided, it must be greater than 0.
+
     if (recCount != null && recCount <= 0) {
       throw new IllegalArgumentException("Recurrence count must be greater than 0.");
     }
@@ -631,7 +613,6 @@ class CalendarModel implements ICalendarModel {
     Integer recCount = eventDTO.getRecurrenceCount();
     LocalDateTime recEndDate = eventDTO.getRecurrenceEndDate();
 
-    // Either recurrence count or recurrence end date must be defined, but not both.
     if (recCount == null && recEndDate == null) {
       throw new IllegalArgumentException("Either recurrence count or recurrence end " +
           "date must be defined for a recurring event.");
@@ -643,7 +624,6 @@ class CalendarModel implements ICalendarModel {
     return recCount;
   }
 
-  // Helper method for non-recurring event validation.
   private void validateNonRecurringEvent(ICalendarEventDTO eventDTO) {
     Integer recCount = eventDTO.getRecurrenceCount();
     if ((recCount != null && recCount > 0) || eventDTO.getRecurrenceEndDate() != null) {
@@ -665,7 +645,7 @@ class CalendarModel implements ICalendarModel {
         ? eventDTO.getRecurrenceEndDate().toLocalDate()
         : null;
 
-    // Loop until termination condition (by count or recurrence end date) is met.
+
     while (true) {
       if (eventDTO.getRecurrenceCount() != null && eventDTO.getRecurrenceCount() > 0) {
         if (count >= eventDTO.getRecurrenceCount()) {
@@ -712,7 +692,6 @@ class CalendarModel implements ICalendarModel {
         .build();
   }
 
-  // Converts a CalendarEvent to a DTO for conflict checking.
   private ICalendarEventDTO convertToDTO(ICalendarEvent event) {
     return CalendarEventDTO.builder()
         .setEventName(event.getEventName())
@@ -725,7 +704,7 @@ class CalendarModel implements ICalendarModel {
         .build();
   }
 
-  // Checks if a new event conflicts with any existing events in the target list.
+
   private boolean doesEventConflict(List<ICalendarEvent> eventList,
                                     ICalendarEventDTO newEventDTO) {
     CalendarEvent firstEvent =
@@ -739,7 +718,6 @@ class CalendarModel implements ICalendarModel {
     return false;
   }
 
-  // Returns the next date matching one of the recurrence days.
   private LocalDate getNextRecurrenceDate(LocalDate currentDate,
                                           List<DayOfWeek> recurrenceDays) {
     if (recurrenceDays.isEmpty()) {
@@ -756,7 +734,7 @@ class CalendarModel implements ICalendarModel {
                                         List<ICalendarEvent> events) {
     for (ICalendarEvent other : events) {
       if (other != updatedEvent) {
-        // If the updated event overlaps with any other event, return true.
+
         if (updatedEvent.getStartDateTime().isBefore(other.getEndDateTime()) &&
             updatedEvent.getEndDateTime().isAfter(other.getStartDateTime())) {
           return true;

@@ -17,9 +17,9 @@ abstract class AbstractController {
     Matcher matcher = Pattern.compile("\"([^\"]*)\"|(\\S+)").matcher(input);
     while (matcher.find()) {
       if (matcher.group(1) != null) {
-        tokens.add(matcher.group(1)); // Quoted
+        tokens.add(matcher.group(1));
       } else {
-        tokens.add(matcher.group(2)); // Unquoted
+        tokens.add(matcher.group(2));
       }
     }
     return tokens;

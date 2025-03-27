@@ -69,7 +69,6 @@ public class CalendarModelTest {
     model.createCalendar("home", "America/New_York"); // Duplicate by case-insensitive check.
   }
 
-  // ===== Add Event Tests =====
 
   @Test
   public void testAddNonRecurringEvent() {
@@ -102,7 +101,7 @@ public class CalendarModelTest {
     LocalDateTime start = LocalDateTime.of(2025, 4, 1, 9, 0);
     LocalDateTime end = LocalDateTime.of(2025, 4, 1, 10, 0);
 
-    // Create a recurring event on Tuesday with recurrence count = 3.
+
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
         .setEventName("Standup")
         .setStartDateTime(start)
@@ -118,7 +117,6 @@ public class CalendarModelTest {
 
     assertTrue(model.addEvent("Work", eventDTO));
 
-    // Verify that exactly 3 occurrences were added.
     List<ICalendarEventDTO> events = model.getEventsInRange("Work", start.minusDays(1),
         end.plusDays(21));
     assertEquals(3, events.size());
@@ -141,17 +139,16 @@ public class CalendarModelTest {
         .build();
     assertTrue(model.addEvent("MyCal", existing));
 
-    // Add conflicting event with autoDecline = true
     ICalendarEventDTO conflicting = CalendarEventDTO.builder()
         .setEventName("Conflict")
-        .setStartDateTime(existingStart.plusMinutes(30)) // Overlaps with existing
+        .setStartDateTime(existingStart.plusMinutes(30))
         .setEndDateTime(existingEnd.plusMinutes(30))
         .setAutoDecline(true)
         .setRecurring(false)
         .setPrivate(false)
         .build();
 
-    model.addEvent("MyCal", conflicting); // should throw exception
+    model.addEvent("MyCal", conflicting);
   }
 
   @Test
@@ -259,7 +256,6 @@ public class CalendarModelTest {
     // Add one event.
     assertTrue(model.addEvent("Work", eventDTO));
 
-    // Attempt to edit all events matching the criteria.
     boolean edited = model.editEvents("Work", "location", "Standup", start, "Room C", true);
     assertTrue(edited);
     List<ICalendarEventDTO> events = model.getEventsInRange("Work", start.minusMinutes(1),
@@ -273,14 +269,12 @@ public class CalendarModelTest {
 
   @Test
   public void testIsCalendarAvailable() {
-    // Create a calendar named "Personal"
+
     model.createCalendar("Personal", "America/New_York");
 
     // Check availability for a date when no events have been added.
-    // Since there are no events on June 1, 2025, the calendar should be free (available).
     assertTrue(model.isCalendarAvailable("Personal", LocalDate.of(2025, 6, 1)));
 
-    // Add an event on June 1, 2025.
     LocalDateTime start = LocalDateTime.of(2025, 6, 1, 8, 0);
     LocalDateTime end = LocalDateTime.of(2025, 6, 1, 9, 0);
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
@@ -294,8 +288,6 @@ public class CalendarModelTest {
         .setPrivate(false)
         .build();
     assertTrue(model.addEvent("Personal", eventDTO));
-
-    // Now the calendar has an event on June 1, 2025, so it should be busy (not available).
     assertFalse(model.isCalendarAvailable("Personal", LocalDate.of(2025, 6, 1)));
 
     // For a day with no events (June 2, 2025), the calendar should be free.
@@ -591,7 +583,6 @@ public class CalendarModelTest {
         .build();
     assertTrue(model.addEvent("TargetCal", conflictEvent));
 
-    // Attempt to copy the source event to TargetCal should throw a conflict exception.
     model.copyEvents("SourceCal", start, end, "TargetCal", LocalDate.of(2025, 1, 8));
   }
 
@@ -601,11 +592,11 @@ public class CalendarModelTest {
   public void testRecurringEventWithRecurrenceEndDate() {
     model.createCalendar("RecurrCal", "America/New_York");
 
-    // May 1, 2025 is a Thursday.
+
     LocalDateTime start = LocalDateTime.of(2025, 5, 1, 9, 0);
     LocalDateTime end = LocalDateTime.of(2025, 5, 1, 10, 0);
 
-    // Set recurrence end date to May 15, 2025, which is also a Thursday.
+
     LocalDateTime recEnd = LocalDateTime.of(2025, 5, 15, 10, 0);
 
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
@@ -624,7 +615,6 @@ public class CalendarModelTest {
 
     assertTrue(model.addEvent("RecurrCal", eventDTO));
 
-    // Query a range that should capture all occurrences.
     List<ICalendarEventDTO> events = model.getEventsInRange("RecurrCal", start.minusDays(1),
         recEnd.plusDays(1));
     assertEquals(3, events.size());
@@ -691,7 +681,6 @@ public class CalendarModelTest {
         .setPrivate(true)
         .build();
     assertTrue(model.addEvent("EditCal", eventDTO));
-    // Attempt to edit an unsupported property.
     model.editEvents("EditCal", "unsupported", "Event", start, "NewValue", false);
   }
 
@@ -776,7 +765,7 @@ public class CalendarModelTest {
 
     assertTrue(model.copyEvents("SourceCal", intervalStart, intervalEnd, "TargetCal", targetStart));
 
-    // Retrieve events from April 6 to April 21 in TargetCal
+
     List<ICalendarEventDTO> copiedEvents = model.getEventsInRange(
         "TargetCal",
         LocalDateTime.of(2025, 4, 7, 0, 0),
@@ -804,7 +793,7 @@ public class CalendarModelTest {
   public void testDeleteCalendarAndUseIt() {
     model.createCalendar("DeleteCal", "America/New_York");
     assertTrue(model.deleteCalendar("DeleteCal"));
-    // Now try to add an event to the deleted calendar.
+
     LocalDateTime start = LocalDateTime.of(2025, 10, 1, 9, 0);
     LocalDateTime end = LocalDateTime.of(2025, 10, 1, 10, 0);
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()

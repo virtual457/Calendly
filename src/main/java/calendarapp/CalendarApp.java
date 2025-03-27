@@ -24,8 +24,8 @@ public class CalendarApp {
       IView view = createView();
       ICalendarController controller = createController(model, view);
 
-      ModeHandler handler = ModeHandler.fromArgs(args); // handles mode + file logic
-      controller.run(handler.getReadable());  // pass just the input stream
+      ModeHandler handler = ModeHandler.fromArgs(args);
+      controller.run(handler.getReadable());
     } catch (Exception e) {
       System.out.println(e.getMessage());
     }

@@ -24,7 +24,6 @@ public class HeadlessModeHandler implements ModeHandler {
 
     BufferedReader reader = new BufferedReader(new FileReader(filePath));
 
-    // Optional: check that file ends with "exit"
     String lastLine = null;
     String line;
     while ((line = reader.readLine()) != null) {
@@ -35,7 +34,7 @@ public class HeadlessModeHandler implements ModeHandler {
       throw new IllegalStateException("File must end with 'exit' in headless mode.");
     }
 
-    // reopen reader for actual use
+
     return new BufferedReader(new FileReader(filePath));
 
   }

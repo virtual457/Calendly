@@ -14,7 +14,7 @@ public class CopyEventsCommand implements ICommand {
   private final ICalendarModel model;
   private final String sourceCalendar;
 
-  // Parsed values
+
   private LocalDate fromDate;
   private LocalDate toDate;
   private String targetCalendar;

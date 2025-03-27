@@ -74,7 +74,7 @@ public class ExportEventsCommand implements ICommand {
       }
 
       try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-        // Write Google Calendar CSV headers
+
         writer.write("Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
             "Location,Private");
         writer.newLine();

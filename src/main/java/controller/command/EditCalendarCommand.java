@@ -30,7 +30,7 @@ public class EditCalendarCommand implements ICommand {
     int index = 0;
 
     try {
-      // '--name'
+
       if (index >= args.size()) {
         throw new IllegalArgumentException("Missing '--name' keyword.");
       }
@@ -39,7 +39,7 @@ public class EditCalendarCommand implements ICommand {
         throw new IllegalArgumentException("Expected '--name' keyword.");
       }
 
-      // <name-of-calendar>
+
       if (index >= args.size()) {
         throw new IllegalArgumentException("Missing calendar name.");
       }
@@ -48,7 +48,7 @@ public class EditCalendarCommand implements ICommand {
         throw new IllegalArgumentException("Calendar name cannot be empty.");
       }
 
-      // '--property'
+
       if (index >= args.size()) {
         throw new IllegalArgumentException("Missing '--property' keyword.");
       }
@@ -57,7 +57,7 @@ public class EditCalendarCommand implements ICommand {
         throw new IllegalArgumentException("Expected '--property' keyword.");
       }
 
-      // <property-name>
+
       if (index >= args.size()) {
         throw new IllegalArgumentException("Missing property name.");
       }
@@ -66,7 +66,7 @@ public class EditCalendarCommand implements ICommand {
         throw new IllegalArgumentException("Invalid property. Only 'name' or 'timezone' allowed.");
       }
 
-      // <new-property-value>
+
       if (index >= args.size()) {
         throw new IllegalArgumentException("Missing new property value.");
       }

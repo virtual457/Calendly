@@ -35,7 +35,7 @@ public class CopyEventCommand implements ICommand {
     int index = 0;
 
     try {
-      // eventName
+
       if (index == args.size()) {
         throw new IllegalArgumentException("Missing event name.");
       }
@@ -44,7 +44,7 @@ public class CopyEventCommand implements ICommand {
         throw new IllegalArgumentException("Event name cannot be empty.");
       }
 
-      // 'on'
+
       if (index == args.size()) {
         throw new IllegalArgumentException("Missing 'on' " +
             "keyword.");
@@ -54,7 +54,7 @@ public class CopyEventCommand implements ICommand {
         throw new IllegalArgumentException("Expected 'on' after event name.");
       }
 
-      // sourceDateTime
+
       if (index == args.size()) {
         throw new IllegalArgumentException("Missing source " +
             "datetime.");
@@ -65,7 +65,7 @@ public class CopyEventCommand implements ICommand {
         throw new IllegalArgumentException("Invalid source date and time format.");
       }
 
-      // '--target'
+
       if (index == args.size()) {
         throw new IllegalArgumentException("Missing '--target' " +
             "keyword.");
@@ -75,7 +75,7 @@ public class CopyEventCommand implements ICommand {
         throw new IllegalArgumentException("Expected '--target' after source date and time.");
       }
 
-      // targetCalendar
+
       if (index == args.size()) {
         throw new IllegalArgumentException("Missing target " +
             "calendar name.");
@@ -85,7 +85,7 @@ public class CopyEventCommand implements ICommand {
         throw new IllegalArgumentException("Target calendar name cannot be empty.");
       }
 
-      // 'to'
+
       if (index == args.size()) {
         throw new IllegalArgumentException("Missing 'to' " +
             "keyword.");
@@ -95,7 +95,7 @@ public class CopyEventCommand implements ICommand {
         throw new IllegalArgumentException("Expected 'to' after target calendar name.");
       }
 
-      // targetDateTime
+
       if (index == args.size()) {
         throw new IllegalArgumentException("Missing target " +
             "datetime.");

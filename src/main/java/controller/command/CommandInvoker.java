@@ -14,7 +14,7 @@ import java.util.Objects;
  */
 public class CommandInvoker {
   private final Map<String, Class<? extends ICommand>> commandRegistry = new HashMap<>();
-  private String currentCalendar; // Stores the currently selected calendar
+  private String currentCalendar;
 
   public CommandInvoker(String currentCalendar) {
     this.currentCalendar = currentCalendar;
@@ -53,7 +53,7 @@ public class CommandInvoker {
             Objects.isNull(currentCalendar)) {
           throw new IllegalArgumentException("Please use somme calendar");
         }
-        // Instantiate the command dynamically and pass parameters
+
         ICommand command = commandClass.getDeclaredConstructor(List.class, ICalendarModel.class,
                 String.class)
             .newInstance(parts, model, currentCalendar);
@@ -61,7 +61,7 @@ public class CommandInvoker {
 
         String result = command.execute();
 
-        // If it's a "use" command, update the current calendar
+
         if (command instanceof UseCalendarCommand && !result.contains("Error")) {
           this.currentCalendar = ((UseCalendarCommand) command).getCalendarName();
         }

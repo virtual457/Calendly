@@ -143,7 +143,7 @@ public class EditEventCommandTest {
     assertEquals("Error editing event(s).", result);
   }
 
-  // ---------- Error cases -------------------
+
 
   @Test(expected = IllegalArgumentException.class)
   public void testMissingFromKeyword() {

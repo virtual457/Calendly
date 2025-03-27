@@ -230,7 +230,6 @@ public class ExportEventsCommandTest {
     MockModel model = new MockModel();
     model.events = Collections.emptyList();
 
-    // Use an invalid filename to force an exception
     String badFile = "/dev/null/invalid.csv";
     ExportEventsCommand cmd = new ExportEventsCommand(Collections.singletonList(badFile), model,
         "Default");

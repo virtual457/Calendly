@@ -817,8 +817,6 @@ public class CalendarControllerTest {
     }
   }
 
-  //TODO Tests for event on datetime string for date string
-  //TODO write testes to validate week of the day
 
   @Test
   public void testCreateRecurringAllDayEventForNTimes() {
@@ -1687,8 +1685,7 @@ public class CalendarControllerTest {
         "parsed at index 0");
     errorCases.put("repeats", "Error Executing command: Unrecognized extra argument: " +
         "MTWR");
-    errorCases.put("MTWR", "Error Executing command: Invalid weekday character: f"); //
-    // This error happens if one of the chars is invalid
+    errorCases.put("MTWR", "Error Executing command: Invalid weekday character: f");
     errorCases.put("for", "Error Executing command: Unrecognized extra argument: 5");
     errorCases.put("5", "Error Executing command: For input string: \"times\"");
     errorCases.put("times", "Error Executing command: Missing keyword 'times'");
@@ -2045,7 +2042,7 @@ public class CalendarControllerTest {
 
 
   //Tests to validate the mode of the controlleer run
-  //Repeated options checking
+
 
   @Test
   public void testDuplicateLocationOption() {

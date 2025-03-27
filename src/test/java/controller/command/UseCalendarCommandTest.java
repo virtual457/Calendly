@@ -96,7 +96,6 @@ public class UseCalendarCommandTest {
       return false;
     }
 
-    // other methods can be stubbed if unused
   }
 
   @Test

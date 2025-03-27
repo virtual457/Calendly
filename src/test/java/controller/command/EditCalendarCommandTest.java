@@ -146,7 +146,6 @@ public class EditCalendarCommandTest {
     assertTrue(result.contains("Failed to update calendar"));
   }
 
-  // -------------- Error Cases ------------------
 
   @Test(expected = IllegalArgumentException.class)
   public void testMissingNameFlag() {
