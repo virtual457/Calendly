@@ -131,7 +131,7 @@ public class CalendarModelTest {
   }
 
   @Test
-  public void testAddEvent_WithConflictButNoAutoDecline_ShouldSucceed() {
+  public void testAddEvent_WithConflictButNoAutoDecline_ShouldNotSucceed() {
     model.createCalendar("MyCal", "America/New_York");
 
     // Add existing event
@@ -156,8 +156,12 @@ public class CalendarModelTest {
             .setRecurring(false)
             .setPrivate(false)
             .build();
-
-    assertTrue(model.addEvent("MyCal", conflicting));
+    try {
+      assertTrue(model.addEvent("MyCal", conflicting));
+      fail("dint throw illegalstate exception");
+    }catch (IllegalStateException e){
+      assertEquals("Conflict detected, event not created", e.getMessage());
+    }
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -695,13 +699,22 @@ public class CalendarModelTest {
   public void testCopyEventsNoEventsFound() {
     model.createCalendar("SourceCal", "America/New_York");
     model.createCalendar("TargetCal", "America/New_York");
-    // No events added to SourceCal.
-    boolean copied = model.copyEvents("SourceCal", LocalDateTime.of(2025, 1, 1, 10, 0),
-            LocalDateTime.of(2025, 1, 1, 11, 0), "TargetCal", LocalDate.of(2025, 2, 1));
-    assertFalse(copied);
+
+    try {
+      model.copyEvents(
+            "SourceCal",
+            LocalDateTime.of(2025, 1, 1, 10, 0),
+            LocalDateTime.of(2025, 1, 1, 11, 0),
+            "TargetCal",
+            LocalDate.of(2025, 2, 1)
+      );
+      fail("Expected IllegalStateException not thrown");
+    } catch (IllegalArgumentException e) {
+      assertEquals("Events to be copied are empty", e.getMessage());
+    }
   }
 
-  //TODO: it thows exeption idk how to do thhat here this test fails because it will have conflicts while creating events in the target calendar
+
   @Test
   public void testCopyEventsRecurringEvent() {
     model.createCalendar("SourceCal", "America/New_York");
@@ -1013,13 +1026,19 @@ public class CalendarModelTest {
     model = new CalendarModel();
     model.createCalendar("SourceCal", "America/New_York");
     model.createCalendar("TargetCal", "America/New_York");
-    // No events added to SourceCal in the interval.
-    boolean result = model.copyEvents("SourceCal",
+
+    try {
+      model.copyEvents(
+            "SourceCal",
             LocalDateTime.of(2025, 1, 1, 9, 0),
             LocalDateTime.of(2025, 1, 1, 10, 0),
             "TargetCal",
-            LocalDate.of(2025, 2, 1));
-    assertFalse(result);
+            LocalDate.of(2025, 2, 1)
+      );
+      fail("Expected IllegalArgumentException not thrown");
+    } catch (IllegalArgumentException e) {
+      assertEquals("Events to be copied are empty", e.getMessage());
+    }
   }
 
   // ---------- Successful Copy Tests ----------
@@ -1202,17 +1221,24 @@ public class CalendarModelTest {
   }
 
   @Test
-  public void testCopyEvents_NoEventsInRange_ShouldReturnFalse() {
+  public void testCopyEvents_NoEventsInRange_ShouldThrowException() {
     model.createCalendar("SourceCal", "America/New_York");
     model.createCalendar("TargetCal", "America/New_York");
 
-    boolean copied = model.copyEvents("SourceCal",
+    try {
+      model.copyEvents(
+            "SourceCal",
             LocalDateTime.of(2025, 6, 1, 10, 0),
             LocalDateTime.of(2025, 6, 1, 11, 0),
             "TargetCal",
-            LocalDate.of(2025, 6, 2));
-    assertFalse(copied);
+            LocalDate.of(2025, 6, 2)
+      );
+      fail("Expected IllegalStateException not thrown");
+    } catch (IllegalArgumentException e) {
+      assertEquals("Events to be copied are empty", e.getMessage());
+    }
   }
+
 
   @Test
   public void testCopyEvents_WithConflictInTarget_ShouldThrowException() {

@@ -1,4 +1,4 @@
-package command;
+package controller.command;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

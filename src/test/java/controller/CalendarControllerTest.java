@@ -83,7 +83,8 @@ public class CalendarControllerTest {
 
   private void testCommandInBothModes(String mode, String command) {
     resetModels();
-    controller.run(new StringReader(command));
+    controller.run(new StringReader("create calendar --name default --timezone " +
+          "America/New_york\nuse calendar --name default\n"+command));
   }
 
 
@@ -2057,8 +2058,8 @@ public class CalendarControllerTest {
   public void testEmptyCommand() {
     String command = "";
     testCommandInBothModes(mode, command);
-    assertTrue("Expected nothing message for empty command",
-        view.getLastDisplayedMessage().contains("Welcome to the Calendar App!"));
+    var a = view.getLastDisplayedMessage();
+    assertTrue(view.getLastDisplayedMessage().contains("Using calendar: default"));
   }
 
 
@@ -2572,7 +2573,7 @@ public class CalendarControllerTest {
     @Override
     public boolean isCalendarPresent(String calName) {
       this.lastCalendarPresentName = calName;
-      return false;
+      return true;
     }
 
     @Override

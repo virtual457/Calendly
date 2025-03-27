@@ -1,4 +1,4 @@
-package command;
+package controller.command;
 
 import model.ICalendarModel;
 import java.util.List;
