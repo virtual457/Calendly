@@ -32,6 +32,6 @@ public class CalendarApp {
   }
 
   private static ICalendarController createController(ICalendarModel model, IView view) {
-    return ICalendarController.createInstance("Basic",model, view);
+    return ICalendarController.createInstance("Advanced",model, view);
   }
 }

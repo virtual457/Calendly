@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
  * Each operation requires a calendar name to identify the target calendar.
  */
 class CalendarModel implements ICalendarModel {
-  private List<Calendar> calendars;
+  private List<ICalendar> calendars;
 
   public CalendarModel() {
     this.calendars = new ArrayList<>();
@@ -33,7 +33,7 @@ class CalendarModel implements ICalendarModel {
     }
 
     // Check if a calendar with the given name already exists.
-    for (Calendar cal : calendars) {
+    for (ICalendar cal : calendars) {
       if (cal.getCalendarName().equalsIgnoreCase(calName)) {
         throw new IllegalArgumentException("Calendar with name '" + calName + "' " +
               "already exists.");
@@ -63,7 +63,7 @@ class CalendarModel implements ICalendarModel {
   @Override
   public boolean addEvent(String calendarName, ICalendarEventDTO eventDTO) {
     // Look up the target calendar by name.
-    Calendar targetCalendar = getCalendarByName(calendarName);
+    ICalendar targetCalendar = getCalendarByName(calendarName);
 
     // Validate basic event fields.
     validateBasicEvent(eventDTO);
@@ -100,7 +100,7 @@ class CalendarModel implements ICalendarModel {
                             LocalDateTime fromDateTime,
                             String newValue, boolean editAll) {
     // Find the target calendar by name.
-    Calendar targetCalendar = getCalendarByName(calendarName);
+    ICalendar targetCalendar = getCalendarByName(calendarName);
 
 
     // For properties other than "name", require a non-empty value.
@@ -208,7 +208,7 @@ class CalendarModel implements ICalendarModel {
   public boolean editEvent(String calendarName, String property, String eventName,
                            LocalDateTime fromDateTime, LocalDateTime toDateTime,
                            String newValue) {
-    Calendar targetCalendar = getCalendarByName(calendarName);
+    ICalendar targetCalendar = getCalendarByName(calendarName);
     boolean editAll = true;
     boolean found = false;
     // Iterate through the events in the target calendar.
@@ -296,7 +296,7 @@ class CalendarModel implements ICalendarModel {
 
   public boolean isCalendarAvailable(String calName, LocalDate date) {
     // Iterate through the stored calendars.
-    for (Calendar cal : calendars) {
+    for (ICalendar cal : calendars) {
       if (cal.getCalendarName().equalsIgnoreCase(calName)) {
         // If no specific date is provided, return true since the calendar exists.
         if (date == null) {
@@ -318,8 +318,8 @@ class CalendarModel implements ICalendarModel {
   }
 
   public boolean deleteCalendar(String calName) {
-    for (Iterator<Calendar> iterator = calendars.iterator(); iterator.hasNext(); ) {
-      Calendar cal = iterator.next();
+    for (Iterator<ICalendar> iterator = calendars.iterator(); iterator.hasNext(); ) {
+      ICalendar cal = iterator.next();
       if (cal.getCalendarName().equalsIgnoreCase(calName)) {
         iterator.remove();
         return true;
@@ -332,7 +332,7 @@ class CalendarModel implements ICalendarModel {
   public List<ICalendarEventDTO> getEventsInSpecificDateTime(String calendarName,
                                                              LocalDateTime dateTime) {
     // Look up the target calendar by its name.
-    Calendar targetCalendar = getCalendarByName(calendarName);
+    ICalendar targetCalendar = getCalendarByName(calendarName);
     if (targetCalendar == null) {
       throw new IllegalArgumentException("Calendar not found: " + calendarName);
     }
@@ -356,7 +356,7 @@ class CalendarModel implements ICalendarModel {
                                                   LocalDateTime fromDateTime,
                                                   LocalDateTime toDateTime) {
     // Look up the target calendar by its name.
-    Calendar targetCalendar = getCalendarByName(calendarName);
+    ICalendar targetCalendar = getCalendarByName(calendarName);
     if (targetCalendar == null) {
       throw new IllegalArgumentException("Calendar not found: " + calendarName);
     }
@@ -389,12 +389,12 @@ class CalendarModel implements ICalendarModel {
 
     //TODO: move these validations to another controller
     // Find the source calendar.
-    Calendar sourceCal = getCalendarByName(sourceCalendarName);
+    ICalendar sourceCal = getCalendarByName(sourceCalendarName);
     if (sourceCal == null) {
       throw new IllegalArgumentException("Source calendar not found: " + sourceCalendarName);
     }
     // Find the target calendar.
-    Calendar targetCal = getCalendarByName(targetCalendarName);
+    ICalendar targetCal = getCalendarByName(targetCalendarName);
     if (targetCal == null) {
       throw new IllegalArgumentException("Target calendar not found: " + targetCalendarName);
     }
@@ -478,13 +478,13 @@ class CalendarModel implements ICalendarModel {
     }
 
     // Look up source calendar.
-    Calendar sourceCal = getCalendarByName(sourceCalendarName);
+    ICalendar sourceCal = getCalendarByName(sourceCalendarName);
     if (sourceCal == null) {
       throw new IllegalArgumentException("Source calendar not found: " + sourceCalendarName);
     }
 
     // Look up target calendar.
-    Calendar targetCal = getCalendarByName(targetCalendarName);
+    ICalendar targetCal = getCalendarByName(targetCalendarName);
     if (targetCal == null) {
       throw new IllegalArgumentException("Target calendar not found: " + targetCalendarName);
     }
@@ -540,7 +540,7 @@ class CalendarModel implements ICalendarModel {
   @Override
   public boolean editCalendar(String calendarName, String property, String newValue) {
     // Look up the target calendar by name.
-    Calendar targetCalendar = getCalendarByName(calendarName);
+    ICalendar targetCalendar = getCalendarByName(calendarName);
     if (targetCalendar == null) {
       throw new IllegalArgumentException("Calendar not found: " + calendarName);
     }
@@ -548,7 +548,7 @@ class CalendarModel implements ICalendarModel {
     switch (property.toLowerCase()) {
       case "name":
         // Check if another calendar already has the new name.
-        for (Calendar cal : calendars) {
+        for (ICalendar cal : calendars) {
           if (cal.getCalendarName().equalsIgnoreCase(newValue)) {
             throw new IllegalArgumentException("Calendar with name '" + newValue + "' " +
                   "already exists.");
@@ -571,8 +571,8 @@ class CalendarModel implements ICalendarModel {
   }
 
   // Helper method to retrieve a calendar by its name.
-  private Calendar getCalendarByName(String calName) {
-    for (Calendar cal : calendars) {
+  private ICalendar getCalendarByName(String calName) {
+    for (ICalendar cal : calendars) {
       if (cal.getCalendarName().equalsIgnoreCase(calName)) {
         return cal;
       }

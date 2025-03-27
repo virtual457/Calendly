@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
  * Represents an individual calendar with a unique name, associated timezone,
  * and its own list of events.
  */
-class Calendar {
+class Calendar implements ICalendar {
   private String calendarName;
   private String timezone;
   private List<ICalendarEvent> events;
@@ -25,6 +25,16 @@ class Calendar {
     this.calendarName = calendarName;
     this.timezone = timezone;
     this.events = new ArrayList<>();
+  }
+
+  private Calendar(Builder builder) {
+    this.calendarName = builder.calendarName;
+    this.timezone = builder.timezone;
+    this.events = builder.events;
+  }
+
+  public static Builder builder() {
+    return new Calendar.Builder();
   }
 
   // Getters and setters
@@ -101,20 +111,12 @@ class Calendar {
   }
 
   /**
-   * Returns a new Builder instance for constructing a Calendar.
-   *
-   * @return a Builder for Calendar.
-   */
-  public static Builder builder() {
-    return new Builder();
-  }
-
-  /**
    * Builder class for constructing Calendar instances.
    */
-  public static class Builder {
+  public static class Builder implements ICalendarBuilder<Calendar> {
     private String calendarName;
     private String timezone;
+    private List<ICalendarEvent> events = new ArrayList<>();
 
     /**
      * Sets the calendar name.
@@ -124,6 +126,11 @@ class Calendar {
      */
     public Builder setCalendarName(String calendarName) {
       this.calendarName = calendarName;
+      return this;
+    }
+
+    public Builder setEvents(List<ICalendarEvent> events) {
+      this.events = events;
       return this;
     }
 
@@ -144,7 +151,7 @@ class Calendar {
      * @return a new Calendar object.
      */
     public Calendar build() {
-      return new Calendar(calendarName, timezone);
+      return new Calendar(this);
     }
   }
 }
