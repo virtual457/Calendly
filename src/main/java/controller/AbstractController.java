@@ -37,7 +37,9 @@ abstract class AbstractController {
       if (tokens.isEmpty()) {
         continue;
       }
-
+      if(tokens.size()<2){
+        view.display("Error: Enter atleast two tokens");
+      }
       String action = tokens.get(0);
       String subAction = tokens.size() > 1 ? tokens.get(1) : "";
       String commandKey = (action + " " + subAction).toLowerCase();

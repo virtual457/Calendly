@@ -75,7 +75,7 @@ public class EditEventsCalendarCommand implements ICommand {
     if (hasFromDateTime) {
       success = model.editEvents(calendarName, property, eventName, fromDateTime, newValue, true);
     } else {
-      success = model.editEvents(calendarName, property, eventName, null, newValue, true);
+      success = model.editEvents(calendarName, property, eventName, LocalDateTime.MIN, newValue, true);
     }
     return success ? "Events updated successfully." : "No matching events found to update.";
   }

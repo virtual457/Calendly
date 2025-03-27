@@ -27,7 +27,6 @@ public interface ICalendarModel {
    * @return a new instance of an {@code ICalendarModel} implementation
    * @throws IllegalArgumentException if the given {@code type} is invalid or unsupported
    */
-
   static ICalendarModel createInstance(String type) {
     if (type.equalsIgnoreCase("listBased")) {
       return new CalendarModel();

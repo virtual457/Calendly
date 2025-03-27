@@ -1,2 +1,30 @@
-create event TestEvent from 2024-03-20T14:00 to 2024-03-20T15:00
+create calendar --name CollegeCalendar --timezone America/New_York
+create calendar --name WorkCalendar --timezone Europe/London
+
+use calendar --name CollegeCalendar
+
+create event Lecture1 from 2024-09-01T10:00 to 2024-09-01T12:00 --location "Room 101" --description "Intro to Java"
+create event Lecture2 on 2024-09-02 --location "Room 102" --private --description "All-day workshop"
+
+create event WeeklySeminar from 2024-09-04T15:00 to 2024-09-04T17:00 repeats W for 4 times --location "Seminar Hall"
+
+edit event description WeeklySeminar from 2024-09-04T15:00 to 2024-09-04T17:00 with "Updated topic schedule"
+edit events location WeeklySeminar "Main Auditorium"
+
+print events on 2024-09-04
+print events from 2024-09-01T00:00 to 2024-09-10T23:59
+
+show status on 2024-09-04T15:30
+
+export cal college-calendar.csv
+
+copy event Lecture1 on 2024-09-01T10:00 --target WorkCalendar to 2024-10-01T09:00
+copy events on 2024-09-02 --target WorkCalendar to 2024-10-02
+copy events between 2024-09-01 and 2024-09-05 --target WorkCalendar to 2024-10-10
+
+use calendar --name WorkCalendar
+edit calendar --name WorkCalendar --property timezone Asia/Kolkata
+
+export cal work-calendar.csv
+
 exit
