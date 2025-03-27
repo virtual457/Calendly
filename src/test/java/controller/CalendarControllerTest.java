@@ -4,7 +4,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -75,7 +74,7 @@ public class CalendarControllerTest {
   private void testCommandInBothModes(String mode, String command) {
     resetModels();
     controller.run(new StringReader("create calendar --name default --timezone " +
-          "America/New_york\nuse calendar --name default\n"+command));
+        "America/New_york\nuse calendar --name default\n" + command));
   }
 
 
@@ -2201,8 +2200,8 @@ public class CalendarControllerTest {
     ICalendarModel model = ICalendarModel.createInstance("listbased");
     IView view = IView.createInstance("consoleView");
 
-    ICalendarController controller = ICalendarController.createInstance("Advanced",model,
-          view);
+    ICalendarController controller = ICalendarController.createInstance("Advanced", model,
+        view);
 
     assertNotNull(controller);
     assertEquals("class controller.CalendarController", controller.getClass().toString());
@@ -2213,12 +2212,12 @@ public class CalendarControllerTest {
     ICalendarModel model = ICalendarModel.createInstance("listbased");
     IView view = IView.createInstance("consoleView");
 
-    ICalendarController controller = ICalendarController.createInstance("Basic",model,
-          view);
+    ICalendarController controller = ICalendarController.createInstance("Basic", model,
+        view);
 
     assertNotNull(controller);
     assertEquals("class controller.CalendarControllerBasic",
-          controller.getClass().toString());
+        controller.getClass().toString());
   }
 
   @Test
@@ -2227,16 +2226,13 @@ public class CalendarControllerTest {
     IView view = IView.createInstance("consoleView");
     try {
       ICalendarController.createInstance("Random", model,
-            view);
+          view);
       fail("Exception expected for random type of controller");
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       assertTrue(e.getMessage().contains("Unsupported version:"));
     }
 
   }
-
-
 
 
   //checks for quoted text

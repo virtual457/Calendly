@@ -65,13 +65,13 @@ class Calendar implements ICalendar {
       ZonedDateTime newEndZoned = oldEndZoned.withZoneSameInstant(newZone);
 
       ICalendarEvent updated = ICalendarEvent.builder()
-            .setEventName(event.getEventName())
-            .setStartDateTime(newStartZoned.toLocalDateTime())
-            .setEndDateTime(newEndZoned.toLocalDateTime())
-            .setEventDescription(event.getEventDescription())
-            .setEventLocation(event.getEventLocation())
-            .setPublic(event.isPublic())
-            .build();
+          .setEventName(event.getEventName())
+          .setStartDateTime(newStartZoned.toLocalDateTime())
+          .setEndDateTime(newEndZoned.toLocalDateTime())
+          .setEventDescription(event.getEventDescription())
+          .setEventLocation(event.getEventLocation())
+          .setPublic(event.isPublic())
+          .build();
 
       updatedEvents.add(updated);
     }
@@ -82,15 +82,15 @@ class Calendar implements ICalendar {
 
   public List<ICalendarEvent> getEventsCopy() {
     return this.events.stream()
-          .map(event -> CalendarEvent.builder()
-                .setEventName(event.getEventName())
-                .setStartDateTime(event.getStartDateTime())
-                .setEndDateTime(event.getEndDateTime())
-                .setEventDescription(event.getEventDescription())
-                .setEventLocation(event.getEventLocation())
-                .setPublic(event.isPublic())
-                .build())
-          .collect(Collectors.toList());
+        .map(event -> CalendarEvent.builder()
+            .setEventName(event.getEventName())
+            .setStartDateTime(event.getStartDateTime())
+            .setEndDateTime(event.getEndDateTime())
+            .setEventDescription(event.getEventDescription())
+            .setEventLocation(event.getEventLocation())
+            .setPublic(event.isPublic())
+            .build())
+        .collect(Collectors.toList());
   }
 
 

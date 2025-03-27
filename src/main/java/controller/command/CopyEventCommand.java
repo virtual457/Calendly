@@ -1,6 +1,7 @@
 package controller.command;
 
 import model.ICalendarModel;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -80,7 +81,8 @@ public class CopyEventCommand implements ICommand {
 
   @Override
   public String execute() {
-    boolean success = model.copyEvent(sourceCalendar, sourceDateTime, eventName, targetCalendar, targetDateTime);
+    boolean success = model.copyEvent(sourceCalendar, sourceDateTime, eventName, targetCalendar,
+        targetDateTime);
     return success ? "Event copied successfully." : "Error copying event.";
   }
 }

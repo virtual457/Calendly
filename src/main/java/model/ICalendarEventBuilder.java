@@ -10,10 +10,15 @@ import java.time.LocalDateTime;
  */
 public interface ICalendarEventBuilder<T extends ICalendarEvent> {
   ICalendarEventBuilder<T> setEventName(String eventName);
+
   ICalendarEventBuilder<T> setStartDateTime(LocalDateTime startDateTime);
+
   ICalendarEventBuilder<T> setEndDateTime(LocalDateTime endDateTime);
+
   ICalendarEventBuilder<T> setEventDescription(String eventDescription);
+
   ICalendarEventBuilder<T> setEventLocation(String eventLocation);
+
   ICalendarEventBuilder<T> setPublic(boolean isPublic);
 
   T build();

@@ -2,6 +2,7 @@ package controller.command;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
 import model.ICalendarModel;
 
 /**
@@ -51,7 +52,7 @@ public class EditEventCommand implements ICommand {
   @Override
   public String execute() {
     boolean success = model.editEvent(calendarName, property, eventName,
-            fromDateTime,toDateTime, newValue);
+        fromDateTime, toDateTime, newValue);
     return success ? "Event(s) edited successfully." : "Error editing event(s).";
   }
 }

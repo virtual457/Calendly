@@ -1,11 +1,21 @@
 package controller;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
+import java.util.Scanner;
+
+
+import controller.command.CommandInvoker;
+import controller.command.CopyEventCommand;
+import controller.command.CopyEventsCommand;
+import controller.command.CreateCalendarCommand;
+import controller.command.CreateEventCommand;
+import controller.command.EditCalendarCommand;
+import controller.command.EditEventCommand;
+import controller.command.EditEventsCalendarCommand;
+import controller.command.ExportEventsCommand;
+import controller.command.PrintEventsCommand;
+import controller.command.ShowStatusCommand;
+import controller.command.UseCalendarCommand;
 import model.ICalendarModel;
 import view.IView;
 
@@ -14,7 +24,7 @@ import view.IView;
  * It interacts with the model and ensures commands are executed
  * within a selected calendar context.
  */
-class CalendarController implements ICalendarController {
+class CalendarController extends AbstractController implements ICalendarController {
   private final ICalendarModel model;
   private final IView view;
   private final CommandInvoker invoker;
@@ -22,7 +32,7 @@ class CalendarController implements ICalendarController {
   public CalendarController(ICalendarModel model, IView view) {
     this.model = model;
     this.view = view;
-    this.invoker = new CommandInvoker();
+    this.invoker = new CommandInvoker(null);
 
     // Register commands
     invoker.registerCommand("create calendar", CreateCalendarCommand.class);
@@ -35,6 +45,7 @@ class CalendarController implements ICalendarController {
     invoker.registerCommand("edit events", EditEventsCalendarCommand.class);
     invoker.registerCommand("show status", ShowStatusCommand.class);
     invoker.registerCommand("print events", PrintEventsCommand.class);
+    invoker.registerCommand("edit calendar", EditCalendarCommand.class);
   }
 
 
@@ -42,37 +53,11 @@ class CalendarController implements ICalendarController {
   public void run(Readable input) {
     try (Scanner scanner = new Scanner(input)) {
       view.display("Welcome to the Calendar App!");
-
-      while (scanner.hasNextLine()) {
-        String line = scanner.nextLine().trim();
-        if (line.equalsIgnoreCase("exit")) break;
-
-        List<String> tokens = tokenizeCommand(line);
-        if (tokens.isEmpty()) continue;
-
-        String action = tokens.get(0);
-        String subAction = tokens.size() > 1 ? tokens.get(1) : "";
-        String commandKey = (action + " " + subAction).toLowerCase();
-        List<String> args = tokens.subList(2, tokens.size());
-
-        String response = invoker.executeCommand(commandKey, args, model);
-        view.display(response);
-      }
+      runScanner(scanner, true, view, invoker, model);
     } catch (Exception e) {
       view.display("Error: " + e.getMessage());
     }
   }
 
-  private List<String> tokenizeCommand(String input) {
-    List<String> tokens = new ArrayList<>();
-    Matcher matcher = Pattern.compile("\"([^\"]*)\"|(\\S+)").matcher(input);
-    while (matcher.find()) {
-      if (matcher.group(1) != null) {
-        tokens.add(matcher.group(1)); // Quoted
-      } else {
-        tokens.add(matcher.group(2)); // Unquoted
-      }
-    }
-    return tokens;
-  }
+
 }

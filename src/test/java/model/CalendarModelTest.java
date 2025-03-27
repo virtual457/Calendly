@@ -55,19 +55,20 @@ public class CalendarModelTest {
     LocalDateTime end = LocalDateTime.of(2025, 3, 18, 11, 0);
 
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
-            .setEventName("Meeting")
-            .setStartDateTime(start)
-            .setEndDateTime(end)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Team meeting")
-            .setEventLocation("Conference Room")
-            .setPrivate(false)
-            .build();
+        .setEventName("Meeting")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Team meeting")
+        .setEventLocation("Conference Room")
+        .setPrivate(false)
+        .build();
 
     assertTrue(model.addEvent("Work", eventDTO));
 
-    List<ICalendarEventDTO> events = model.getEventsInRange("Work", start.minusMinutes(1), end.plusMinutes(1));
+    List<ICalendarEventDTO> events = model.getEventsInRange("Work", start.minusMinutes(1),
+        end.plusMinutes(1));
     assertEquals(1, events.size());
     assertEquals("Meeting", events.get(0).getEventName());
   }
@@ -80,22 +81,23 @@ public class CalendarModelTest {
 
     // Create a recurring event on Tuesday with recurrence count = 3.
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
-            .setEventName("Standup")
-            .setStartDateTime(start)
-            .setEndDateTime(end)
-            .setAutoDecline(true)
-            .setRecurring(true)
-            .setRecurrenceCount(3)
-            .setRecurrenceDays(Arrays.asList(DayOfWeek.TUESDAY))
-            .setEventDescription("Weekly standup")
-            .setEventLocation("Room A")
-            .setPrivate(false)
-            .build();
+        .setEventName("Standup")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setAutoDecline(true)
+        .setRecurring(true)
+        .setRecurrenceCount(3)
+        .setRecurrenceDays(Arrays.asList(DayOfWeek.TUESDAY))
+        .setEventDescription("Weekly standup")
+        .setEventLocation("Room A")
+        .setPrivate(false)
+        .build();
 
     assertTrue(model.addEvent("Work", eventDTO));
 
     // Verify that exactly 3 occurrences were added.
-    List<ICalendarEventDTO> events = model.getEventsInRange("Work", start.minusDays(1), end.plusDays(21));
+    List<ICalendarEventDTO> events = model.getEventsInRange("Work", start.minusDays(1),
+        end.plusDays(21));
     assertEquals(3, events.size());
   }
 
@@ -107,24 +109,24 @@ public class CalendarModelTest {
     LocalDateTime existingStart = LocalDateTime.of(2025, 6, 1, 10, 0);
     LocalDateTime existingEnd = existingStart.plusHours(1);
     ICalendarEventDTO existing = CalendarEventDTO.builder()
-            .setEventName("Existing")
-            .setStartDateTime(existingStart)
-            .setEndDateTime(existingEnd)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setPrivate(false)
-            .build();
+        .setEventName("Existing")
+        .setStartDateTime(existingStart)
+        .setEndDateTime(existingEnd)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setPrivate(false)
+        .build();
     assertTrue(model.addEvent("MyCal", existing));
 
     // Add conflicting event with autoDecline = true
     ICalendarEventDTO conflicting = CalendarEventDTO.builder()
-            .setEventName("Conflict")
-            .setStartDateTime(existingStart.plusMinutes(30)) // Overlaps with existing
-            .setEndDateTime(existingEnd.plusMinutes(30))
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setPrivate(false)
-            .build();
+        .setEventName("Conflict")
+        .setStartDateTime(existingStart.plusMinutes(30)) // Overlaps with existing
+        .setEndDateTime(existingEnd.plusMinutes(30))
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setPrivate(false)
+        .build();
 
     model.addEvent("MyCal", conflicting); // should throw exception
   }
@@ -137,28 +139,28 @@ public class CalendarModelTest {
     LocalDateTime existingStart = LocalDateTime.of(2025, 6, 1, 10, 0);
     LocalDateTime existingEnd = existingStart.plusHours(1);
     ICalendarEventDTO existing = CalendarEventDTO.builder()
-            .setEventName("Existing")
-            .setStartDateTime(existingStart)
-            .setEndDateTime(existingEnd)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setPrivate(false)
-            .build();
+        .setEventName("Existing")
+        .setStartDateTime(existingStart)
+        .setEndDateTime(existingEnd)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setPrivate(false)
+        .build();
     assertTrue(model.addEvent("MyCal", existing));
 
     // Add conflicting event but with autoDecline = false
     ICalendarEventDTO conflicting = CalendarEventDTO.builder()
-            .setEventName("Conflict")
-            .setStartDateTime(existingStart.plusMinutes(30))
-            .setEndDateTime(existingEnd.plusMinutes(30))
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setPrivate(false)
-            .build();
+        .setEventName("Conflict")
+        .setStartDateTime(existingStart.plusMinutes(30))
+        .setEndDateTime(existingEnd.plusMinutes(30))
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setPrivate(false)
+        .build();
     try {
       assertTrue(model.addEvent("MyCal", conflicting));
       fail("dint throw illegalstate exception");
-    }catch (IllegalStateException e){
+    } catch (IllegalStateException e) {
       assertEquals("Conflict detected, event not created", e.getMessage());
     }
   }
@@ -171,16 +173,16 @@ public class CalendarModelTest {
 
     // Non-recurring event but with recurrence info provided.
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
-            .setEventName("Meeting")
-            .setStartDateTime(start)
-            .setEndDateTime(end)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setRecurrenceCount(2)  // Should not be provided for non-recurring event.
-            .setEventDescription("Team meeting")
-            .setEventLocation("Conference Room")
-            .setPrivate(false)
-            .build();
+        .setEventName("Meeting")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setRecurrenceCount(2)  // Should not be provided for non-recurring event.
+        .setEventDescription("Team meeting")
+        .setEventLocation("Conference Room")
+        .setPrivate(false)
+        .build();
 
     model.addEvent("Work", eventDTO);
   }
@@ -194,22 +196,23 @@ public class CalendarModelTest {
     LocalDateTime end = LocalDateTime.of(2025, 4, 10, 10, 0);
 
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
-            .setEventName("Standup")
-            .setStartDateTime(start)
-            .setEndDateTime(end)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Daily standup")
-            .setEventLocation("Room A")
-            .setPrivate(true)
-            .build();
+        .setEventName("Standup")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Daily standup")
+        .setEventLocation("Room A")
+        .setPrivate(true)
+        .build();
 
     assertTrue(model.addEvent("Work", eventDTO));
 
     // Edit event's location.
     boolean edited = model.editEvents("Work", "location", "Standup", start, "Room B", false);
     assertTrue(edited);
-    List<ICalendarEventDTO> events = model.getEventsInRange("Work", start.minusMinutes(1), end.plusMinutes(1));
+    List<ICalendarEventDTO> events = model.getEventsInRange("Work", start.minusMinutes(1),
+        end.plusMinutes(1));
     assertEquals("Room B", events.get(0).getEventLocation());
   }
 
@@ -220,15 +223,15 @@ public class CalendarModelTest {
     LocalDateTime end = LocalDateTime.of(2025, 4, 10, 10, 0);
 
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
-            .setEventName("Standup")
-            .setStartDateTime(start)
-            .setEndDateTime(end)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Daily standup")
-            .setEventLocation("Room A")
-            .setPrivate(true)
-            .build();
+        .setEventName("Standup")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Daily standup")
+        .setEventLocation("Room A")
+        .setPrivate(true)
+        .build();
 
     // Add one event.
     assertTrue(model.addEvent("Work", eventDTO));
@@ -236,7 +239,8 @@ public class CalendarModelTest {
     // Attempt to edit all events matching the criteria.
     boolean edited = model.editEvents("Work", "location", "Standup", start, "Room C", true);
     assertTrue(edited);
-    List<ICalendarEventDTO> events = model.getEventsInRange("Work", start.minusMinutes(1), end.plusMinutes(1));
+    List<ICalendarEventDTO> events = model.getEventsInRange("Work", start.minusMinutes(1),
+        end.plusMinutes(1));
     for (ICalendarEventDTO event : events) {
       assertEquals("Room C", event.getEventLocation());
     }
@@ -257,15 +261,15 @@ public class CalendarModelTest {
     LocalDateTime start = LocalDateTime.of(2025, 6, 1, 8, 0);
     LocalDateTime end = LocalDateTime.of(2025, 6, 1, 9, 0);
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
-            .setEventName("Breakfast")
-            .setStartDateTime(start)
-            .setEndDateTime(end)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Morning meal")
-            .setEventLocation("Home")
-            .setPrivate(false)
-            .build();
+        .setEventName("Breakfast")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Morning meal")
+        .setEventLocation("Home")
+        .setPrivate(false)
+        .build();
     assertTrue(model.addEvent("Personal", eventDTO));
 
     // Now the calendar has an event on June 1, 2025, so it should be busy (not available).
@@ -299,32 +303,33 @@ public class CalendarModelTest {
     LocalDateTime start1 = LocalDateTime.of(2025, 7, 1, 9, 0);
     LocalDateTime end1 = LocalDateTime.of(2025, 7, 1, 10, 0);
     ICalendarEventDTO eventDTO1 = CalendarEventDTO.builder()
-            .setEventName("Meeting")
-            .setStartDateTime(start1)
-            .setEndDateTime(end1)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Team meeting")
-            .setEventLocation("Office")
-            .setPrivate(true)
-            .build();
+        .setEventName("Meeting")
+        .setStartDateTime(start1)
+        .setEndDateTime(end1)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Team meeting")
+        .setEventLocation("Office")
+        .setPrivate(true)
+        .build();
     assertTrue(model.addEvent("Work", eventDTO1));
 
     LocalDateTime start2 = LocalDateTime.of(2025, 7, 2, 9, 0);
     LocalDateTime end2 = LocalDateTime.of(2025, 7, 2, 10, 0);
     ICalendarEventDTO eventDTO2 = CalendarEventDTO.builder()
-            .setEventName("Meeting")
-            .setStartDateTime(start2)
-            .setEndDateTime(end2)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Team meeting")
-            .setEventLocation("Office")
-            .setPrivate(true)
-            .build();
+        .setEventName("Meeting")
+        .setStartDateTime(start2)
+        .setEndDateTime(end2)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Team meeting")
+        .setEventLocation("Office")
+        .setPrivate(true)
+        .build();
     assertTrue(model.addEvent("Work", eventDTO2));
 
-    List<ICalendarEventDTO> eventsInRange = model.getEventsInRange("Work", start1.minusHours(1), end2.plusHours(1));
+    List<ICalendarEventDTO> eventsInRange = model.getEventsInRange("Work", start1.minusHours(1),
+        end2.plusHours(1));
     assertEquals(2, eventsInRange.size());
   }
 
@@ -340,15 +345,15 @@ public class CalendarModelTest {
     LocalDateTime fallStart = LocalDateTime.of(2024, 9, 5, 10, 0);
     LocalDateTime fallEnd = LocalDateTime.of(2024, 9, 5, 11, 0);
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
-            .setEventName("Lecture")
-            .setStartDateTime(fallStart)
-            .setEndDateTime(fallEnd)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Lecture on CS5010")
-            .setEventLocation("Room 101")
-            .setPrivate(true)
-            .build();
+        .setEventName("Lecture")
+        .setStartDateTime(fallStart)
+        .setEndDateTime(fallEnd)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Lecture on CS5010")
+        .setEventLocation("Room 101")
+        .setPrivate(true)
+        .build();
     assertTrue(model.addEvent("Fall2024", eventDTO));
 
     // New target date
@@ -363,9 +368,9 @@ public class CalendarModelTest {
     LocalDateTime expectedEnd = LocalDateTime.of(2025, 1, 8, 11, 0);
 
     List<ICalendarEventDTO> copiedEvents = model.getEventsInRange(
-            "Spring2025",
-            expectedStart.minusMinutes(1),
-            expectedEnd.plusMinutes(1)
+        "Spring2025",
+        expectedStart.minusMinutes(1),
+        expectedEnd.plusMinutes(1)
     );
     assertEquals(1, copiedEvents.size());
 
@@ -424,19 +429,20 @@ public class CalendarModelTest {
     LocalDateTime end = LocalDateTime.of(2025, 8, 1, 10, 0);
 
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
-            .setEventName("EventBoundary")
-            .setStartDateTime(start)
-            .setEndDateTime(end)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Boundary test")
-            .setEventLocation("Loc1")
-            .setPrivate(false)
-            .build();
+        .setEventName("EventBoundary")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Boundary test")
+        .setEventLocation("Loc1")
+        .setPrivate(false)
+        .build();
     assertTrue(model.addEvent("BoundaryCal", eventDTO));
 
     // Test that an event starting exactly at the fromDateTime is included.
-    List<ICalendarEventDTO> events = model.getEventsInRange("BoundaryCal", start, end.plusMinutes(30));
+    List<ICalendarEventDTO> events = model.getEventsInRange("BoundaryCal", start,
+        end.plusMinutes(30));
     assertFalse(events.isEmpty());
     assertEquals("EventBoundary", events.get(0).getEventName());
 
@@ -469,15 +475,15 @@ public class CalendarModelTest {
     LocalDateTime start = LocalDateTime.of(2025, 9, 1, 10, 0);
     LocalDateTime end = LocalDateTime.of(2025, 9, 1, 11, 0);
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
-            .setEventName(null)  // missing event name
-            .setStartDateTime(start)
-            .setEndDateTime(end)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Test")
-            .setEventLocation("TestRoom")
-            .setPrivate(false)
-            .build();
+        .setEventName(null)  // missing event name
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Test")
+        .setEventLocation("TestRoom")
+        .setPrivate(false)
+        .build();
     model.addEvent("TestCal", eventDTO);
   }
 
@@ -486,15 +492,15 @@ public class CalendarModelTest {
     model.createCalendar("TestCal", "America/New_York");
     LocalDateTime end = LocalDateTime.of(2025, 9, 1, 11, 0);
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
-            .setEventName("TestEvent")
-            .setStartDateTime(null)  // missing start time
-            .setEndDateTime(end)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Test")
-            .setEventLocation("TestRoom")
-            .setPrivate(false)
-            .build();
+        .setEventName("TestEvent")
+        .setStartDateTime(null)  // missing start time
+        .setEndDateTime(end)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Test")
+        .setEventLocation("TestRoom")
+        .setPrivate(false)
+        .build();
     model.addEvent("TestCal", eventDTO);
   }
 
@@ -506,25 +512,25 @@ public class CalendarModelTest {
     LocalDateTime start = LocalDateTime.of(2025, 10, 1, 9, 0);
     LocalDateTime end = LocalDateTime.of(2025, 10, 1, 10, 0);
     ICalendarEventDTO eventDTO1 = CalendarEventDTO.builder()
-            .setEventName("Event")
-            .setStartDateTime(start)
-            .setEndDateTime(end)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Test event")
-            .setEventLocation("Room 1")
-            .setPrivate(false)
-            .build();
+        .setEventName("Event")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Test event")
+        .setEventLocation("Room 1")
+        .setPrivate(false)
+        .build();
     ICalendarEventDTO eventDTO2 = CalendarEventDTO.builder()
-            .setEventName("Event")
-            .setStartDateTime(start.plusMinutes(15)) // overlapping time
-            .setEndDateTime(end.plusMinutes(15))
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Test event conflict")
-            .setEventLocation("Room 2")
-            .setPrivate(false)
-            .build();
+        .setEventName("Event")
+        .setStartDateTime(start.plusMinutes(15)) // overlapping time
+        .setEndDateTime(end.plusMinutes(15))
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Test event conflict")
+        .setEventLocation("Room 2")
+        .setPrivate(false)
+        .build();
     // Add first event.
     assertTrue(model.addEvent("ConflictCal", eventDTO1));
     // Adding second event should throw conflict.
@@ -539,27 +545,27 @@ public class CalendarModelTest {
     LocalDateTime start = LocalDateTime.of(2025, 11, 1, 10, 0);
     LocalDateTime end = LocalDateTime.of(2025, 11, 1, 11, 0);
     ICalendarEventDTO sourceEvent = CalendarEventDTO.builder()
-            .setEventName("CopyEvent")
-            .setStartDateTime(start)
-            .setEndDateTime(end)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Event to copy")
-            .setEventLocation("Room X")
-            .setPrivate(false)
-            .build();
+        .setEventName("CopyEvent")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Event to copy")
+        .setEventLocation("Room X")
+        .setPrivate(false)
+        .build();
     assertTrue(model.addEvent("SourceCal", sourceEvent));
 
     ICalendarEventDTO conflictEvent = CalendarEventDTO.builder()
-            .setEventName("ConflictEvent")
-            .setStartDateTime(LocalDateTime.of(2025, 1, 8, 10, 0))
-            .setEndDateTime(LocalDateTime.of(2025, 1, 8, 11, 0))
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Conflicting event")
-            .setEventLocation("Room Y")
-            .setPrivate(false)
-            .build();
+        .setEventName("ConflictEvent")
+        .setStartDateTime(LocalDateTime.of(2025, 1, 8, 10, 0))
+        .setEndDateTime(LocalDateTime.of(2025, 1, 8, 11, 0))
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Conflicting event")
+        .setEventLocation("Room Y")
+        .setPrivate(false)
+        .build();
     assertTrue(model.addEvent("TargetCal", conflictEvent));
 
     // Attempt to copy the source event to TargetCal should throw a conflict exception.
@@ -580,23 +586,24 @@ public class CalendarModelTest {
     LocalDateTime recEnd = LocalDateTime.of(2025, 5, 15, 10, 0);
 
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
-            .setEventName("Biweekly Standup")
-            .setStartDateTime(start)
-            .setEndDateTime(end)
-            .setAutoDecline(true)
-            .setRecurring(true)
-            .setRecurrenceCount(null)  // Use recurrence end date instead of count.
-            .setRecurrenceEndDate(recEnd)
-            .setRecurrenceDays(Arrays.asList(DayOfWeek.THURSDAY))
-            .setEventDescription("Standup meeting")
-            .setEventLocation("Room Z")
-            .setPrivate(false)
-            .build();
+        .setEventName("Biweekly Standup")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setAutoDecline(true)
+        .setRecurring(true)
+        .setRecurrenceCount(null)  // Use recurrence end date instead of count.
+        .setRecurrenceEndDate(recEnd)
+        .setRecurrenceDays(Arrays.asList(DayOfWeek.THURSDAY))
+        .setEventDescription("Standup meeting")
+        .setEventLocation("Room Z")
+        .setPrivate(false)
+        .build();
 
     assertTrue(model.addEvent("RecurrCal", eventDTO));
 
     // Query a range that should capture all occurrences.
-    List<ICalendarEventDTO> events = model.getEventsInRange("RecurrCal", start.minusDays(1), recEnd.plusDays(1));
+    List<ICalendarEventDTO> events = model.getEventsInRange("RecurrCal", start.minusDays(1),
+        recEnd.plusDays(1));
     assertEquals(3, events.size());
   }
 
@@ -607,18 +614,18 @@ public class CalendarModelTest {
     LocalDateTime end = LocalDateTime.of(2025, 5, 1, 10, 0);
     // Invalid recurrence count (zero).
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
-            .setEventName("Invalid Recurrence")
-            .setStartDateTime(start)
-            .setEndDateTime(end)
-            .setAutoDecline(true)
-            .setRecurring(true)
-            .setRecurrenceCount(0)
-            .setRecurrenceEndDate(null)
-            .setRecurrenceDays(Arrays.asList(DayOfWeek.FRIDAY))
-            .setEventDescription("Should fail")
-            .setEventLocation("Room X")
-            .setPrivate(false)
-            .build();
+        .setEventName("Invalid Recurrence")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setAutoDecline(true)
+        .setRecurring(true)
+        .setRecurrenceCount(0)
+        .setRecurrenceEndDate(null)
+        .setRecurrenceDays(Arrays.asList(DayOfWeek.FRIDAY))
+        .setEventDescription("Should fail")
+        .setEventLocation("Room X")
+        .setPrivate(false)
+        .build();
     model.addEvent("RecurrCal", eventDTO);
   }
 
@@ -629,17 +636,17 @@ public class CalendarModelTest {
     LocalDateTime start = LocalDateTime.of(2025, 5, 1, 9, 0);
     LocalDateTime end = LocalDateTime.of(2025, 5, 2, 10, 0);
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
-            .setEventName("Bad Recurrence")
-            .setStartDateTime(start)
-            .setEndDateTime(end)
-            .setAutoDecline(true)
-            .setRecurring(true)
-            .setRecurrenceCount(3)
-            .setRecurrenceDays(Arrays.asList(DayOfWeek.FRIDAY))
-            .setEventDescription("Invalid recurrence dates")
-            .setEventLocation("Room Y")
-            .setPrivate(false)
-            .build();
+        .setEventName("Bad Recurrence")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setAutoDecline(true)
+        .setRecurring(true)
+        .setRecurrenceCount(3)
+        .setRecurrenceDays(Arrays.asList(DayOfWeek.FRIDAY))
+        .setEventDescription("Invalid recurrence dates")
+        .setEventLocation("Room Y")
+        .setPrivate(false)
+        .build();
     model.addEvent("RecurrCal", eventDTO);
   }
 
@@ -651,15 +658,15 @@ public class CalendarModelTest {
     LocalDateTime start = LocalDateTime.of(2025, 8, 1, 10, 0);
     LocalDateTime end = LocalDateTime.of(2025, 8, 1, 11, 0);
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
-            .setEventName("Event")
-            .setStartDateTime(start)
-            .setEndDateTime(end)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Test")
-            .setEventLocation("Room A")
-            .setPrivate(true)
-            .build();
+        .setEventName("Event")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Test")
+        .setEventLocation("Room A")
+        .setPrivate(true)
+        .build();
     assertTrue(model.addEvent("EditCal", eventDTO));
     // Attempt to edit an unsupported property.
     model.editEvents("EditCal", "unsupported", "Event", start, "NewValue", false);
@@ -701,11 +708,11 @@ public class CalendarModelTest {
 
     try {
       model.copyEvents(
-            "SourceCal",
-            LocalDateTime.of(2025, 1, 1, 10, 0),
-            LocalDateTime.of(2025, 1, 1, 11, 0),
-            "TargetCal",
-            LocalDate.of(2025, 2, 1)
+          "SourceCal",
+          LocalDateTime.of(2025, 1, 1, 10, 0),
+          LocalDateTime.of(2025, 1, 1, 11, 0),
+          "TargetCal",
+          LocalDate.of(2025, 2, 1)
       );
       fail("Expected IllegalStateException not thrown");
     } catch (IllegalArgumentException e) {
@@ -724,17 +731,17 @@ public class CalendarModelTest {
     LocalDateTime end = LocalDateTime.of(2025, 3, 3, 10, 0);
 
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
-            .setEventName("Weekly Sync")
-            .setStartDateTime(start)
-            .setEndDateTime(end)
-            .setRecurring(true)
-            .setRecurrenceCount(2)
-            .setRecurrenceDays(List.of(DayOfWeek.MONDAY))
-            .setEventDescription("Recurring meeting")
-            .setEventLocation("Room Z")
-            .setPrivate(false)
-            .setAutoDecline(true)
-            .build();
+        .setEventName("Weekly Sync")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setRecurring(true)
+        .setRecurrenceCount(2)
+        .setRecurrenceDays(List.of(DayOfWeek.MONDAY))
+        .setEventDescription("Recurring meeting")
+        .setEventLocation("Room Z")
+        .setPrivate(false)
+        .setAutoDecline(true)
+        .build();
     assertTrue(model.addEvent("SourceCal", eventDTO));
 
     // Copy window: March 2 to March 11 (covers both occurrences)
@@ -748,9 +755,9 @@ public class CalendarModelTest {
 
     // Retrieve events from April 6 to April 21 in TargetCal
     List<ICalendarEventDTO> copiedEvents = model.getEventsInRange(
-            "TargetCal",
-            LocalDateTime.of(2025, 4, 7, 0, 0),
-            LocalDateTime.of(2025, 4, 15, 0, 0)
+        "TargetCal",
+        LocalDateTime.of(2025, 4, 7, 0, 0),
+        LocalDateTime.of(2025, 4, 15, 0, 0)
     );
 
     assertEquals(2, copiedEvents.size());
@@ -778,46 +785,18 @@ public class CalendarModelTest {
     LocalDateTime start = LocalDateTime.of(2025, 10, 1, 9, 0);
     LocalDateTime end = LocalDateTime.of(2025, 10, 1, 10, 0);
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
-            .setEventName("TestEvent")
-            .setStartDateTime(start)
-            .setEndDateTime(end)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Should fail")
-            .setEventLocation("Nowhere")
-            .setPrivate(false)
-            .build();
+        .setEventName("TestEvent")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Should fail")
+        .setEventLocation("Nowhere")
+        .setPrivate(false)
+        .build();
     model.addEvent("DeleteCal", eventDTO);
   }
 
-  //Reflections Used here removing the test
-  public void testConvertToDTO() throws Exception {
-    // Create a CalendarEvent instance manually.
-    LocalDateTime start = LocalDateTime.of(2025, 3, 18, 10, 0);
-    LocalDateTime end = LocalDateTime.of(2025, 3, 18, 11, 0);
-    CalendarEvent event = CalendarEvent.builder()
-          .setEventName("TestEvent")
-          .setStartDateTime(start)
-          .setEndDateTime(end)
-          .setEventDescription("Desc")
-          .setEventLocation("RoomX")
-          .setPublic(true)
-          .build();
-
-
-    // Use reflection to call the private convertToDTO method.
-    Method method = CalendarModel.class.getDeclaredMethod("convertToDTO",
-          ICalendarEvent.class);
-    method.setAccessible(true);
-    ICalendarEventDTO dto = (ICalendarEventDTO) method.invoke(model, event);
-
-    assertEquals("TestEvent", dto.getEventName());
-    assertEquals(start, dto.getStartDateTime());
-    assertEquals(end, dto.getEndDateTime());
-    // Verify that location and description were copied.
-    assertEquals("RoomX", dto.getEventLocation());
-    assertEquals("Desc", dto.getEventDescription());
-  }
 
   @Test(expected = IllegalArgumentException.class)
   public void testRecurringEventMissingCountAndEndDate() {
@@ -827,18 +806,18 @@ public class CalendarModelTest {
 
     // Neither recurrence count nor recurrence end date provided.
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
-            .setEventName("RecurringEvent")
-            .setStartDateTime(start)
-            .setEndDateTime(end)
-            .setAutoDecline(true)
-            .setRecurring(true)
-            .setRecurrenceCount(null)
-            .setRecurrenceEndDate(null)
-            .setRecurrenceDays(Arrays.asList(DayOfWeek.FRIDAY))
-            .setEventDescription("Recurring event test")
-            .setEventLocation("Room A")
-            .setPrivate(false)
-            .build();
+        .setEventName("RecurringEvent")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setAutoDecline(true)
+        .setRecurring(true)
+        .setRecurrenceCount(null)
+        .setRecurrenceEndDate(null)
+        .setRecurrenceDays(Arrays.asList(DayOfWeek.FRIDAY))
+        .setEventDescription("Recurring event test")
+        .setEventLocation("Room A")
+        .setPrivate(false)
+        .build();
 
     model.addEvent("RecurrCal", eventDTO);
   }
@@ -850,20 +829,21 @@ public class CalendarModelTest {
     LocalDateTime end = LocalDateTime.of(2025, 5, 1, 10, 0);
 
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
-            .setEventName("SingleOccurrence")
-            .setStartDateTime(start)
-            .setEndDateTime(end)
-            .setAutoDecline(true)
-            .setRecurring(true)
-            .setRecurrenceCount(1)
-            .setRecurrenceDays(Arrays.asList(DayOfWeek.FRIDAY))
-            .setEventDescription("Occurs only once")
-            .setEventLocation("Room C")
-            .setPrivate(false)
-            .build();
+        .setEventName("SingleOccurrence")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setAutoDecline(true)
+        .setRecurring(true)
+        .setRecurrenceCount(1)
+        .setRecurrenceDays(Arrays.asList(DayOfWeek.FRIDAY))
+        .setEventDescription("Occurs only once")
+        .setEventLocation("Room C")
+        .setPrivate(false)
+        .build();
 
     assertTrue(model.addEvent("RecurrCal", eventDTO));
-    List<ICalendarEventDTO> events = model.getEventsInRange("RecurrCal", start.minusDays(1), end.plusDays(1));
+    List<ICalendarEventDTO> events = model.getEventsInRange("RecurrCal", start.minusDays(1),
+        end.plusDays(1));
     assertEquals(1, events.size());
   }
 
@@ -876,15 +856,15 @@ public class CalendarModelTest {
     LocalDateTime start = LocalDateTime.of(2025, 10, 1, 9, 0);
     LocalDateTime end = LocalDateTime.of(2025, 10, 1, 10, 0);
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
-            .setEventName("TestEvent")
-            .setStartDateTime(start)
-            .setEndDateTime(end)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Should fail")
-            .setEventLocation("Room X")
-            .setPrivate(false)
-            .build();
+        .setEventName("TestEvent")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Should fail")
+        .setEventLocation("Room X")
+        .setPrivate(false)
+        .build();
     model.addEvent("TempCal", eventDTO);
   }
 
@@ -897,25 +877,25 @@ public class CalendarModelTest {
     LocalDateTime end2 = LocalDateTime.of(2025, 11, 1, 11, 0);
 
     ICalendarEventDTO event1 = CalendarEventDTO.builder()
-            .setEventName("Event1")
-            .setStartDateTime(start1)
-            .setEndDateTime(end1)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("First event")
-            .setEventLocation("Room 1")
-            .setPrivate(false)
-            .build();
+        .setEventName("Event1")
+        .setStartDateTime(start1)
+        .setEndDateTime(end1)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("First event")
+        .setEventLocation("Room 1")
+        .setPrivate(false)
+        .build();
     ICalendarEventDTO event2 = CalendarEventDTO.builder()
-            .setEventName("Event2")
-            .setStartDateTime(start2)
-            .setEndDateTime(end2)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Second event")
-            .setEventLocation("Room 2")
-            .setPrivate(false)
-            .build();
+        .setEventName("Event2")
+        .setStartDateTime(start2)
+        .setEndDateTime(end2)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Second event")
+        .setEventLocation("Room 2")
+        .setPrivate(false)
+        .build();
 
     assertTrue(model.addEvent("OverlapCal", event1));
     assertTrue(model.addEvent("OverlapCal", event2));
@@ -939,14 +919,14 @@ public class CalendarModelTest {
     LocalDateTime start1 = LocalDateTime.of(2025, 3, 25, 10, 0);
     LocalDateTime end1 = LocalDateTime.of(2025, 3, 25, 11, 0);
     ICalendarEventDTO eventDTO1 = CalendarEventDTO.builder()
-            .setEventName("Meeting A")
-            .setStartDateTime(start1)
-            .setEndDateTime(end1)
-            .setEventDescription("First meeting")
-            .setEventLocation("Room A")
-            .setAutoDecline(true)
-            .setPrivate(false)
-            .build();
+        .setEventName("Meeting A")
+        .setStartDateTime(start1)
+        .setEndDateTime(end1)
+        .setEventDescription("First meeting")
+        .setEventLocation("Room A")
+        .setAutoDecline(true)
+        .setPrivate(false)
+        .build();
 
     calendarModel.addEvent("SourceCal", eventDTO1);
 
@@ -954,28 +934,29 @@ public class CalendarModelTest {
     LocalDateTime start2 = LocalDateTime.of(2025, 3, 25, 14, 0);
     LocalDateTime end2 = LocalDateTime.of(2025, 3, 25, 15, 30);
     ICalendarEventDTO eventDTO2 = CalendarEventDTO.builder()
-            .setEventName("Meeting B")
-            .setStartDateTime(start2)
-            .setEndDateTime(end2)
-            .setEventDescription("Second meeting")
-            .setEventLocation("Room B")
-            .setAutoDecline(true)
-            .setPrivate(false)
-            .build();
+        .setEventName("Meeting B")
+        .setStartDateTime(start2)
+        .setEndDateTime(end2)
+        .setEventDescription("Second meeting")
+        .setEventLocation("Room B")
+        .setAutoDecline(true)
+        .setPrivate(false)
+        .build();
 
     calendarModel.addEvent("SourceCal", eventDTO2);
     LocalDateTime sourceStart = LocalDateTime.of(2025, 3, 25, 0, 0);
     LocalDateTime sourceEnd = LocalDateTime.of(2025, 3, 25, 23, 59);
     LocalDate targetStart = LocalDate.of(2025, 3, 26);
 
-    boolean result = calendarModel.copyEvents("SourceCal", sourceStart, sourceEnd, "TargetCal", targetStart);
+    boolean result = calendarModel.copyEvents("SourceCal", sourceStart, sourceEnd, "TargetCal",
+        targetStart);
 
     assertTrue(result);
 
     // Ensure the target calendar now has the copied events
     var copiedEvents = calendarModel.getEventsInRange("TargetCal",
-            LocalDateTime.of(2025, 3, 26, 0, 0),
-            LocalDateTime.of(2025, 3, 27, 0, 0));
+        LocalDateTime.of(2025, 3, 26, 0, 0),
+        LocalDateTime.of(2025, 3, 27, 0, 0));
 
     assertEquals(2, copiedEvents.size());
 
@@ -992,39 +973,39 @@ public class CalendarModelTest {
     model.createCalendar("SourceCal", "America/New_York");
     model.createCalendar("TargetCal", "America/New_York");
     model.copyEvents("NonExistentSource",
-            LocalDateTime.of(2025, 1, 1, 9, 0),
-            LocalDateTime.of(2025, 1, 1, 10, 0),
-            "TargetCal",
-            LocalDate.of(2025, 2, 1));
+        LocalDateTime.of(2025, 1, 1, 9, 0),
+        LocalDateTime.of(2025, 1, 1, 10, 0),
+        "TargetCal",
+        LocalDate.of(2025, 2, 1));
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testCopyEvents_TargetCalendarNotFound() {
     model.copyEvents("SourceCal",
-            LocalDateTime.of(2025, 1, 1, 9, 0),
-            LocalDateTime.of(2025, 1, 1, 10, 0),
-            "NonExistentTarget",
-            LocalDate.of(2025, 2, 1));
+        LocalDateTime.of(2025, 1, 1, 9, 0),
+        LocalDateTime.of(2025, 1, 1, 10, 0),
+        "NonExistentTarget",
+        LocalDate.of(2025, 2, 1));
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testCopyEvents_NullParameters() {
     // Passing a null sourceStart should trigger an exception.
     model.copyEvents("SourceCal",
-            null,
-            LocalDateTime.of(2025, 1, 1, 10, 0),
-            "TargetCal",
-            LocalDate.of(2025, 2, 1));
+        null,
+        LocalDateTime.of(2025, 1, 1, 10, 0),
+        "TargetCal",
+        LocalDate.of(2025, 2, 1));
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testCopyEvents_SourceEndBeforeSourceStart() {
     // sourceEnd is before sourceStart.
     model.copyEvents("SourceCal",
-            LocalDateTime.of(2025, 1, 1, 10, 0),
-            LocalDateTime.of(2025, 1, 1, 9, 0),
-            "TargetCal",
-            LocalDate.of(2025, 2, 1));
+        LocalDateTime.of(2025, 1, 1, 10, 0),
+        LocalDateTime.of(2025, 1, 1, 9, 0),
+        "TargetCal",
+        LocalDate.of(2025, 2, 1));
   }
 
   // ---------- No Events Found Test ----------
@@ -1037,11 +1018,11 @@ public class CalendarModelTest {
 
     try {
       model.copyEvents(
-            "SourceCal",
-            LocalDateTime.of(2025, 1, 1, 9, 0),
-            LocalDateTime.of(2025, 1, 1, 10, 0),
-            "TargetCal",
-            LocalDate.of(2025, 2, 1)
+          "SourceCal",
+          LocalDateTime.of(2025, 1, 1, 9, 0),
+          LocalDateTime.of(2025, 1, 1, 10, 0),
+          "TargetCal",
+          LocalDate.of(2025, 2, 1)
       );
       fail("Expected IllegalArgumentException not thrown");
     } catch (IllegalArgumentException e) {
@@ -1062,15 +1043,15 @@ public class CalendarModelTest {
     LocalDateTime sourceEnd = LocalDateTime.of(2025, 1, 1, 10, 0);
 
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
-            .setEventName("Meeting")
-            .setStartDateTime(sourceStart)
-            .setEndDateTime(sourceEnd)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Team meeting")
-            .setEventLocation("Room 101")
-            .setPrivate(false)
-            .build();
+        .setEventName("Meeting")
+        .setStartDateTime(sourceStart)
+        .setEndDateTime(sourceEnd)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Team meeting")
+        .setEventLocation("Room 101")
+        .setPrivate(false)
+        .build();
     assertTrue(model.addEvent("SourceCal", eventDTO));
 
     // Copy to Feb 1, 2025 (same time of day, different date)
@@ -1083,9 +1064,9 @@ public class CalendarModelTest {
     LocalDateTime expectedEnd = expectedStart.plusHours(1);
 
     List<ICalendarEventDTO> events = model.getEventsInRange(
-            "TargetCal",
-            expectedStart.minusMinutes(1),
-            expectedEnd.plusMinutes(1)
+        "TargetCal",
+        expectedStart.minusMinutes(1),
+        expectedEnd.plusMinutes(1)
     );
 
     assertEquals(1, events.size());
@@ -1106,41 +1087,41 @@ public class CalendarModelTest {
 
     // Add two events to SourceCal
     model.addEvent("SourceCal", CalendarEventDTO.builder()
-            .setEventName("Event1")
-            .setStartDateTime(LocalDateTime.of(2025, 1, 1, 9, 0))
-            .setEndDateTime(LocalDateTime.of(2025, 1, 1, 10, 0))
-            .setRecurring(false)
-            .setAutoDecline(true)
-            .setEventDescription("First")
-            .setEventLocation("Room A")
-            .setPrivate(false)
-            .build());
+        .setEventName("Event1")
+        .setStartDateTime(LocalDateTime.of(2025, 1, 1, 9, 0))
+        .setEndDateTime(LocalDateTime.of(2025, 1, 1, 10, 0))
+        .setRecurring(false)
+        .setAutoDecline(true)
+        .setEventDescription("First")
+        .setEventLocation("Room A")
+        .setPrivate(false)
+        .build());
 
     model.addEvent("SourceCal", CalendarEventDTO.builder()
-            .setEventName("Event2")
-            .setStartDateTime(LocalDateTime.of(2025, 1, 1, 11, 0))
-            .setEndDateTime(LocalDateTime.of(2025, 1, 1, 12, 0))
-            .setRecurring(false)
-            .setAutoDecline(true)
-            .setEventDescription("Second")
-            .setEventLocation("Room B")
-            .setPrivate(false)
-            .build());
+        .setEventName("Event2")
+        .setStartDateTime(LocalDateTime.of(2025, 1, 1, 11, 0))
+        .setEndDateTime(LocalDateTime.of(2025, 1, 1, 12, 0))
+        .setRecurring(false)
+        .setAutoDecline(true)
+        .setEventDescription("Second")
+        .setEventLocation("Room B")
+        .setPrivate(false)
+        .build());
 
     // Copy both events
     boolean copied = model.copyEvents(
-            "SourceCal",
-            LocalDateTime.of(2025, 1, 1, 8, 0),
-            LocalDateTime.of(2025, 1, 1, 13, 0),
-            "TargetCal",
-            LocalDate.of(2025, 2, 1));
+        "SourceCal",
+        LocalDateTime.of(2025, 1, 1, 8, 0),
+        LocalDateTime.of(2025, 1, 1, 13, 0),
+        "TargetCal",
+        LocalDate.of(2025, 2, 1));
     assertTrue(copied);
 
     // Check that both events exist in target calendar
     List<ICalendarEventDTO> events = model.getEventsInRange(
-            "TargetCal",
-            LocalDateTime.of(2025, 2, 1, 0, 0),
-            LocalDateTime.of(2025, 2, 1, 23, 59));
+        "TargetCal",
+        LocalDateTime.of(2025, 2, 1, 0, 0),
+        LocalDateTime.of(2025, 2, 1, 23, 59));
     assertEquals(2, events.size());
   }
 
@@ -1155,15 +1136,15 @@ public class CalendarModelTest {
     LocalDateTime sourceEnd = LocalDateTime.of(2025, 3, 1, 10, 0);
 
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
-            .setEventName("MorningMeeting")
-            .setStartDateTime(sourceStart)
-            .setEndDateTime(sourceEnd)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Morning sync")
-            .setEventLocation("NY Office")
-            .setPrivate(false)
-            .build();
+        .setEventName("MorningMeeting")
+        .setStartDateTime(sourceStart)
+        .setEndDateTime(sourceEnd)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Morning sync")
+        .setEventLocation("NY Office")
+        .setPrivate(false)
+        .build();
     assertTrue(model.addEvent("SourceCal", eventDTO));
 
     // Target day in IST (Asia/Kolkata) to align with original time
@@ -1177,7 +1158,7 @@ public class CalendarModelTest {
     LocalDateTime expectedEnd = expectedStart.plusHours(1);
 
     List<ICalendarEventDTO> copiedEvents = model.getEventsInRange("TargetCal",
-            expectedStart.minusHours(1), expectedEnd.plusHours(1));
+        expectedStart.minusHours(1), expectedEnd.plusHours(1));
 
     assertEquals(1, copiedEvents.size());
     ICalendarEventDTO copiedEvent = copiedEvents.get(0);
@@ -1199,15 +1180,15 @@ public class CalendarModelTest {
     LocalDateTime laEnd = laStart.plusHours(1);
 
     ICalendarEventDTO event = CalendarEventDTO.builder()
-            .setEventName("Global Call")
-            .setStartDateTime(laStart)
-            .setEndDateTime(laEnd)
-            .setRecurring(false)
-            .setAutoDecline(true)
-            .setPrivate(false)
-            .setEventDescription("Call across time zones")
-            .setEventLocation("Zoom")
-            .build();
+        .setEventName("Global Call")
+        .setStartDateTime(laStart)
+        .setEndDateTime(laEnd)
+        .setRecurring(false)
+        .setAutoDecline(true)
+        .setPrivate(false)
+        .setEventDescription("Call across time zones")
+        .setEventLocation("Zoom")
+        .build();
 
     assertTrue(model.addEvent("SourceCal", event));
 
@@ -1219,7 +1200,8 @@ public class CalendarModelTest {
     LocalDateTime expectedStart = LocalDateTime.of(2025, 5, 12, 2, 0);
     LocalDateTime expectedEnd = expectedStart.plusHours(1);
 
-    List<ICalendarEventDTO> events = model.getEventsInRange("TargetCal", expectedStart.minusMinutes(1), expectedEnd.plusMinutes(1));
+    List<ICalendarEventDTO> events = model.getEventsInRange("TargetCal",
+        expectedStart.minusMinutes(1), expectedEnd.plusMinutes(1));
     assertEquals(1, events.size());
 
     ICalendarEventDTO copied = events.get(0);
@@ -1235,11 +1217,11 @@ public class CalendarModelTest {
 
     try {
       model.copyEvents(
-            "SourceCal",
-            LocalDateTime.of(2025, 6, 1, 10, 0),
-            LocalDateTime.of(2025, 6, 1, 11, 0),
-            "TargetCal",
-            LocalDate.of(2025, 6, 2)
+          "SourceCal",
+          LocalDateTime.of(2025, 6, 1, 10, 0),
+          LocalDateTime.of(2025, 6, 1, 11, 0),
+          "TargetCal",
+          LocalDate.of(2025, 6, 2)
       );
       fail("Expected IllegalStateException not thrown");
     } catch (IllegalArgumentException e) {
@@ -1258,31 +1240,32 @@ public class CalendarModelTest {
     LocalDateTime sourceEnd = LocalDateTime.of(2025, 8, 10, 10, 0);
 
     ICalendarEventDTO sourceEvent = CalendarEventDTO.builder()
-            .setEventName("Morning Meeting")
-            .setStartDateTime(sourceStart)
-            .setEndDateTime(sourceEnd)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Team Sync")
-            .setEventLocation("Room A")
-            .setPrivate(false)
-            .build();
+        .setEventName("Morning Meeting")
+        .setStartDateTime(sourceStart)
+        .setEndDateTime(sourceEnd)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Team Sync")
+        .setEventLocation("Room A")
+        .setPrivate(false)
+        .build();
     assertTrue(model.addEvent("SourceCal", sourceEvent));
 
     // Conflict in target calendar: 9–10 AM on Sept 1, 2025 (same time as mapped source event)
     ICalendarEventDTO conflicting = CalendarEventDTO.builder()
-            .setEventName("Blocker")
-            .setStartDateTime(LocalDateTime.of(2025, 9, 1, 9, 0))
-            .setEndDateTime(LocalDateTime.of(2025, 9, 1, 10, 0))
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Overlap")
-            .setEventLocation("Room B")
-            .setPrivate(false)
-            .build();
+        .setEventName("Blocker")
+        .setStartDateTime(LocalDateTime.of(2025, 9, 1, 9, 0))
+        .setEndDateTime(LocalDateTime.of(2025, 9, 1, 10, 0))
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Overlap")
+        .setEventLocation("Room B")
+        .setPrivate(false)
+        .build();
     assertTrue(model.addEvent("TargetCal", conflicting));
 
-    // This should create a conflict, because the copied event will also land at 9–10 AM on Sept 1, 2025
+    // This should create a conflict, because the copied event will also land at 9–10 AM on Sept
+    // 1, 2025
     LocalDate targetStart = LocalDate.of(2025, 9, 1);
     assertThrows(IllegalStateException.class, () -> {
       model.copyEvents("SourceCal", sourceStart, sourceEnd, "TargetCal", targetStart);
@@ -1310,28 +1293,28 @@ public class CalendarModelTest {
 
     // Event in SourceCal
     ICalendarEventDTO sourceEvent = CalendarEventDTO.builder()
-            .setEventName("ToCopy")
-            .setStartDateTime(start)
-            .setEndDateTime(end)
-            .setRecurring(false)
-            .setEventDescription("Copy me")
-            .setEventLocation("Room 1")
-            .setPrivate(false)
-            .setAutoDecline(true)
-            .build();
+        .setEventName("ToCopy")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setRecurring(false)
+        .setEventDescription("Copy me")
+        .setEventLocation("Room 1")
+        .setPrivate(false)
+        .setAutoDecline(true)
+        .build();
     assertTrue(model.addEvent("SourceCal", sourceEvent));
 
     // Conflicting event already in TargetCal — this overlaps with the copied event
     ICalendarEventDTO conflict = CalendarEventDTO.builder()
-            .setEventName("Blocker")
-            .setStartDateTime(LocalDateTime.of(2025, 7, 1, 9, 30))
-            .setEndDateTime(LocalDateTime.of(2025, 7, 1, 10, 30))
-            .setRecurring(false)
-            .setEventDescription("Already here")
-            .setEventLocation("Room 2")
-            .setPrivate(false)
-            .setAutoDecline(true)
-            .build();
+        .setEventName("Blocker")
+        .setStartDateTime(LocalDateTime.of(2025, 7, 1, 9, 30))
+        .setEndDateTime(LocalDateTime.of(2025, 7, 1, 10, 30))
+        .setRecurring(false)
+        .setEventDescription("Already here")
+        .setEventLocation("Room 2")
+        .setPrivate(false)
+        .setAutoDecline(true)
+        .build();
     assertTrue(model.addEvent("TargetCal", conflict));
 
     // Copying to July 1, 2025 — should try to place event at 9:00 AM
@@ -1349,17 +1332,17 @@ public class CalendarModelTest {
     LocalDateTime end = start.plusHours(1);
 
     ICalendarEventDTO recurring = CalendarEventDTO.builder()
-            .setEventName("MultiMonthEvent")
-            .setStartDateTime(start)
-            .setEndDateTime(end)
-            .setRecurring(true)
-            .setRecurrenceCount(4)
-            .setRecurrenceDays(Arrays.asList(DayOfWeek.THURSDAY))
-            .setEventDescription("Spans months")
-            .setEventLocation("Board Room")
-            .setPrivate(false)
-            .setAutoDecline(true)
-            .build();
+        .setEventName("MultiMonthEvent")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setRecurring(true)
+        .setRecurrenceCount(4)
+        .setRecurrenceDays(Arrays.asList(DayOfWeek.THURSDAY))
+        .setEventDescription("Spans months")
+        .setEventLocation("Board Room")
+        .setPrivate(false)
+        .setAutoDecline(true)
+        .build();
     assertTrue(model.addEvent("SourceCal", recurring));
 
     // Define copy window to include all 4 original occurrences
@@ -1370,9 +1353,9 @@ public class CalendarModelTest {
 
     // Each copied event will land on a Thursday starting from 2025-03-06, at 10:00 AM
     List<ICalendarEventDTO> events = model.getEventsInRange(
-            "TargetCal",
-            targetStart.atStartOfDay().minusDays(1),
-            targetStart.plusWeeks(4).atTime(23, 59)
+        "TargetCal",
+        targetStart.atStartOfDay().minusDays(1),
+        targetStart.plusWeeks(4).atTime(23, 59)
     );
 
     assertEquals(4, events.size());
@@ -1391,22 +1374,24 @@ public class CalendarModelTest {
 
     // DST starts at 2:00 AM on March 9, 2025
     LocalDateTime dstStart = LocalDateTime.of(2025, 3, 9, 1, 30);
-    LocalDateTime dstEnd = LocalDateTime.of(2025, 3, 9, 2, 30); // Actually interpreted as 3:30 AM EDT
+    LocalDateTime dstEnd = LocalDateTime.of(2025, 3, 9, 2, 30); // Actually interpreted as 3:30
+    // AM EDT
 
     ICalendarEventDTO event = CalendarEventDTO.builder()
-            .setEventName("DST Event")
-            .setStartDateTime(dstStart)
-            .setEndDateTime(dstEnd)
-            .setRecurring(false)
-            .setAutoDecline(true)
-            .setPrivate(false)
-            .setEventLocation("Room DST")
-            .setEventDescription("Spring forward")
-            .build();
+        .setEventName("DST Event")
+        .setStartDateTime(dstStart)
+        .setEndDateTime(dstEnd)
+        .setRecurring(false)
+        .setAutoDecline(true)
+        .setPrivate(false)
+        .setEventLocation("Room DST")
+        .setEventDescription("Spring forward")
+        .build();
     assertTrue(model.addEvent("SourceCal", event));
 
     LocalDate targetStart = LocalDate.of(2025, 3, 10);
-    assertTrue(model.copyEvents("SourceCal", dstStart.minusMinutes(10), dstEnd.plusMinutes(10), "TargetCal", targetStart));
+    assertTrue(model.copyEvents("SourceCal", dstStart.minusMinutes(10), dstEnd.plusMinutes(10),
+        "TargetCal", targetStart));
 
     // Convert start: 2025-03-09 01:30 EST → 06:30 UTC → 12:00 IST
     // Convert end:   2025-03-09 03:30 EDT → 07:30 UTC → 13:00 IST
@@ -1414,9 +1399,9 @@ public class CalendarModelTest {
     LocalDateTime expectedEnd = LocalDateTime.of(2025, 3, 10, 13, 0);
 
     List<ICalendarEventDTO> events = model.getEventsInRange(
-            "TargetCal",
-            expectedStart.minusHours(1),
-            expectedEnd.plusHours(1)
+        "TargetCal",
+        expectedStart.minusHours(1),
+        expectedEnd.plusHours(1)
     );
 
     assertEquals(1, events.size());
@@ -1437,22 +1422,22 @@ public class CalendarModelTest {
     LocalDateTime srcEnd = LocalDateTime.of(2025, 7, 15, 10, 0);
 
     ICalendarEventDTO event = CalendarEventDTO.builder()
-            .setEventName("Half-Hour TZ Event")
-            .setStartDateTime(srcStart)
-            .setEndDateTime(srcEnd)
-            .setRecurring(false)
-            .setAutoDecline(true)
-            .setPrivate(false)
-            .setEventDescription("Kathmandu time test")
-            .setEventLocation("Room Half")
-            .build();
+        .setEventName("Half-Hour TZ Event")
+        .setStartDateTime(srcStart)
+        .setEndDateTime(srcEnd)
+        .setRecurring(false)
+        .setAutoDecline(true)
+        .setPrivate(false)
+        .setEventDescription("Kathmandu time test")
+        .setEventLocation("Room Half")
+        .build();
     assertTrue(model.addEvent("SourceCal", event));
 
     // Target date to align the first copied event to: August 1, 2025
     LocalDate targetStart = LocalDate.of(2025, 8, 1);
     boolean copied = model.copyEvents("SourceCal",
-            srcStart.minusMinutes(1), srcEnd.plusMinutes(1),
-            "TargetCal", targetStart);
+        srcStart.minusMinutes(1), srcEnd.plusMinutes(1),
+        "TargetCal", targetStart);
     assertTrue(copied);
 
     // Calculate expected time:
@@ -1464,9 +1449,9 @@ public class CalendarModelTest {
 
     // Validate copied event
     List<ICalendarEventDTO> copiedEvents = model.getEventsInRange(
-            "TargetCal",
-            expectedStart.minusMinutes(30),
-            expectedEnd.plusMinutes(30)
+        "TargetCal",
+        expectedStart.minusMinutes(30),
+        expectedEnd.plusMinutes(30)
     );
     assertEquals(1, copiedEvents.size());
     ICalendarEventDTO copiedEvent = copiedEvents.get(0);
@@ -1487,15 +1472,15 @@ public class CalendarModelTest {
     LocalDateTime srcEnd = LocalDateTime.of(2025, 5, 1, 11, 0);
 
     ICalendarEventDTO event = CalendarEventDTO.builder()
-            .setEventName("TimeZone Jump")
-            .setStartDateTime(srcStart)
-            .setEndDateTime(srcEnd)
-            .setRecurring(false)
-            .setAutoDecline(true)
-            .setPrivate(false)
-            .setEventLocation("Room TZ")
-            .setEventDescription("Jump test")
-            .build();
+        .setEventName("TimeZone Jump")
+        .setStartDateTime(srcStart)
+        .setEndDateTime(srcEnd)
+        .setRecurring(false)
+        .setAutoDecline(true)
+        .setPrivate(false)
+        .setEventLocation("Room TZ")
+        .setEventDescription("Jump test")
+        .build();
     assertTrue(model.addEvent("SourceCal", event));
 
     // Copy to 2025-06-01 in LA
@@ -1510,9 +1495,9 @@ public class CalendarModelTest {
     LocalDateTime expectedEnd = expectedStart.plusHours(1);
 
     List<ICalendarEventDTO> events = model.getEventsInRange(
-            "TargetCal",
-            expectedStart.minusHours(1),
-            expectedEnd.plusHours(1)
+        "TargetCal",
+        expectedStart.minusHours(1),
+        expectedEnd.plusHours(1)
     );
 
     assertEquals(1, events.size());
@@ -1533,41 +1518,36 @@ public class CalendarModelTest {
     LocalDateTime end = LocalDateTime.of(2025, 4, 7, 11, 0);
 
     ICalendarEventDTO recurringEvent = CalendarEventDTO.builder()
-            .setEventName("Weekly Update")
-            .setStartDateTime(start)
-            .setEndDateTime(end)
-            .setRecurring(true)
-            .setRecurrenceCount(2)
-            .setRecurrenceDays(List.of(DayOfWeek.MONDAY))
-            .setEventDescription("Update series")
-            .setEventLocation("NY Room")
-            .setAutoDecline(true)
-            .setPrivate(false)
-            .build();
+        .setEventName("Weekly Update")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setRecurring(true)
+        .setRecurrenceCount(2)
+        .setRecurrenceDays(List.of(DayOfWeek.MONDAY))
+        .setEventDescription("Update series")
+        .setEventLocation("NY Room")
+        .setAutoDecline(true)
+        .setPrivate(false)
+        .build();
     assertTrue(model.addEvent("Src", recurringEvent));
 
     // Add a conflicting event in Dst
     LocalDateTime conflictStart = LocalDateTime.of(2025, 5, 5, 10, 0); // Should match second copy
     ICalendarEventDTO conflict = CalendarEventDTO.builder()
-            .setEventName("Blocked Slot")
-            .setStartDateTime(conflictStart)
-            .setEndDateTime(conflictStart.plusHours(1))
-            .setRecurring(false)
-            .setEventDescription("Busy slot")
-            .setEventLocation("Conflict Room")
-            .setAutoDecline(true)
-            .setPrivate(false)
-            .build();
+        .setEventName("Blocked Slot")
+        .setStartDateTime(conflictStart)
+        .setEndDateTime(conflictStart.plusHours(1))
+        .setRecurring(false)
+        .setEventDescription("Busy slot")
+        .setEventLocation("Conflict Room")
+        .setAutoDecline(true)
+        .setPrivate(false)
+        .build();
     assertTrue(model.addEvent("Dst", conflict));
 
     // Copy should throw due to conflict
     model.copyEvents("Src", start, start.plusDays(7), "Dst", LocalDate.of(2025, 4, 28));
   }
-
-
-
-
-
 
 
   @Test
@@ -1578,21 +1558,23 @@ public class CalendarModelTest {
     LocalDateTime start = LocalDateTime.of(2025, 12, 1, 10, 0);
     LocalDateTime end = LocalDateTime.of(2025, 12, 1, 11, 0);
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
-            .setEventName("BoundaryEvent")
-            .setStartDateTime(start)
-            .setEndDateTime(end)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Event at boundary")
-            .setEventLocation("Room Boundary")
-            .setPrivate(false)
-            .build();
+        .setEventName("BoundaryEvent")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Event at boundary")
+        .setEventLocation("Room Boundary")
+        .setPrivate(false)
+        .build();
     assertTrue(model.addEvent("SourceCal", eventDTO));
 
     // Use a source interval that exactly starts at the event's start time.
-    boolean copied = model.copyEvents("SourceCal", start, end, "TargetCal", start.plusDays(1).toLocalDate());
+    boolean copied = model.copyEvents("SourceCal", start, end, "TargetCal",
+        start.plusDays(1).toLocalDate());
     assertTrue(copied);
-    List<ICalendarEventDTO> copiedEvents = model.getEventsInRange("TargetCal", start.plusDays(1).minusHours(1), start.plusDays(1).plusHours(1));
+    List<ICalendarEventDTO> copiedEvents = model.getEventsInRange("TargetCal",
+        start.plusDays(1).minusHours(1), start.plusDays(1).plusHours(1));
     assertEquals(1, copiedEvents.size());
   }
 
@@ -1603,21 +1585,22 @@ public class CalendarModelTest {
     LocalDateTime start = LocalDateTime.of(2025, 4, 5, 10, 0);
     LocalDateTime end = LocalDateTime.of(2025, 4, 5, 11, 0);
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
-            .setEventName("OriginalEvent")
-            .setStartDateTime(start)
-            .setEndDateTime(end)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Original")
-            .setEventLocation("Room A")
-            .setPrivate(false)
-            .build();
+        .setEventName("OriginalEvent")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Original")
+        .setEventLocation("Room A")
+        .setPrivate(false)
+        .build();
     assertTrue(model.addEvent("SameCal", eventDTO));
 
     LocalDateTime newStart = LocalDateTime.of(2025, 4, 6, 10, 0);
     assertTrue(model.copyEvent("SameCal", start, "OriginalEvent", "SameCal", newStart));
 
-    List<ICalendarEventDTO> events = model.getEventsInRange("SameCal", newStart.minusMinutes(1), newStart.plusHours(1));
+    List<ICalendarEventDTO> events = model.getEventsInRange("SameCal", newStart.minusMinutes(1),
+        newStart.plusHours(1));
     assertEquals(1, events.size());
     assertEquals("OriginalEvent", events.get(0).getEventName());
   }
@@ -1630,21 +1613,22 @@ public class CalendarModelTest {
     LocalDateTime start = LocalDateTime.of(2025, 5, 5, 14, 0);
     LocalDateTime end = LocalDateTime.of(2025, 5, 5, 15, 0);
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
-            .setEventName("EmptyEvent")
-            .setStartDateTime(start)
-            .setEndDateTime(end)
-            .setAutoDecline(false)
-            .setRecurring(false)
-            .setEventDescription("")
-            .setEventLocation("")
-            .setPrivate(true)
-            .build();
+        .setEventName("EmptyEvent")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setAutoDecline(false)
+        .setRecurring(false)
+        .setEventDescription("")
+        .setEventLocation("")
+        .setPrivate(true)
+        .build();
     assertTrue(model.addEvent("TestCal", eventDTO));
 
     LocalDateTime newStart = LocalDateTime.of(2025, 6, 5, 14, 0);
     assertTrue(model.copyEvent("TestCal", start, "EmptyEvent", "CopyCal", newStart));
 
-    List<ICalendarEventDTO> events = model.getEventsInRange("CopyCal", newStart.minusMinutes(1), newStart.plusHours(1));
+    List<ICalendarEventDTO> events = model.getEventsInRange("CopyCal", newStart.minusMinutes(1),
+        newStart.plusHours(1));
     assertEquals(1, events.size());
     assertEquals("", events.get(0).getEventDescription());
     assertEquals("", events.get(0).getEventLocation());
@@ -1658,24 +1642,25 @@ public class CalendarModelTest {
     LocalDateTime start = LocalDateTime.of(2025, 5, 12, 10, 0); // Monday
     LocalDateTime end = LocalDateTime.of(2025, 5, 12, 11, 0);
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
-            .setEventName("WeeklyCall")
-            .setStartDateTime(start)
-            .setEndDateTime(end)
-            .setAutoDecline(true)
-            .setRecurring(true)
-            .setRecurrenceCount(3)
-            .setRecurrenceDays(Collections.singletonList(DayOfWeek.MONDAY))
-            .setEventDescription("Recurring call")
-            .setEventLocation("Room 303")
-            .setPrivate(false)
-            .build();
+        .setEventName("WeeklyCall")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setAutoDecline(true)
+        .setRecurring(true)
+        .setRecurrenceCount(3)
+        .setRecurrenceDays(Collections.singletonList(DayOfWeek.MONDAY))
+        .setEventDescription("Recurring call")
+        .setEventLocation("Room 303")
+        .setPrivate(false)
+        .build();
     assertTrue(model.addEvent("SourceCal", eventDTO));
 
     // Copy only first occurrence to target calendar
     LocalDateTime targetStart = LocalDateTime.of(2025, 6, 1, 9, 0);
     assertTrue(model.copyEvent("SourceCal", start, "WeeklyCall", "TargetCal", targetStart));
 
-    List<ICalendarEventDTO> targetEvents = model.getEventsInRange("TargetCal", targetStart.minusMinutes(1), targetStart.plusHours(1));
+    List<ICalendarEventDTO> targetEvents = model.getEventsInRange("TargetCal",
+        targetStart.minusMinutes(1), targetStart.plusHours(1));
     assertEquals(1, targetEvents.size());
     assertEquals("WeeklyCall", targetEvents.get(0).getEventName());
   }
@@ -1683,15 +1668,15 @@ public class CalendarModelTest {
   @Test
   public void testCalendarEventDTOBuilderMissingEventName() {
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
-            .setEventName(null)  // explicitly setting eventName to null
-            .setStartDateTime(LocalDateTime.of(2025, 10, 1, 9, 0))
-            .setEndDateTime(LocalDateTime.of(2025, 10, 1, 10, 0))
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Missing event name")
-            .setEventLocation("Room X")
-            .setPrivate(false)
-            .build();
+        .setEventName(null)  // explicitly setting eventName to null
+        .setStartDateTime(LocalDateTime.of(2025, 10, 1, 9, 0))
+        .setEndDateTime(LocalDateTime.of(2025, 10, 1, 10, 0))
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Missing event name")
+        .setEventLocation("Room X")
+        .setPrivate(false)
+        .build();
 
     assertNull("Expected event name to be null", eventDTO.getEventName());
   }
@@ -1706,15 +1691,15 @@ public class CalendarModelTest {
     LocalDateTime sourceStart = LocalDateTime.of(2025, 1, 1, 9, 0);
     LocalDateTime sourceEnd = LocalDateTime.of(2025, 1, 1, 10, 0);
     ICalendarEventDTO sourceEvent = CalendarEventDTO.builder()
-            .setEventName("Meeting")
-            .setStartDateTime(sourceStart)
-            .setEndDateTime(sourceEnd)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Team meeting")
-            .setEventLocation("Room 101")
-            .setPrivate(false)
-            .build();
+        .setEventName("Meeting")
+        .setStartDateTime(sourceStart)
+        .setEndDateTime(sourceEnd)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Team meeting")
+        .setEventLocation("Room 101")
+        .setPrivate(false)
+        .build();
     assertTrue(model.addEvent("SourceCal", sourceEvent));
 
     // Copy the event from SourceCal to TargetCal.
@@ -1725,7 +1710,7 @@ public class CalendarModelTest {
 
     // Verify that the event in the target calendar has the correct new start and end times.
     List<ICalendarEventDTO> targetEvents = model.getEventsInRange("TargetCal",
-            targetStart.minusMinutes(1), targetStart.plusHours(1));
+        targetStart.minusMinutes(1), targetStart.plusHours(1));
     assertEquals(1, targetEvents.size());
     ICalendarEventDTO copiedEvent = targetEvents.get(0);
     // The new event's start should equal targetStart.
@@ -1760,30 +1745,30 @@ public class CalendarModelTest {
     LocalDateTime sourceStart = LocalDateTime.of(2025, 1, 1, 9, 0);
     LocalDateTime sourceEnd = LocalDateTime.of(2025, 1, 1, 10, 0);
     ICalendarEventDTO sourceEvent = CalendarEventDTO.builder()
-            .setEventName("Meeting")
-            .setStartDateTime(sourceStart)
-            .setEndDateTime(sourceEnd)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Team meeting")
-            .setEventLocation("Room 101")
-            .setPrivate(false)
-            .build();
+        .setEventName("Meeting")
+        .setStartDateTime(sourceStart)
+        .setEndDateTime(sourceEnd)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Team meeting")
+        .setEventLocation("Room 101")
+        .setPrivate(false)
+        .build();
     assertTrue(model.addEvent("SourceCal", sourceEvent));
 
     // Add an event in the target calendar that conflicts with the copied event.
     // For example, the target event occupies the time slot we want to copy into.
     LocalDateTime targetStart = LocalDateTime.of(2025, 2, 1, 11, 0);
     ICalendarEventDTO conflictingEvent = CalendarEventDTO.builder()
-            .setEventName("ConflictingEvent")
-            .setStartDateTime(targetStart)
-            .setEndDateTime(targetStart.plusHours(1))
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Conflicting event")
-            .setEventLocation("Room X")
-            .setPrivate(false)
-            .build();
+        .setEventName("ConflictingEvent")
+        .setStartDateTime(targetStart)
+        .setEndDateTime(targetStart.plusHours(1))
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Conflicting event")
+        .setEventLocation("Room X")
+        .setPrivate(false)
+        .build();
     assertTrue(model.addEvent("TargetCal", conflictingEvent));
 
     // Attempt to copy the event from SourceCal to TargetCal.
@@ -1804,15 +1789,15 @@ public class CalendarModelTest {
     LocalDateTime originalStart = LocalDateTime.of(2025, 3, 1, 9, 0);
     LocalDateTime originalEnd = LocalDateTime.of(2025, 3, 1, 10, 0);
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
-            .setEventName("Team Meeting")
-            .setStartDateTime(originalStart)
-            .setEndDateTime(originalEnd)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Monthly team sync")
-            .setEventLocation("Conference Room 1")
-            .setPrivate(false)
-            .build();
+        .setEventName("Team Meeting")
+        .setStartDateTime(originalStart)
+        .setEndDateTime(originalEnd)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Monthly team sync")
+        .setEventLocation("Conference Room 1")
+        .setPrivate(false)
+        .build();
     assertTrue(model.addEvent("SameCal", eventDTO));
 
     // Copy the event within the same calendar, moving it one day later.
@@ -1821,7 +1806,8 @@ public class CalendarModelTest {
     assertTrue(copied);
 
     // Verify new event exists in SameCal at the new time.
-    List<ICalendarEventDTO> events = model.getEventsInRange("SameCal", newStart.minusMinutes(1), newStart.plusHours(1));
+    List<ICalendarEventDTO> events = model.getEventsInRange("SameCal", newStart.minusMinutes(1),
+        newStart.plusHours(1));
     assertEquals(1, events.size());
     assertEquals("Team Meeting", events.get(0).getEventName());
     assertEquals(newStart, events.get(0).getStartDateTime());
@@ -1835,20 +1821,21 @@ public class CalendarModelTest {
     LocalDateTime sourceStart = LocalDateTime.of(2025, 4, 1, 14, 0);
     LocalDateTime sourceEnd = LocalDateTime.of(2025, 4, 1, 15, 0);
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
-            .setEventName("Workshop")
-            .setStartDateTime(sourceStart)
-            .setEndDateTime(sourceEnd)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Technical workshop")
-            .setEventLocation("Lab 1")
-            .setPrivate(false)
-            .build();
+        .setEventName("Workshop")
+        .setStartDateTime(sourceStart)
+        .setEndDateTime(sourceEnd)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Technical workshop")
+        .setEventLocation("Lab 1")
+        .setPrivate(false)
+        .build();
     assertTrue(model.addEvent("SourceCal", eventDTO));
 
     // Use a different case for eventName parameter.
     LocalDateTime targetStart = LocalDateTime.of(2025, 5, 1, 14, 0);
-    boolean copied = model.copyEvent("SourceCal", sourceStart, "workshop", "TargetCal", targetStart);
+    boolean copied = model.copyEvent("SourceCal", sourceStart, "workshop", "TargetCal",
+        targetStart);
     assertTrue(copied);
   }
 
@@ -1860,29 +1847,29 @@ public class CalendarModelTest {
     LocalDateTime sourceStart = LocalDateTime.of(2025, 6, 1, 9, 0);
     LocalDateTime sourceEnd = LocalDateTime.of(2025, 6, 1, 10, 0);
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
-            .setEventName("Seminar")
-            .setStartDateTime(sourceStart)
-            .setEndDateTime(sourceEnd)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Educational seminar")
-            .setEventLocation("Auditorium")
-            .setPrivate(false)
-            .build();
+        .setEventName("Seminar")
+        .setStartDateTime(sourceStart)
+        .setEndDateTime(sourceEnd)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Educational seminar")
+        .setEventLocation("Auditorium")
+        .setPrivate(false)
+        .build();
     assertTrue(model.addEvent("SourceCal", eventDTO));
 
     // In TargetCal, add an event that starts exactly at the target time.
     LocalDateTime conflictStart = LocalDateTime.of(2025, 7, 1, 11, 0);
     ICalendarEventDTO conflictEvent = CalendarEventDTO.builder()
-            .setEventName("ExistingEvent")
-            .setStartDateTime(conflictStart)
-            .setEndDateTime(conflictStart.plusHours(1))
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Already scheduled")
-            .setEventLocation("Room Z")
-            .setPrivate(false)
-            .build();
+        .setEventName("ExistingEvent")
+        .setStartDateTime(conflictStart)
+        .setEndDateTime(conflictStart.plusHours(1))
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Already scheduled")
+        .setEventLocation("Room Z")
+        .setPrivate(false)
+        .build();
     assertTrue(model.addEvent("TargetCal", conflictEvent));
 
     // Attempt to copy the "Seminar" event so that its new start equals conflictStart.
@@ -1898,26 +1885,29 @@ public class CalendarModelTest {
     LocalDateTime start = LocalDateTime.of(2025, 8, 4, 10, 0); // Assume this is a Monday.
     LocalDateTime end = LocalDateTime.of(2025, 8, 4, 11, 0);
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
-            .setEventName("Weekly Meeting")
-            .setStartDateTime(start)
-            .setEndDateTime(end)
-            .setAutoDecline(true)
-            .setRecurring(true)
-            .setRecurrenceCount(3)
-            .setRecurrenceDays(Arrays.asList(DayOfWeek.MONDAY))
-            .setEventDescription("Recurring meeting")
-            .setEventLocation("Room 101")
-            .setPrivate(false)
-            .build();
+        .setEventName("Weekly Meeting")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setAutoDecline(true)
+        .setRecurring(true)
+        .setRecurrenceCount(3)
+        .setRecurrenceDays(Arrays.asList(DayOfWeek.MONDAY))
+        .setEventDescription("Recurring meeting")
+        .setEventLocation("Room 101")
+        .setPrivate(false)
+        .build();
     assertTrue(model.addEvent("SourceCal", eventDTO));
 
     // Assume we want to copy the occurrence that starts on the first Monday (start).
-    LocalDateTime targetStart = LocalDateTime.of(2025, 9, 1, 10, 0); // New start time for the copied occurrence.
-    boolean copied = model.copyEvent("SourceCal", start, "Weekly Meeting", "TargetCal", targetStart);
+    LocalDateTime targetStart = LocalDateTime.of(2025, 9, 1, 10, 0); // New start time for the
+    // copied occurrence.
+    boolean copied = model.copyEvent("SourceCal", start, "Weekly Meeting", "TargetCal",
+        targetStart);
     assertTrue(copied);
 
     // Verify that the target calendar now has an event with the same details.
-    List<ICalendarEventDTO> targetEvents = model.getEventsInRange("TargetCal", targetStart.minusMinutes(1), targetStart.plusHours(1));
+    List<ICalendarEventDTO> targetEvents = model.getEventsInRange("TargetCal",
+        targetStart.minusMinutes(1), targetStart.plusHours(1));
     assertEquals(1, targetEvents.size());
     ICalendarEventDTO copiedEvent = targetEvents.get(0);
     assertEquals("Weekly Meeting", copiedEvent.getEventName());
@@ -1946,15 +1936,15 @@ public class CalendarModelTest {
     LocalDateTime sourceStart = LocalDateTime.of(2025, 1, 1, 9, 0);
     LocalDateTime sourceEnd = LocalDateTime.of(2025, 1, 1, 10, 0);
     ICalendarEventDTO sourceEvent = CalendarEventDTO.builder()
-            .setEventName("Meeting")
-            .setStartDateTime(sourceStart)
-            .setEndDateTime(sourceEnd)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Team meeting")
-            .setEventLocation("Room 101")
-            .setPrivate(false)
-            .build();
+        .setEventName("Meeting")
+        .setStartDateTime(sourceStart)
+        .setEndDateTime(sourceEnd)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Team meeting")
+        .setEventLocation("Room 101")
+        .setPrivate(false)
+        .build();
     assertTrue(model.addEvent("SourceCal", sourceEvent));
 
     // Attempt to copy into a non-existing target calendar.
@@ -1972,15 +1962,15 @@ public class CalendarModelTest {
     LocalDateTime sourceStart = LocalDateTime.of(2025, 1, 1, 9, 0);
     LocalDateTime sourceEnd = LocalDateTime.of(2025, 1, 1, 10, 0);
     ICalendarEventDTO sourceEvent = CalendarEventDTO.builder()
-            .setEventName("Meeting")
-            .setStartDateTime(sourceStart)
-            .setEndDateTime(sourceEnd)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Team meeting")
-            .setEventLocation("Room 101")
-            .setPrivate(false)
-            .build();
+        .setEventName("Meeting")
+        .setStartDateTime(sourceStart)
+        .setEndDateTime(sourceEnd)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Team meeting")
+        .setEventLocation("Room 101")
+        .setPrivate(false)
+        .build();
     assertTrue(model.addEvent("SourceCal", sourceEvent));
 
     // Attempt to copy with a name that doesn't match (even though the time is correct).
@@ -1996,15 +1986,15 @@ public class CalendarModelTest {
     LocalDateTime start = LocalDateTime.of(2025, 6, 10, 10, 0);
     LocalDateTime end = LocalDateTime.of(2025, 6, 10, 11, 0);
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
-            .setEventName("Meeting")
-            .setStartDateTime(start)
-            .setEndDateTime(end)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Team meeting")
-            .setEventLocation("Room A")
-            .setPrivate(false)
-            .build();
+        .setEventName("Meeting")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Team meeting")
+        .setEventLocation("Room A")
+        .setPrivate(false)
+        .build();
 
     // Now, add the event using the correct calendar name.
     assertTrue(model.addEvent("TestCal", eventDTO));
@@ -2013,7 +2003,8 @@ public class CalendarModelTest {
     boolean edited = model.editEvents("TestCal", "location", "Meeting", start, "Room B", false);
     assertTrue(edited);
 
-    List<ICalendarEventDTO> events = model.getEventsInRange("TestCal", start.minusMinutes(1), end.plusMinutes(1));
+    List<ICalendarEventDTO> events = model.getEventsInRange("TestCal", start.minusMinutes(1),
+      end.plusMinutes(1));
     assertEquals("Room B", events.get(0).getEventLocation());
   }
 
@@ -2024,15 +2015,15 @@ public class CalendarModelTest {
     LocalDateTime start = LocalDateTime.of(2025, 6, 12, 10, 0);
     LocalDateTime end = LocalDateTime.of(2025, 6, 12, 11, 0);
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
-            .setEventName("BooleanTest")
-            .setStartDateTime(start)
-            .setEndDateTime(end)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Boolean test")
-            .setEventLocation("Room Y")
-            .setPrivate(false)
-            .build();
+        .setEventName("BooleanTest")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Boolean test")
+        .setEventLocation("Room Y")
+        .setPrivate(false)
+        .build();
     assertTrue(model.addEvent("TestCal", eventDTO));
     model.editEvents("TestCal", "ispublic", "BooleanTest", start, "1", false);
   }
@@ -2043,15 +2034,15 @@ public class CalendarModelTest {
     LocalDateTime start = LocalDateTime.of(2025, 6, 13, 10, 0);
     LocalDateTime end = LocalDateTime.of(2025, 6, 13, 11, 0);
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
-            .setEventName("TimeTest")
-            .setStartDateTime(start)
-            .setEndDateTime(end)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Time test")
-            .setEventLocation("Room Z")
-            .setPrivate(false)
-            .build();
+        .setEventName("TimeTest")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Time test")
+        .setEventLocation("Room Z")
+        .setPrivate(false)
+        .build();
     assertTrue(model.addEvent("TestCal", eventDTO));
     // Attempt to set end time equal to start time.
     model.editEvents("TestCal", "end", "TimeTest", start, "2025-06-13T10:00:00", false);
@@ -2078,29 +2069,29 @@ public class CalendarModelTest {
     LocalDateTime start1 = LocalDateTime.of(2025, 6, 16, 10, 0);
     LocalDateTime end1 = LocalDateTime.of(2025, 6, 16, 11, 0);
     ICalendarEventDTO eventDTO1 = CalendarEventDTO.builder()
-            .setEventName("EventOne")
-            .setStartDateTime(start1)
-            .setEndDateTime(end1)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("First event")
-            .setEventLocation("Room A")
-            .setPrivate(false)
-            .build();
+        .setEventName("EventOne")
+        .setStartDateTime(start1)
+        .setEndDateTime(end1)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("First event")
+        .setEventLocation("Room A")
+        .setPrivate(false)
+        .build();
     assertTrue(model.addEvent("TestCal", eventDTO1));
 
     LocalDateTime start2 = LocalDateTime.of(2025, 6, 16, 11, 0);
     LocalDateTime end2 = LocalDateTime.of(2025, 6, 16, 12, 0);
     ICalendarEventDTO eventDTO2 = CalendarEventDTO.builder()
-            .setEventName("EventTwo")
-            .setStartDateTime(start2)
-            .setEndDateTime(end2)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Second event")
-            .setEventLocation("Room B")
-            .setPrivate(false)
-            .build();
+        .setEventName("EventTwo")
+        .setStartDateTime(start2)
+        .setEndDateTime(end2)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Second event")
+        .setEventLocation("Room B")
+        .setPrivate(false)
+        .build();
     assertTrue(model.addEvent("TestCal", eventDTO2));
 
     // Now attempt to edit EventTwo's start time to 10:30, which would overlap with EventOne.
@@ -2115,15 +2106,15 @@ public class CalendarModelTest {
     LocalDateTime start = LocalDateTime.of(2025, 6, 17, 10, 0);
     LocalDateTime end = LocalDateTime.of(2025, 6, 17, 11, 0);
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
-            .setEventName("TestNull")
-            .setStartDateTime(start)
-            .setEndDateTime(end)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Null test")
-            .setEventLocation("Room N")
-            .setPrivate(false)
-            .build();
+        .setEventName("TestNull")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Null test")
+        .setEventLocation("Room N")
+        .setPrivate(false)
+        .build();
     assertTrue(model.addEvent("TestCal", eventDTO));
     model.editEvents("TestCal", "location", "TestNull", start, "null", false);
   }
@@ -2134,15 +2125,15 @@ public class CalendarModelTest {
     LocalDateTime start = LocalDateTime.of(2025, 6, 18, 10, 0);
     LocalDateTime end = LocalDateTime.of(2025, 6, 18, 11, 0);
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
-            .setEventName("TestEmpty")
-            .setStartDateTime(start)
-            .setEndDateTime(end)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Desc")
-            .setEventLocation("Room O")
-            .setPrivate(false)
-            .build();
+        .setEventName("TestEmpty")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Desc")
+        .setEventLocation("Room O")
+        .setPrivate(false)
+        .build();
     assertTrue(model.addEvent("TestCal", eventDTO));
     model.editEvents("TestCal", "location", "TestEmpty", start, "", false);
   }
@@ -2154,25 +2145,25 @@ public class CalendarModelTest {
     LocalDateTime start = LocalDateTime.of(2025, 6, 11, 10, 0);
     LocalDateTime end = LocalDateTime.of(2025, 6, 11, 11, 0);
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
-            .setEventName("Meeting")
-            .setStartDateTime(start)
-            .setEndDateTime(end)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Team meeting")
-            .setEventLocation("Room A")
-            .setPrivate(false)
-            .build();
+        .setEventName("Meeting")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Team meeting")
+        .setEventLocation("Room A")
+        .setPrivate(false)
+        .build();
     assertTrue(model.addEvent("TestCal", eventDTO));
 
     // For name property, empty string is allowed.
     boolean edited = model.editEvents("TestCal", "name", "Meeting", start, "", false);
     assertTrue(edited);
 
-    List<ICalendarEventDTO> events = model.getEventsInRange("TestCal", start.minusMinutes(1), end.plusMinutes(1));
+    List<ICalendarEventDTO> events = model.getEventsInRange("TestCal", start.minusMinutes(1),
+        end.plusMinutes(1));
     assertEquals("", events.get(0).getEventName());
   }
-
 
 
   // Test: Editing with an empty new value (for non-name property) should throw an exception.
@@ -2181,20 +2172,19 @@ public class CalendarModelTest {
     LocalDateTime start = LocalDateTime.of(2025, 6, 13, 10, 0);
     LocalDateTime end = LocalDateTime.of(2025, 6, 13, 11, 0);
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
-            .setEventName("TimeTest")
-            .setStartDateTime(start)
-            .setEndDateTime(end)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Test event")
-            .setEventLocation("Room Z")
-            .setPrivate(false)
-            .build();
+        .setEventName("TimeTest")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Test event")
+        .setEventLocation("Room Z")
+        .setPrivate(false)
+        .build();
     assertTrue(model.addEvent("TestCal", eventDTO));
     // Empty new value for location should trigger an exception.
     model.editEvents("TestCal", "location", "TimeTest", start, "", false);
   }
-
 
 
   // Test: Attempting to edit an unsupported property should throw an exception.
@@ -2206,15 +2196,15 @@ public class CalendarModelTest {
     // Create an event.
     LocalDateTime end = LocalDateTime.of(2025, 6, 18, 11, 0);
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
-            .setEventName("Demo")
-            .setStartDateTime(start)
-            .setEndDateTime(end)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Demo event")
-            .setEventLocation("Room D")
-            .setPrivate(false)
-            .build();
+        .setEventName("Demo")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Demo event")
+        .setEventLocation("Room D")
+        .setPrivate(false)
+        .build();
     assertTrue(model.addEvent("TestCal", eventDTO));
     // Attempt to edit property "color" which is unsupported.
     model.editEvents("TestCal", "color", "Demo", start, "Red", false);
@@ -2229,22 +2219,24 @@ public class CalendarModelTest {
     LocalDateTime end = LocalDateTime.of(2025, 7, 1, 10, 0);
 
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
-            .setEventName("Briefing")
-            .setStartDateTime(start)
-            .setEndDateTime(end)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Morning briefing")
-            .setEventLocation("Room 101")
-            .setPrivate(false)
-            .build();
+        .setEventName("Briefing")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Morning briefing")
+        .setEventLocation("Room 101")
+        .setPrivate(false)
+        .build();
     assertTrue(model.addEvent("TestCal", eventDTO));
 
     // Update description to "Updated briefing".
-    boolean edited = model.editEvents("TestCal", "description", "Briefing", start, "Updated briefing", false);
+    boolean edited = model.editEvents("TestCal", "description", "Briefing", start, "Updated " +
+        "briefing", false);
     assertTrue(edited);
 
-    List<ICalendarEventDTO> events = model.getEventsInRange("TestCal", start.minusMinutes(1), end.plusMinutes(1));
+    List<ICalendarEventDTO> events = model.getEventsInRange("TestCal", start.minusMinutes(1),
+        end.plusMinutes(1));
     assertEquals("Updated briefing", events.get(0).getEventDescription());
   }
 
@@ -2257,22 +2249,24 @@ public class CalendarModelTest {
     LocalDateTime end = LocalDateTime.of(2025, 7, 2, 10, 0);
 
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
-            .setEventName("Workshop")
-            .setStartDateTime(start)
-            .setEndDateTime(end)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Tech workshop")
-            .setEventLocation("Lab")
-            .setPrivate(false)
-            .build();
+        .setEventName("Workshop")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Tech workshop")
+        .setEventLocation("Lab")
+        .setPrivate(false)
+        .build();
     assertTrue(model.addEvent("TestCal", eventDTO));
 
     // Change start time to 08:45.
-    boolean edited = model.editEvents("TestCal", "start", "Workshop", start, "2025-07-02T08:45:00", false);
+    boolean edited = model.editEvents("TestCal", "start", "Workshop", start, "2025-07-02T08:45:00"
+        , false);
     assertTrue(edited);
 
-    List<ICalendarEventDTO> events = model.getEventsInRange("TestCal", LocalDateTime.parse("2025-07-02T08:40:00"), end.plusMinutes(1));
+    List<ICalendarEventDTO> events = model.getEventsInRange("TestCal", LocalDateTime.parse("2025" +
+        "-07-02T08:40:00"), end.plusMinutes(1));
     assertEquals(LocalDateTime.parse("2025-07-02T08:45:00"), events.get(0).getStartDateTime());
   }
 
@@ -2285,22 +2279,24 @@ public class CalendarModelTest {
     LocalDateTime end = LocalDateTime.of(2025, 7, 3, 10, 0);
 
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
-            .setEventName("Training")
-            .setStartDateTime(start)
-            .setEndDateTime(end)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Skill training")
-            .setEventLocation("Room 202")
-            .setPrivate(false)
-            .build();
+        .setEventName("Training")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Skill training")
+        .setEventLocation("Room 202")
+        .setPrivate(false)
+        .build();
     assertTrue(model.addEvent("TestCal", eventDTO));
 
     // Change end time to 10:15.
-    boolean edited = model.editEvents("TestCal", "end", "Training", start, "2025-07-03T10:15:00", false);
+    boolean edited = model.editEvents("TestCal", "end", "Training", start, "2025-07-03T10:15:00",
+        false);
     assertTrue(edited);
 
-    List<ICalendarEventDTO> events = model.getEventsInRange("TestCal", start.minusMinutes(1), LocalDateTime.parse("2025-07-03T10:20:00"));
+    List<ICalendarEventDTO> events = model.getEventsInRange("TestCal", start.minusMinutes(1),
+        LocalDateTime.parse("2025-07-03T10:20:00"));
     assertEquals(LocalDateTime.parse("2025-07-03T10:15:00"), events.get(0).getEndDateTime());
   }
 
@@ -2313,23 +2309,25 @@ public class CalendarModelTest {
     LocalDateTime end = LocalDateTime.of(2025, 7, 4, 10, 0);
 
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
-            .setEventName("Briefing")
-            .setStartDateTime(start)
-            .setEndDateTime(end)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Morning briefing")
-            .setEventLocation("Room 101")
-            .setPrivate(false)
-            .build();
+        .setEventName("Briefing")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Morning briefing")
+        .setEventLocation("Room 101")
+        .setPrivate(false)
+        .build();
     assertTrue(model.addEvent("TestCal", eventDTO));
 
     // Update ispublic by setting the property with the string "true".
     boolean edited = model.editEvents("TestCal", "isprivate", "Briefing", start, "true", false);
     assertTrue(edited);
 
-    List<ICalendarEventDTO> events = model.getEventsInRange("TestCal", start.minusMinutes(1), end.plusMinutes(1));
-    // Since the event was initially not private, setting ispublic to true means isPrivate remains false.
+    List<ICalendarEventDTO> events = model.getEventsInRange("TestCal", start.minusMinutes(1),
+        end.plusMinutes(1));
+    // Since the event was initially not private, setting ispublic to true means isPrivate
+    // remains false.
     assertTrue(events.get(0).isPrivate());
   }
 
@@ -2344,25 +2342,27 @@ public class CalendarModelTest {
     LocalDateTime start = LocalDateTime.of(2025, 7, 5, 9, 0);
     LocalDateTime end = LocalDateTime.of(2025, 7, 5, 9, 30);
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
-            .setEventName("Standup")
-            .setStartDateTime(start)
-            .setEndDateTime(end)
-            .setAutoDecline(true)
-            .setRecurring(true)
-            .setRecurrenceCount(3)
-            // Ensure the recurrence day matches the start day (e.g., Saturday if 2025-07-05 is Saturday).
-            .setRecurrenceDays(Arrays.asList(DayOfWeek.SATURDAY))
-            .setEventDescription("Recurring meeting")
-            .setEventLocation("Room A")
-            .setPrivate(false)
-            .build();
+        .setEventName("Standup")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setAutoDecline(true)
+        .setRecurring(true)
+        .setRecurrenceCount(3)
+        // Ensure the recurrence day matches the start day (e.g., Saturday if 2025-07-05 is
+        // Saturday).
+        .setRecurrenceDays(Arrays.asList(DayOfWeek.SATURDAY))
+        .setEventDescription("Recurring meeting")
+        .setEventLocation("Room A")
+        .setPrivate(false)
+        .build();
     assertTrue(model.addEvent("TestCal", eventDTO));
 
     // Update the event name to "DailySync" for all occurrences.
     boolean edited = model.editEvents("TestCal", "name", "Standup", start, "DailySync", true);
     assertTrue(edited);
 
-    List<ICalendarEventDTO> events = model.getEventsInRange("TestCal", start.minusDays(1), end.plusDays(7));
+    List<ICalendarEventDTO> events = model.getEventsInRange("TestCal", start.minusDays(1),
+        end.plusDays(7));
     // All occurrences should have the new name.
     for (ICalendarEventDTO event : events) {
       assertEquals("DailySync", event.getEventName());
@@ -2382,15 +2382,15 @@ public class CalendarModelTest {
     LocalDateTime sourceEnd = sourceStart.plusHours(1);
 
     ICalendarEventDTO event = CalendarEventDTO.builder()
-            .setEventName("TimeShiftedMeeting")
-            .setStartDateTime(sourceStart)
-            .setEndDateTime(sourceEnd)
-            .setRecurring(false)
-            .setAutoDecline(true)
-            .setPrivate(false)
-            .setEventDescription("Timezone test")
-            .setEventLocation("NY Office")
-            .build();
+        .setEventName("TimeShiftedMeeting")
+        .setStartDateTime(sourceStart)
+        .setEndDateTime(sourceEnd)
+        .setRecurring(false)
+        .setAutoDecline(true)
+        .setPrivate(false)
+        .setEventDescription("Timezone test")
+        .setEventLocation("NY Office")
+        .build();
 
     assertTrue(model.addEvent("SourceCal", event));
 
@@ -2401,7 +2401,8 @@ public class CalendarModelTest {
     LocalDateTime expectedStart = LocalDateTime.of(2025, 5, 7, 4, 30);
     LocalDateTime expectedEnd = expectedStart.plusHours(1);
 
-    List<ICalendarEventDTO> events = model.getEventsInRange("TargetCal", expectedStart.minusMinutes(1), expectedEnd.plusMinutes(1));
+    List<ICalendarEventDTO> events = model.getEventsInRange("TargetCal",
+        expectedStart.minusMinutes(1), expectedEnd.plusMinutes(1));
     assertEquals(1, events.size());
 
     ICalendarEventDTO copied = events.get(0);
@@ -2418,22 +2419,23 @@ public class CalendarModelTest {
     LocalDateTime end = LocalDateTime.of(2025, 7, 1, 10, 0);
 
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
-            .setEventName("Planning")
-            .setStartDateTime(start)
-            .setEndDateTime(end)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Self copy")
-            .setEventLocation("Room Z")
-            .setPrivate(false)
-            .build();
+        .setEventName("Planning")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Self copy")
+        .setEventLocation("Room Z")
+        .setPrivate(false)
+        .build();
 
     assertTrue(model.addEvent("MyCal", eventDTO));
 
     LocalDateTime targetStart = start.plusDays(1);
     assertTrue(model.copyEvents("MyCal", start, end, "MyCal", targetStart.toLocalDate()));
 
-    List<ICalendarEventDTO> result = model.getEventsInRange("MyCal", targetStart.minusMinutes(10), targetStart.plusHours(1));
+    List<ICalendarEventDTO> result = model.getEventsInRange("MyCal", targetStart.minusMinutes(10)
+        , targetStart.plusHours(1));
     assertEquals(1, result.size());
     assertEquals("Planning", result.get(0).getEventName());
   }
@@ -2449,32 +2451,33 @@ public class CalendarModelTest {
     LocalDateTime srcEnd = LocalDateTime.of(2025, 4, 1, 10, 0);
 
     ICalendarEventDTO event1 = CalendarEventDTO.builder()
-            .setEventName("Morning Brief")
-            .setStartDateTime(srcStart)
-            .setEndDateTime(srcEnd)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Briefing")
-            .setEventLocation("Room A")
-            .setPrivate(false)
-            .build();
+        .setEventName("Morning Brief")
+        .setStartDateTime(srcStart)
+        .setEndDateTime(srcEnd)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Briefing")
+        .setEventLocation("Room A")
+        .setPrivate(false)
+        .build();
 
     assertTrue(model.addEvent("SourceCal", event1));
 
     // This event in TargetCal will conflict with the copied event's time
     // We're assuming the copy aligns srcStart (9:00) to targetStartDate (May 1)
-    // So expected copied start = May 1, 9:00 — which will overlap with 11–12 below if durations overlap
+    // So expected copied start = May 1, 9:00 — which will overlap with 11–12 below if durations
+    // overlap
     // To trigger conflict, align event1 to 11:00–12:00
     ICalendarEventDTO conflicting = CalendarEventDTO.builder()
-            .setEventName("Conflict")
-            .setStartDateTime(LocalDateTime.of(2025, 5, 1, 9, 30))
-            .setEndDateTime(LocalDateTime.of(2025, 5, 1, 10, 30))
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Existing")
-            .setEventLocation("Room X")
-            .setPrivate(false)
-            .build();
+        .setEventName("Conflict")
+        .setStartDateTime(LocalDateTime.of(2025, 5, 1, 9, 30))
+        .setEndDateTime(LocalDateTime.of(2025, 5, 1, 10, 30))
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Existing")
+        .setEventLocation("Room X")
+        .setPrivate(false)
+        .build();
 
     assertTrue(model.addEvent("TargetCal", conflicting));
 
@@ -2495,23 +2498,24 @@ public class CalendarModelTest {
     LocalDateTime end = LocalDateTime.of(2025, 3, 10, 11, 0);
 
     ICalendarEventDTO recurring = CalendarEventDTO.builder()
-            .setEventName("Sync")
-            .setStartDateTime(start)
-            .setEndDateTime(end)
-            .setRecurring(true)
-            .setRecurrenceCount(2)
-            .setRecurrenceDays(Arrays.asList(DayOfWeek.MONDAY))
-            .setEventDescription("Cross timezones")
-            .setEventLocation("HQ")
-            .setPrivate(false)
-            .setAutoDecline(true)
-            .build();
+        .setEventName("Sync")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setRecurring(true)
+        .setRecurrenceCount(2)
+        .setRecurrenceDays(Arrays.asList(DayOfWeek.MONDAY))
+        .setEventDescription("Cross timezones")
+        .setEventLocation("HQ")
+        .setPrivate(false)
+        .setAutoDecline(true)
+        .build();
 
     assertTrue(model.addEvent("SourceCal", recurring));
 
     // Target calendar's first event will align with 2025-03-17 in London
     LocalDate targetStartDate = LocalDate.of(2025, 3, 17);
-    boolean copied = model.copyEvents("SourceCal", start, start.plusWeeks(1), "TargetCal", targetStartDate);
+    boolean copied = model.copyEvents("SourceCal", start, start.plusWeeks(1), "TargetCal",
+        targetStartDate);
     assertTrue(copied);
 
     // New York time was 10:00 EDT (UTC-4) → 14:00 London time (UTC+0)
@@ -2522,11 +2526,13 @@ public class CalendarModelTest {
     LocalDateTime expectedStart2 = LocalDateTime.of(2025, 3, 24, 14, 0);
     LocalDateTime expectedEnd2 = expectedStart2.plusHours(1);
 
-    List<ICalendarEventDTO> result = model.getEventsInRange("TargetCal", expectedStart1.minusDays(1), expectedEnd2.plusHours(1));
+    List<ICalendarEventDTO> result = model.getEventsInRange("TargetCal",
+        expectedStart1.minusDays(1), expectedEnd2.plusHours(1));
     assertEquals(2, result.size());
 
     // Validate both recurring instances
-    boolean foundFirst = false, foundSecond = false;
+    boolean foundFirst = false;
+    boolean foundSecond = false;
 
     for (ICalendarEventDTO e : result) {
       if (e.getStartDateTime().equals(expectedStart1)) {
@@ -2553,15 +2559,15 @@ public class CalendarModelTest {
     LocalDateTime start = LocalDateTime.of(2025, 9, 1, 9, 0);
     LocalDateTime end = LocalDateTime.of(2025, 9, 1, 10, 0);
     ICalendarEventDTO event = CalendarEventDTO.builder()
-            .setEventName("ProjectMeeting")
-            .setStartDateTime(start)
-            .setEndDateTime(end)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Project sync-up")
-            .setEventLocation("Room A")
-            .setPrivate(false)
-            .build();
+        .setEventName("ProjectMeeting")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Project sync-up")
+        .setEventLocation("Room A")
+        .setPrivate(false)
+        .build();
     model.addEvent("Source", event);
 
     // Use lowercase name during copy
@@ -2569,7 +2575,8 @@ public class CalendarModelTest {
     boolean copied = model.copyEvent("Source", start, "projectmeeting", "Target", targetStart);
     assertTrue(copied);
 
-    List<ICalendarEventDTO> copiedEvents = model.getEventsInRange("Target", targetStart.minusMinutes(1), targetStart.plusMinutes(90));
+    List<ICalendarEventDTO> copiedEvents = model.getEventsInRange("Target",
+        targetStart.minusMinutes(1), targetStart.plusMinutes(90));
     assertEquals(1, copiedEvents.size());
     assertEquals("ProjectMeeting", copiedEvents.get(0).getEventName());
   }
@@ -2583,15 +2590,15 @@ public class CalendarModelTest {
     LocalDateTime start = LocalDateTime.of(2025, 11, 1, 1, 0);
     LocalDateTime end = LocalDateTime.of(2025, 11, 1, 2, 0);
     ICalendarEventDTO event = CalendarEventDTO.builder()
-            .setEventName("DST Test")
-            .setStartDateTime(start)
-            .setEndDateTime(end)
-            .setRecurring(false)
-            .setAutoDecline(true)
-            .setEventLocation("Virtual")
-            .setEventDescription("DST edge case")
-            .setPrivate(false)
-            .build();
+        .setEventName("DST Test")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setRecurring(false)
+        .setAutoDecline(true)
+        .setEventLocation("Virtual")
+        .setEventDescription("DST edge case")
+        .setPrivate(false)
+        .build();
 
     model.addEvent("PSTCal", event);
 
@@ -2610,17 +2617,17 @@ public class CalendarModelTest {
     LocalDateTime end = LocalDateTime.of(2025, 10, 6, 15, 0);   // 1-hour event
 
     ICalendarEventDTO event = CalendarEventDTO.builder()
-            .setEventName("Global Sync")
-            .setStartDateTime(start)
-            .setEndDateTime(end)
-            .setRecurring(true)
-            .setRecurrenceCount(2)
-            .setRecurrenceDays(List.of(DayOfWeek.MONDAY))
-            .setEventDescription("Cross-timezone sync")
-            .setEventLocation("Zoom")
-            .setAutoDecline(true)
-            .setPrivate(false)
-            .build();
+        .setEventName("Global Sync")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setRecurring(true)
+        .setRecurrenceCount(2)
+        .setRecurrenceDays(List.of(DayOfWeek.MONDAY))
+        .setEventDescription("Cross-timezone sync")
+        .setEventLocation("Zoom")
+        .setAutoDecline(true)
+        .setPrivate(false)
+        .build();
     assertTrue(model.addEvent("UTC_Cal", event));
 
     // Step 2: Ensure there is no conflicting event in the target calendar
@@ -2632,7 +2639,8 @@ public class CalendarModelTest {
     LocalDateTime copyIntervalEnd = start.plusDays(8);    // Oct 14, 2025
     LocalDate targetStartDate = LocalDate.of(2025, 11, 3); // First copied event should align here
 
-    boolean copied = model.copyEvents("UTC_Cal", copyIntervalStart, copyIntervalEnd, "EST_Cal", targetStartDate);
+    boolean copied = model.copyEvents("UTC_Cal", copyIntervalStart, copyIntervalEnd, "EST_Cal",
+        targetStartDate);
     assertTrue(copied);
 
     // Expected times in target calendar after conversion (UTC → EST)
@@ -2643,7 +2651,7 @@ public class CalendarModelTest {
     LocalDateTime expectedEnd2 = expectedStart2.plusHours(1);
 
     List<ICalendarEventDTO> copiedEvents = model.getEventsInRange("EST_Cal",
-            expectedStart1.minusHours(1), expectedEnd2.plusHours(1));
+        expectedStart1.minusHours(1), expectedEnd2.plusHours(1));
     assertEquals(2, copiedEvents.size());
 
     // Validate events
@@ -2654,7 +2662,8 @@ public class CalendarModelTest {
       if (e.getStartDateTime().equals(expectedStart1) && e.getEndDateTime().equals(expectedEnd1)) {
         foundFirst = true;
         assertEquals("Global Sync", e.getEventName());
-      } else if (e.getStartDateTime().equals(expectedStart2) && e.getEndDateTime().equals(expectedEnd2)) {
+      } else if (e.getStartDateTime().equals(expectedStart2) &&
+          e.getEndDateTime().equals(expectedEnd2)) {
         foundSecond = true;
         assertEquals("Global Sync", e.getEventName());
       }
@@ -2673,22 +2682,23 @@ public class CalendarModelTest {
     LocalDateTime sourceEnd = LocalDateTime.of(2025, 3, 9, 2, 30);
 
     ICalendarEventDTO event = CalendarEventDTO.builder()
-            .setEventName("DST Meeting")
-            .setStartDateTime(sourceStart)
-            .setEndDateTime(sourceEnd)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Spring DST shift")
-            .setEventLocation("NY Office")
-            .setPrivate(false)
-            .build();
+        .setEventName("DST Meeting")
+        .setStartDateTime(sourceStart)
+        .setEndDateTime(sourceEnd)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Spring DST shift")
+        .setEventLocation("NY Office")
+        .setPrivate(false)
+        .build();
     assertTrue(model.addEvent("SourceCal", event));
 
     LocalDateTime targetStart = LocalDateTime.of(2025, 3, 10, 6, 30); // London time
 
     assertTrue(model.copyEvent("SourceCal", sourceStart, "DST Meeting", "TargetCal", targetStart));
 
-    List<ICalendarEventDTO> copiedEvents = model.getEventsInRange("TargetCal", targetStart.minusMinutes(1), targetStart.plusHours(2));
+    List<ICalendarEventDTO> copiedEvents = model.getEventsInRange("TargetCal",
+        targetStart.minusMinutes(1), targetStart.plusHours(2));
     assertEquals(1, copiedEvents.size());
     assertEquals("DST Meeting", copiedEvents.get(0).getEventName());
     assertEquals(targetStart, copiedEvents.get(0).getStartDateTime());
@@ -2706,32 +2716,33 @@ public class CalendarModelTest {
     LocalDateTime sourceEnd2 = sourceStart2.plusHours(2);
 
     ICalendarEventDTO event1 = CalendarEventDTO.builder()
-            .setEventName("Morning Call")
-            .setStartDateTime(sourceStart1)
-            .setEndDateTime(sourceEnd1)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Daily sync")
-            .setEventLocation("Zoom")
-            .setPrivate(false)
-            .build();
+        .setEventName("Morning Call")
+        .setStartDateTime(sourceStart1)
+        .setEndDateTime(sourceEnd1)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Daily sync")
+        .setEventLocation("Zoom")
+        .setPrivate(false)
+        .build();
 
     ICalendarEventDTO event2 = CalendarEventDTO.builder()
-            .setEventName("Evening Wrap")
-            .setStartDateTime(sourceStart2)
-            .setEndDateTime(sourceEnd2)
-            .setAutoDecline(true)
-            .setRecurring(false)
-            .setEventDescription("Wrap-up meeting")
-            .setEventLocation("Office")
-            .setPrivate(false)
-            .build();
+        .setEventName("Evening Wrap")
+        .setStartDateTime(sourceStart2)
+        .setEndDateTime(sourceEnd2)
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Wrap-up meeting")
+        .setEventLocation("Office")
+        .setPrivate(false)
+        .build();
 
     assertTrue(model.addEvent("SourceCal", event1));
     assertTrue(model.addEvent("SourceCal", event2));
 
     LocalDate targetStartDate = LocalDate.of(2025, 4, 2);
-    assertTrue(model.copyEvents("SourceCal", sourceStart1, sourceEnd2, "TargetCal", targetStartDate));
+    assertTrue(model.copyEvents("SourceCal", sourceStart1, sourceEnd2, "TargetCal",
+        targetStartDate));
 
     LocalDateTime expectedStart1 = LocalDateTime.of(2025, 4, 1, 20, 30);  // 9 AM PDT
     LocalDateTime expectedEnd1 = expectedStart1.plusHours(1);
@@ -2740,14 +2751,15 @@ public class CalendarModelTest {
     LocalDateTime expectedEnd2 = expectedStart2.plusHours(2);
 
     List<ICalendarEventDTO> copiedEvents = model.getEventsInRange(
-            "TargetCal",
-            targetStartDate.minusDays(1).atStartOfDay(),
-            targetStartDate.atTime(23, 59)
+        "TargetCal",
+        targetStartDate.minusDays(1).atStartOfDay(),
+        targetStartDate.atTime(23, 59)
     );
 
     assertEquals(2, copiedEvents.size());
 
-    boolean foundEvent1 = false, foundEvent2 = false;
+    boolean foundEvent1 = false;
+    boolean foundEvent2 = false;
 
     for (ICalendarEventDTO e : copiedEvents) {
       if (e.getEventName().equals("Morning Call")) {
@@ -2784,22 +2796,23 @@ public class CalendarModelTest {
     LocalDateTime end = start.plusHours(1);
 
     ICalendarEventDTO event = CalendarEventDTO.builder()
-            .setEventName("RoundTrip")
-            .setStartDateTime(start)
-            .setEndDateTime(end)
-            .setAutoDecline(false)
-            .setRecurring(false)
-            .setEventDescription("Check timezone logic")
-            .setEventLocation("Room 404")
-            .setPrivate(true)
-            .build();
+        .setEventName("RoundTrip")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setAutoDecline(false)
+        .setRecurring(false)
+        .setEventDescription("Check timezone logic")
+        .setEventLocation("Room 404")
+        .setPrivate(true)
+        .build();
 
     assertTrue(model.addEvent("India", event));
     LocalDateTime targetStart = LocalDateTime.of(2025, 6, 2, 18, 30); // Expected converted time
 
     assertTrue(model.copyEvent("India", start, "RoundTrip", "Tokyo", targetStart));
 
-    List<ICalendarEventDTO> targetEvents = model.getEventsInRange("Tokyo", targetStart.minusMinutes(1), targetStart.plusHours(1));
+    List<ICalendarEventDTO> targetEvents = model.getEventsInRange("Tokyo",
+        targetStart.minusMinutes(1), targetStart.plusHours(1));
     assertEquals(1, targetEvents.size());
     assertEquals(targetStart, targetEvents.get(0).getStartDateTime());
   }
@@ -2814,20 +2827,21 @@ public class CalendarModelTest {
     LocalDateTime end = LocalDateTime.of(2025, 3, 28, 10, 0);
 
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
-          .setEventName("TimezoneTest")
-          .setStartDateTime(start)
-          .setEndDateTime(end)
-          .setRecurring(false)
-          .setAutoDecline(true)
-          .setEventDescription("Test event for timezone shift")
-          .setEventLocation("Room 1")
-          .setPrivate(false)
-          .build();
+        .setEventName("TimezoneTest")
+        .setStartDateTime(start)
+        .setEndDateTime(end)
+        .setRecurring(false)
+        .setAutoDecline(true)
+        .setEventDescription("Test event for timezone shift")
+        .setEventLocation("Room 1")
+        .setPrivate(false)
+        .build();
 
     assertTrue(model.addEvent("ShiftCal", eventDTO));
 
     // Capture the original event times
-    List<ICalendarEventDTO> eventsBefore = model.getEventsInRange("ShiftCal", start.minusMinutes(1), end.plusMinutes(1));
+    List<ICalendarEventDTO> eventsBefore = model.getEventsInRange("ShiftCal",
+        start.minusMinutes(1), end.plusMinutes(1));
     assertEquals(1, eventsBefore.size());
     LocalDateTime originalStart = eventsBefore.get(0).getStartDateTime();
     LocalDateTime originalEnd = eventsBefore.get(0).getEndDateTime();
@@ -2836,7 +2850,8 @@ public class CalendarModelTest {
     assertTrue(model.editCalendar("ShiftCal", "timezone", "Asia/Tokyo"));
 
     // Now get the updated times
-    List<ICalendarEventDTO> eventsAfter = model.getEventsInRange("ShiftCal", originalStart.minusDays(1), originalEnd.plusDays(1));
+    List<ICalendarEventDTO> eventsAfter = model.getEventsInRange("ShiftCal",
+        originalStart.minusDays(1), originalEnd.plusDays(1));
     assertEquals(1, eventsAfter.size());
 
     LocalDateTime newStart = eventsAfter.get(0).getStartDateTime();
@@ -2846,7 +2861,8 @@ public class CalendarModelTest {
     ZonedDateTime originalStartZoned = originalStart.atZone(ZoneId.of("America/New_York"));
     ZonedDateTime originalEndZoned = originalEnd.atZone(ZoneId.of("America/New_York"));
 
-    ZonedDateTime expectedStartZoned = originalStartZoned.withZoneSameInstant(ZoneId.of("Asia/Tokyo"));
+    ZonedDateTime expectedStartZoned = originalStartZoned.withZoneSameInstant(ZoneId.of("Asia" +
+        "/Tokyo"));
     ZonedDateTime expectedEndZoned = originalEndZoned.withZoneSameInstant(ZoneId.of("Asia/Tokyo"));
 
     assertEquals(expectedStartZoned.toLocalDateTime(), newStart);
@@ -3060,7 +3076,8 @@ public class CalendarModelTest {
 
     // Attempt to copy into a missing target calendar
     IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
-        model.copyEvent("SourceCal", start, "Planning", "MissingTarget", LocalDateTime.of(2025, 8, 1, 10, 0))
+        model.copyEvent("SourceCal", start, "Planning", "MissingTarget", LocalDateTime.of(2025, 8,
+            1, 10, 0))
     );
 
     assertEquals("Calendar not found: MissingTarget", ex.getMessage());

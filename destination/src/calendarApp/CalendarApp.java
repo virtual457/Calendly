@@ -5,20 +5,18 @@ import model.ICalendarModel;
 import view.IView;
 
 
-import java.io.IOException;
-
 /**
  * Entry point for the Calendar application.
  */
 public class CalendarApp {
   public static void main(String[] args) {
-    try {
-      ModeHandler handler = ModeHandler.fromArgs(args); // handles mode + file logic
 
+    try {
       ICalendarModel model = createModel();
       IView view = createView();
       ICalendarController controller = createController(model, view);
 
+      ModeHandler handler = ModeHandler.fromArgs(args); // handles mode + file logic
       controller.run(handler.getReadable());  // pass just the input stream
     } catch (Exception e) {
       System.out.println(e.getMessage());
@@ -34,6 +32,6 @@ public class CalendarApp {
   }
 
   private static ICalendarController createController(ICalendarModel model, IView view) {
-    return ICalendarController.createInstance(model, view);
+    return ICalendarController.createInstance("Advanced", model, view);
   }
 }

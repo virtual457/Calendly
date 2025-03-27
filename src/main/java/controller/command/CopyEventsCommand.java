@@ -25,7 +25,8 @@ public class CopyEventsCommand implements ICommand {
     this.sourceCalendar = currentCalendar;
 
     if (parts.isEmpty()) {
-      throw new IllegalArgumentException("Expected 'copy events on <date> --target <calendar> to <date>' or 'copy events between <date> and <date> --target <calendar> to <date>'");
+      throw new IllegalArgumentException("Expected 'copy events on <date> --target <calendar> to " +
+          "<date>' or 'copy events between <date> and <date> --target <calendar> to <date>'");
     }
 
     int index = 0;
@@ -94,7 +95,8 @@ public class CopyEventsCommand implements ICommand {
     LocalDateTime rangeStart = fromDate.atStartOfDay();
     LocalDateTime rangeEnd = toDate.atTime(LocalTime.MAX);
 
-    boolean success = model.copyEvents(sourceCalendar, rangeStart, rangeEnd, targetCalendar, targetStartDate);
+    boolean success = model.copyEvents(sourceCalendar, rangeStart, rangeEnd, targetCalendar,
+        targetStartDate);
     return success ? "Events copied successfully." : "Error copying events.";
   }
 }

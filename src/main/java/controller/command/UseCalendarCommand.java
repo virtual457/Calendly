@@ -2,6 +2,7 @@ package controller.command;
 
 import java.util.List;
 import java.util.Objects;
+
 import model.ICalendarModel;
 
 /**
@@ -25,7 +26,8 @@ public class UseCalendarCommand implements ICommand {
     this.calendarName = args.get(1);
 
     if (args.size() > 2) {
-      throw new IllegalArgumentException("Unrecognized extra arguments: " + String.join(" ", args.subList(2, args.size())));
+      throw new IllegalArgumentException("Unrecognized extra arguments: " + String.join(" ",
+          args.subList(2, args.size())));
     }
   }
 

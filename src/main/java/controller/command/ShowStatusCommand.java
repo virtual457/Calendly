@@ -2,6 +2,7 @@ package controller.command;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
 import model.ICalendarEventDTO;
 import model.ICalendarModel;
 
@@ -28,7 +29,8 @@ public class ShowStatusCommand implements ICommand {
     try {
       this.dateTime = LocalDateTime.parse(parts.get(1));
     } catch (Exception e) {
-      throw new IllegalArgumentException("Invalid date and time format. Expected: yyyy-MM-ddTHH:mm");
+      throw new IllegalArgumentException("Invalid date and time format. Expected: " +
+          "yyyy-MM-ddTHH:mm");
     }
   }
 

@@ -1,33 +1,76 @@
 package model;
 
-import java.time.DayOfWeek;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
 
-class CalendarEvent {
+
+class CalendarEvent implements ICalendarEvent {
   private String eventName;
   private LocalDateTime startDateTime;
   private LocalDateTime endDateTime;
-  private String eventDescription; // renamed from "description"
-  private String eventLocation;    // renamed from "location"
+  private String eventDescription;
+  private String eventLocation;
   private boolean isPublic;
-  private boolean isRecurring;
-  private List<DayOfWeek> recurrenceDays;
-  private boolean autoDecline;
 
-  public CalendarEvent(String eventName, LocalDateTime startDateTime, LocalDateTime endDateTime,
-                       String eventDescription, String eventLocation, boolean isPublic, boolean isRecurring,
-                       List<DayOfWeek> recurrenceDays, boolean autoDecline) {
-    this.eventName = eventName;
-    this.startDateTime = startDateTime;
-    this.endDateTime = endDateTime;
-    this.eventDescription = eventDescription;
-    this.eventLocation = eventLocation;
-    this.isPublic = isPublic;
-    this.isRecurring = isRecurring;
-    this.recurrenceDays = recurrenceDays;
-    this.autoDecline = autoDecline;
+  private CalendarEvent(Builder builder) {
+    this.eventName = builder.eventName;
+    this.startDateTime = builder.startDateTime;
+    this.endDateTime = builder.endDateTime;
+    this.eventDescription = builder.eventDescription;
+    this.eventLocation = builder.eventLocation;
+    this.isPublic = builder.isPublic;
+  }
+
+  public static Builder builder() {
+    return new Builder();
+  }
+
+  public static class Builder implements ICalendarEventBuilder<CalendarEvent> {
+    private String eventName;
+    private LocalDateTime startDateTime;
+    private LocalDateTime endDateTime;
+    private String eventDescription;
+    private String eventLocation;
+    private boolean isPublic;
+
+
+    public Builder setEventName(String eventName) {
+      this.eventName = eventName;
+      return this;
+    }
+
+    public Builder setStartDateTime(LocalDateTime startDateTime) {
+      this.startDateTime = startDateTime;
+      return this;
+    }
+
+    public Builder setEndDateTime(LocalDateTime endDateTime) {
+      this.endDateTime = endDateTime;
+      return this;
+    }
+
+    public Builder setEventDescription(String eventDescription) {
+      this.eventDescription = eventDescription;
+      return this;
+    }
+
+    public Builder setEventLocation(String eventLocation) {
+      this.eventLocation = eventLocation;
+      return this;
+    }
+
+    public Builder setPublic(boolean isPublic) {
+      this.isPublic = isPublic;
+      return this;
+    }
+
+
+    public CalendarEvent build() {
+      return new CalendarEvent(this);
+    }
+  }
+
+  public boolean doesEventConflict(ICalendarEvent event) {
+    return this.getStartDateTime().isBefore(event.getEndDateTime()) && this.getEndDateTime().isAfter(event.getStartDateTime());
   }
 
   public String getEventName() {
@@ -54,19 +97,6 @@ class CalendarEvent {
     return isPublic;
   }
 
-  public boolean isRecurring() {
-    return isRecurring;
-  }
-
-  public List<DayOfWeek> getRecurrenceDays() {
-    return recurrenceDays;
-  }
-
-  public boolean isAutoDecline() {
-    return autoDecline;
-  }
-
-  // Setters for editable fields
   public void setEventName(String eventName) {
     this.eventName = eventName;
   }

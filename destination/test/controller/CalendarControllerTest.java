@@ -2,25 +2,16 @@ package controller;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
+
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintStream;
-import java.io.Reader;
 import java.io.StringReader;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,7 +22,6 @@ import view.IView;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -83,7 +73,8 @@ public class CalendarControllerTest {
 
   private void testCommandInBothModes(String mode, String command) {
     resetModels();
-    controller.run(new StringReader(command));
+    controller.run(new StringReader("create calendar --name default --timezone " +
+        "America/New_york\nuse calendar --name default\n" + command));
   }
 
 
@@ -1809,12 +1800,9 @@ public class CalendarControllerTest {
     Map<String, String> errorCases = new LinkedHashMap<>();
     errorCases.put("edit", "Error: Unknown command.");
     errorCases.put("events", "Error: Unknown command.");
-    errorCases.put("name", "Error Executing command: Invalid edit command. Not enough " +
-        "arguments.");
-    errorCases.put("TeamMeeting", "Error Executing command: Invalid edit command. Not " +
-        "enough arguments.");
-    errorCases.put("UpdatedMeeting", "Error Executing command: Invalid edit command. " +
-        "Not enough arguments.");
+    errorCases.put("name", "Error Executing command: Missing new property value.");
+    errorCases.put("TeamMeeting", "Error Executing command: Missing new property value.");
+    errorCases.put("UpdatedMeeting", "Error Executing command: Missing new property value.");
 
     for (Map.Entry<String, String> entry : errorCases.entrySet()) {
       String modifiedCommand = baseCommand.replaceFirst("\\b"
@@ -2057,8 +2045,8 @@ public class CalendarControllerTest {
   public void testEmptyCommand() {
     String command = "";
     testCommandInBothModes(mode, command);
-    assertTrue("Expected nothing message for empty command",
-        view.getLastDisplayedMessage().contains("Welcome to the Calendar App!"));
+    var a = view.getLastDisplayedMessage();
+    assertTrue(view.getLastDisplayedMessage().contains("Using calendar: default"));
   }
 
 
@@ -2212,11 +2200,40 @@ public class CalendarControllerTest {
     ICalendarModel model = ICalendarModel.createInstance("listbased");
     IView view = IView.createInstance("consoleView");
 
-    ICalendarController controller = ICalendarController.createInstance(model, view);
+    ICalendarController controller = ICalendarController.createInstance("Advanced", model,
+        view);
 
     assertNotNull(controller);
     assertEquals("class controller.CalendarController", controller.getClass().toString());
   }
+
+  @Test
+  public void testCreateInstance_ValidInputs2() {
+    ICalendarModel model = ICalendarModel.createInstance("listbased");
+    IView view = IView.createInstance("consoleView");
+
+    ICalendarController controller = ICalendarController.createInstance("Basic", model,
+        view);
+
+    assertNotNull(controller);
+    assertEquals("class controller.CalendarControllerBasic",
+        controller.getClass().toString());
+  }
+
+  @Test
+  public void testCreateInstance_ValidInputs3() {
+    ICalendarModel model = ICalendarModel.createInstance("listbased");
+    IView view = IView.createInstance("consoleView");
+    try {
+      ICalendarController.createInstance("Random", model,
+          view);
+      fail("Exception expected for random type of controller");
+    } catch (Exception e) {
+      assertTrue(e.getMessage().contains("Unsupported version:"));
+    }
+
+  }
+
 
   //checks for quoted text
   @Test
@@ -2428,7 +2445,7 @@ public class CalendarControllerTest {
   }
 
 
-  private class TestCalendarModel implements ICalendarModel {
+  protected static class TestCalendarModel implements ICalendarModel {
     ICalendarEventDTO lastAddedEvent;
     // Fields for edit event
     String lastEditEventProperty;
@@ -2572,7 +2589,7 @@ public class CalendarControllerTest {
     @Override
     public boolean isCalendarPresent(String calName) {
       this.lastCalendarPresentName = calName;
-      return false;
+      return true;
     }
 
     @Override

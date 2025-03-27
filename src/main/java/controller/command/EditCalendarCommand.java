@@ -1,6 +1,7 @@
 package controller.command;
 
 import model.ICalendarModel;
+
 import java.util.List;
 
 /**
@@ -12,7 +13,7 @@ public class EditCalendarCommand implements ICommand {
   private final String property;
   private final String newValue;
 
-  public EditCalendarCommand(List<String> args, ICalendarModel model,String calendarName) {
+  public EditCalendarCommand(List<String> args, ICalendarModel model, String calendarName) {
     this.model = model;
     this.calendarName = calendarName;
 

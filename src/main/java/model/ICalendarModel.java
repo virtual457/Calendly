@@ -44,14 +44,16 @@ public interface ICalendarModel {
                      LocalDateTime fromDateTime,
                      String newValue, boolean editAll);
 
-  boolean editEvent(String calendarName, String property, String eventName, LocalDateTime fromDateTime, LocalDateTime toDateTime, String newValue);
+  boolean editEvent(String calendarName, String property, String eventName,
+                    LocalDateTime fromDateTime, LocalDateTime toDateTime, String newValue);
 
   boolean isCalendarAvailable(String calName, LocalDate date);
 
   boolean deleteCalendar(String calName);
 
 
-  List<ICalendarEventDTO> getEventsInRange(String calendarName, LocalDateTime fromDateTime, LocalDateTime toDateTime);
+  List<ICalendarEventDTO> getEventsInRange(String calendarName, LocalDateTime fromDateTime,
+                                           LocalDateTime toDateTime);
 
 
   List<ICalendarEventDTO> getEventsInSpecificDateTime(String calendarName, LocalDateTime dateTime);
@@ -61,7 +63,7 @@ public interface ICalendarModel {
                      String targetCalendarName,
                      LocalDate targetStart);
 
-  boolean copyEvent(String sourceCalendarName,LocalDateTime sourceStart, String eventName,
+  boolean copyEvent(String sourceCalendarName, LocalDateTime sourceStart, String eventName,
                     String targetCalendarName,
                     LocalDateTime targetStart);
 

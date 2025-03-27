@@ -14,8 +14,15 @@ import view.IView;
  */
 
 public interface ICalendarController {
-  static ICalendarController createInstance(ICalendarModel model, IView view) {
-    return new CalendarController(model, view);
+  static ICalendarController createInstance(String version, ICalendarModel model,
+                                            IView view) {
+    if (version.equalsIgnoreCase("basic")) {
+      return new CalendarControllerBasic(model, view);
+    } else if (version.equalsIgnoreCase("advanced")) {
+      return new CalendarController(model, view);
+    } else {
+      throw new IllegalArgumentException("Unsupported version: " + version);
+    }
   }
 
   void run(Readable readable);

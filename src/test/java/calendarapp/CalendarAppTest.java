@@ -24,8 +24,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+/**
+ * Test class using parameterized testing for validating multiple scenarios.
+ */
 
 @RunWith(Parameterized.class)
+
 /**
  * A JUnit test suite for verifying the behavior of the Calendar application's entry
  * point.
@@ -36,6 +40,7 @@ import java.util.List;
  * different conditions.
  * </p>
  */
+
 public class CalendarAppTest {
 
   private static final String OUTPUT_FILE = "events.csv";
@@ -75,7 +80,7 @@ public class CalendarAppTest {
     assertTrue(outContent.toString().trim().contains(expectedMessage));
   }
 
-  //@Test
+  @Test
   public void testMain_ValidArguments_ShouldRunInteractiveMode() throws IOException {
     String[] args = {"--mode", "interactive"};
     Thread appThread = new Thread(() -> {
@@ -193,7 +198,8 @@ public class CalendarAppTest {
     String[] commands = {
         "create calendar --name RecurringStatus --timezone America/New_York",
         "use calendar --name RecurringStatus",
-        "create event Standup from 2024-06-10T09:00 to 2024-06-10T09:30 repeats M " +
+        "create event Standup from 2024-06-10T09:00 to 2024-06-10T09:30 repeats M "
+            +
             "for 2 times",
         "show status on 2024-06-10T09:15",
         "exit"
@@ -211,7 +217,8 @@ public class CalendarAppTest {
         "exit"
     };
     runAppWithCommands(commands);
-    assertTrue(outContent.toString().toLowerCase().contains("invalid date and time " +
+    assertTrue(outContent.toString().toLowerCase().contains("invalid date and time "
+        +
         "format"));
   }
 
@@ -224,7 +231,8 @@ public class CalendarAppTest {
         "exit"
     };
     runAppWithCommands(commands);
-    assertTrue(outContent.toString().contains("Error Executing command: Invalid syntax." +
+    assertTrue(outContent.toString().contains("Error Executing command: Invalid syntax."
+        +
         " Expected: show status on <datetime>"));
   }
 
@@ -285,7 +293,8 @@ public class CalendarAppTest {
     String[] commands = {
         "create calendar --name ExactOn --timezone America/New_York",
         "use calendar --name ExactOn",
-        "create event Seminar from 2024-06-20T13:00 to 2024-06-20T14:30 --location " +
+        "create event Seminar from 2024-06-20T13:00 to 2024-06-20T14:30 --location "
+            +
             "HallB",
         "print events on 2024-06-20",
         "exit"
@@ -308,9 +317,11 @@ public class CalendarAppTest {
     String[] commands = {
         "create calendar --name ExactFromTo --timezone America/New_York",
         "use calendar --name ExactFromTo",
-        "create event Meeting from 2024-06-22T09:00 to 2024-06-22T10:00 --location " +
+        "create event Meeting from 2024-06-22T09:00 to 2024-06-22T10:00 --location "
+            +
             "ConfRoom",
-        "create event Review from 2024-06-22T10:30 to 2024-06-22T11:30 --location " +
+        "create event Review from 2024-06-22T10:30 to 2024-06-22T11:30 --location "
+            +
             "BoardRoom",
         "print events from 2024-06-22T00:00 to 2024-06-22T23:59",
         "exit"
@@ -336,9 +347,11 @@ public class CalendarAppTest {
     String[] commands = {
         "create calendar --name AgendaRange --timezone America/New_York",
         "use calendar --name AgendaRange",
-        "create event Planning from 2024-07-01T08:00 to 2024-07-01T09:00 --location" +
+        "create event Planning from 2024-07-01T08:00 to 2024-07-01T09:00 --location"
+            +
             " RoomA",
-        "create event WrapUp from 2024-07-01T16:00 to 2024-07-01T17:00 --location " +
+        "create event WrapUp from 2024-07-01T16:00 to 2024-07-01T17:00 --location "
+            +
             "RoomB",
         "print events from 2024-07-01T00:00 to 2024-07-01T23:59",
         "exit"
@@ -388,7 +401,8 @@ public class CalendarAppTest {
     String[] commands = {
         "create calendar --name RecurringPrint --timezone America/New_York",
         "use calendar --name RecurringPrint",
-        "create event Standup from 2024-06-24T09:00 to 2024-06-24T09:30 repeats M " +
+        "create event Standup from 2024-06-24T09:00 to 2024-06-24T09:30 repeats M "
+            +
             "for 2 times --location Zoom",
         "print events on 2024-06-24",
         "exit"
@@ -458,7 +472,8 @@ public class CalendarAppTest {
     String[] commands = {
         "create calendar --name OverlapRange --timezone America/New_York",
         "use calendar --name OverlapRange",
-        "create event Overnight from 2024-07-03T23:00 to 2024-07-04T01:00 " +
+        "create event Overnight from 2024-07-03T23:00 to 2024-07-04T01:00 "
+            +
             "--location Lounge",
         "print events from 2024-07-04T00:00 to 2024-07-04T23:59",
         "exit"
@@ -483,7 +498,8 @@ public class CalendarAppTest {
         "create calendar --name MixedNoConflict --timezone America/New_York",
         "use calendar --name MixedNoConflict",
         "create event Holiday on 2024-07-05",
-        "create event Sync from 2024-07-06T09:00 to 2024-07-06T10:00 --location " +
+        "create event Sync from 2024-07-06T09:00 to 2024-07-06T10:00 --location "
+            +
             "Online",
         "print events from 2024-07-05T00:00 to 2024-07-06T23:59",
         "exit"
@@ -509,7 +525,8 @@ public class CalendarAppTest {
     String[] commands = {
         "create calendar --name ExactRangeMatch --timezone America/New_York",
         "use calendar --name ExactRangeMatch",
-        "create event Interview from 2024-07-07T14:00 to 2024-07-07T15:00 " +
+        "create event Interview from 2024-07-07T14:00 to 2024-07-07T15:00 "
+            +
             "--location HQ",
         "print events from 2024-07-07T14:00 to 2024-07-07T15:00",
         "exit"
@@ -529,7 +546,8 @@ public class CalendarAppTest {
   }
 
   @Test
-  public void testPrintEvents_RangeStartsAtEventStartEndsBeforeEnd_ShouldInclude() throws IOException {
+  public void testPrintEvents_RangeStartsAtEventStartEndsBeforeEnd_ShouldInclude()
+      throws IOException {
     String[] commands = {
         "create calendar --name RangeStartOnly --timezone America/New_York",
         "use calendar --name RangeStartOnly",
@@ -551,36 +569,14 @@ public class CalendarAppTest {
     assertEquals(expected, outContent.toString().trim());
   }
 
-  //@Test
-  public void testPrintEvents_RangeWithinEventDuration_ShouldInclude() throws IOException {
-    String[] commands = {
-        "create calendar --name InsideEvent --timezone America/New_York",
-        "use calendar --name InsideEvent",
-        "create event Block from 2024-07-09T09:00 to 2024-07-09T11:00 --location " +
-            "Studio",
-        "print events from 2024-07-09T09:30 to 2024-07-09T10:30",
-        "exit"
-    };
-    runAppWithCommands(commands);
-
-    String nl = System.lineSeparator();
-    String expected = String.join(nl, List.of(
-        "Welcome to the Calendar App!",
-        "Calendar created successfully.",
-        "Using calendar: InsideEvent",
-        "Event created successfully.",
-        "- Block [2024-07-09T09:00 to 2024-07-09T11:00] at Studio"
-    ));
-
-    assertEquals(expected, outContent.toString().trim());
-  }
 
   @Test
   public void testPrintEvents_RangeAfterEventEnd_ShouldExclude() throws IOException {
     String[] commands = {
         "create calendar --name AfterEvent --timezone America/New_York",
         "use calendar --name AfterEvent",
-        "create event WrapUp from 2024-07-10T13:00 to 2024-07-10T14:00 --location " +
+        "create event WrapUp from 2024-07-10T13:00 to 2024-07-10T14:00 --location "
+            +
             "Lounge",
         "print events from 2024-07-10T14:01 to 2024-07-10T15:00",
         "exit"
@@ -604,7 +600,8 @@ public class CalendarAppTest {
     String[] commands = {
         "create calendar --name BeforeEvent --timezone America/New_York",
         "use calendar --name BeforeEvent",
-        "create event Kickoff from 2024-07-11T11:00 to 2024-07-11T12:00 --location " +
+        "create event Kickoff from 2024-07-11T11:00 to 2024-07-11T12:00 --location "
+            +
             "Field",
         "print events from 2024-07-11T09:00 to 2024-07-11T10:59",
         "exit"
@@ -628,9 +625,11 @@ public class CalendarAppTest {
     String[] commands = {
         "create calendar --name NonConflicting --timezone America/New_York",
         "use calendar --name NonConflicting",
-        "create event Discussion from 2024-07-12T10:00 to 2024-07-12T10:30 " +
+        "create event Discussion from 2024-07-12T10:00 to 2024-07-12T10:30 "
+            +
             "--location RoomA",
-        "create event Planning from 2024-07-12T10:30 to 2024-07-12T11:30 --location" +
+        "create event Planning from 2024-07-12T10:30 to 2024-07-12T11:30 --location"
+            +
             " RoomB",
         "print events on 2024-07-12",
         "exit"
@@ -656,7 +655,8 @@ public class CalendarAppTest {
     String[] commands = {
         "create calendar --name SpecialChars --timezone America/New_York",
         "use calendar --name SpecialChars",
-        "create event \"Bug Bash!@#$%^^\" from 2024-07-13T14:00 to 2024-07-13T16:00" +
+        "create event \"Bug Bash!@#$%^^\" from 2024-07-13T14:00 to 2024-07-13T16:00"
+            +
             " --location \"Main-Hall #2\"",
         "print events on 2024-07-13",
         "exit"
@@ -710,7 +710,8 @@ public class CalendarAppTest {
         "exit"
     };
     runAppWithCommands(commands);
-    assertTrue(outContent.toString().contains("Error Executing command: Expected 'on' " +
+    assertTrue(outContent.toString().contains("Error Executing command: Expected 'on' "
+        +
         "or 'from' at start of print events command."));
   }
 
@@ -723,7 +724,8 @@ public class CalendarAppTest {
         "exit"
     };
     runAppWithCommands(commands);
-    assertTrue(outContent.toString().contains("Error Executing command: Invalid format." +
+    assertTrue(outContent.toString().contains("Error Executing command: Invalid format."
+        +
         " Expected: print events on <date>"));
   }
 
@@ -736,7 +738,8 @@ public class CalendarAppTest {
         "exit"
     };
     runAppWithCommands(commands);
-    assertTrue(outContent.toString().contains("Error Executing command: Invalid format." +
+    assertTrue(outContent.toString().contains("Error Executing command: Invalid format."
+        +
         " Expected: print events from <datetime> to <datetime>"));
   }
 
@@ -749,7 +752,8 @@ public class CalendarAppTest {
         "exit"
     };
     runAppWithCommands(commands);
-    assertTrue(outContent.toString().contains("Error Executing command: Invalid format." +
+    assertTrue(outContent.toString().contains("Error Executing command: Invalid format."
+        +
         " Expected: print events from <datetime> to <datetime>"));
   }
 
@@ -762,7 +766,8 @@ public class CalendarAppTest {
         "exit"
     };
     runAppWithCommands(commands);
-    assertTrue(outContent.toString().contains("Error Executing command: Invalid format." +
+    assertTrue(outContent.toString().contains("Error Executing command: Invalid format."
+        +
         " Expected: print events on <date>"));
   }
 
@@ -781,7 +786,8 @@ public class CalendarAppTest {
   //Create calendarr command tests
   @Test
   public void testCreateCalendar_ValidInput_ShouldSucceed() {
-    runAppWithCommands(new String[]{"create calendar --name TestCal --timezone " +
+    runAppWithCommands(new String[]{"create calendar --name TestCal --timezone "
+        +
         "America/New_York", "exit"});
     assertTrue(outContent.toString().contains("Calendar created successfully"));
   }
@@ -797,14 +803,16 @@ public class CalendarAppTest {
 
   @Test
   public void testCreateCalendar_InvalidTimezone_ShouldFail() {
-    runAppWithCommands(new String[]{"create calendar --name InvalidTZ --timezone " +
+    runAppWithCommands(new String[]{"create calendar --name InvalidTZ --timezone "
+        +
         "Invalid/Zone", "exit"});
     assertTrue(outContent.toString().contains("Invalid timezone"));
   }
 
   @Test
   public void testUseCalendar_ValidName_ShouldSucceed2() {
-    runAppWithCommands(new String[]{"create calendar --name MyCal --timezone " +
+    runAppWithCommands(new String[]{"create calendar --name MyCal --timezone "
+        +
         "America/New_York", "use calendar --name MyCal", "exit"});
     assertTrue(outContent.toString().contains("Using calendar: MyCal"));
   }
@@ -823,7 +831,8 @@ public class CalendarAppTest {
         "exit"
     };
     runAppWithCommands(commands);
-    assertTrue(outContent.toString().contains("Error Executing command: Usage: create " +
+    assertTrue(outContent.toString().contains("Error Executing command: Usage: create "
+        +
         "calendar --name <name> --timezone <timezone>"));
   }
 
@@ -1080,7 +1089,8 @@ public class CalendarAppTest {
   }
 
   @Test
-  public void testCreateSingleAllDayEventWithAutoDecline_ShouldExportCorrectly() throws IOException {
+  public void testCreateSingleAllDayEventWithAutoDecline_ShouldExportCorrectly()
+      throws IOException {
     String[] commands = {
         "create calendar --name AutoDeclineCal --timezone America/New_York",
         "use calendar --name AutoDeclineCal",
@@ -1146,7 +1156,8 @@ public class CalendarAppTest {
   }
 
   @Test
-  public void testCreateRecurringTimedEventWithAutoDeclineAndRepeatCount_ShouldExportCorrectly() throws IOException {
+  public void testCreateRecurringTimedEventWithAutoDeclineAndRepeatCount_ShouldExportCorrectly()
+      throws IOException {
     String[] commands = {
         "create calendar --name School --timezone America/New_York",
         "use calendar --name School",
@@ -1168,7 +1179,8 @@ public class CalendarAppTest {
   }
 
   @Test
-  public void testCreateRecurringAllDayEventWithUntilDate_ShouldExportCorrectly() throws IOException {
+  public void testCreateRecurringAllDayEventWithUntilDate_ShouldExportCorrectly()
+      throws IOException {
     String[] commands = {
         "create calendar --name Gym --timezone America/New_York",
         "use calendar --name Gym",
@@ -1189,7 +1201,8 @@ public class CalendarAppTest {
   }
 
   @Test
-  public void testCreateSingleTimedEventWithoutAutoDecline_NoConflict_ShouldSucceed() throws IOException {
+  public void testCreateSingleTimedEventWithoutAutoDecline_NoConflict_ShouldSucceed()
+      throws IOException {
     String[] commands = {
         "create calendar --name Work --timezone America/New_York",
         "use calendar --name Work",
@@ -1210,7 +1223,8 @@ public class CalendarAppTest {
   }
 
   @Test
-  public void testCreateRecurringAllDayEventForOneTime_ShouldExportSingleInstance() throws IOException {
+  public void testCreateRecurringAllDayEventForOneTime_ShouldExportSingleInstance()
+      throws IOException {
     String[] commands = {
         "create calendar --name Health --timezone America/New_York",
         "use calendar --name Health",
@@ -1229,7 +1243,8 @@ public class CalendarAppTest {
   }
 
   @Test
-  public void testCreateRecurringTimedEventOnNonConsecutiveWeekdays_ShouldExportCorrectly() throws IOException {
+  public void testCreateRecurringTimedEventOnNonConsecutiveWeekdays_ShouldExportCorrectly()
+      throws IOException {
     String[] commands = {
         "create calendar --name ClassSchedule --timezone America/New_York",
         "use calendar --name ClassSchedule",
@@ -1287,7 +1302,8 @@ public class CalendarAppTest {
   }
 
   @Test
-  public void testCreateRecurringTimedEventWithInclusiveUntilDate_ShouldExportCorrectly() throws IOException {
+  public void testCreateRecurringTimedEventWithInclusiveUntilDate_ShouldExportCorrectly()
+      throws IOException {
     String[] commands = {
         "create calendar --name Reviews --timezone America/New_York",
         "use calendar --name Reviews",
@@ -1353,7 +1369,8 @@ public class CalendarAppTest {
   }
 
   @Test
-  public void testCreateRecurringTimedEventAcrossMonthBoundary_ShouldExportCorrectly() throws IOException {
+  public void testCreateRecurringTimedEventAcrossMonthBoundary_ShouldExportCorrectly()
+      throws IOException {
     String[] commands = {
         "create calendar --name StudyPlan --timezone America/New_York",
         "use calendar --name StudyPlan",
@@ -1417,7 +1434,8 @@ public class CalendarAppTest {
   }
 
   @Test
-  public void testCreateRecurringTimedEventWithOptionalFlags_ShouldExportCorrectly() throws IOException {
+  public void testCreateRecurringTimedEventWithOptionalFlags_ShouldExportCorrectly()
+      throws IOException {
     String[] commands = {
         "create calendar --name RecurringFlags --timezone America/New_York",
         "use calendar --name RecurringFlags",
@@ -1440,7 +1458,8 @@ public class CalendarAppTest {
   }
 
   @Test
-  public void testCreateRecurringAllDayEventWithOptionalFlags_ShouldExportCorrectly() throws IOException {
+  public void testCreateRecurringAllDayEventWithOptionalFlags_ShouldExportCorrectly()
+      throws IOException {
     String[] commands = {
         "create calendar --name Retreats --timezone America/New_York",
         "use calendar --name Retreats",
@@ -1568,7 +1587,8 @@ public class CalendarAppTest {
   }
 
   @Test
-  public void testCreateSingleEventThatConflictsWithRecurring_ShouldBeRejected() throws IOException {
+  public void testCreateSingleEventThatConflictsWithRecurring_ShouldBeRejected()
+      throws IOException {
     String[] commands = {
         "create calendar --name ReverseConflict --timezone America/New_York",
         "use calendar --name ReverseConflict",
@@ -1656,7 +1676,8 @@ public class CalendarAppTest {
   }
 
   @Test
-  public void testCreateEventThatSpansMultipleDays_ShouldBlockOverlappingEvents() throws IOException {
+  public void testCreateEventThatSpansMultipleDays_ShouldBlockOverlappingEvents()
+      throws IOException {
     String[] commands = {
         "create calendar --name MultiDayBlock --timezone America/New_York",
         "use calendar --name MultiDayBlock",
@@ -1873,7 +1894,8 @@ public class CalendarAppTest {
     runAppWithCommands(commands);
 
     String expected = String.join("\n",
-        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location," +
+            "Private",
         "\"TeamMeeting\",08/01/2025,09:00 AM,08/01/2025,10:00 AM,False,\"\",\"\",False"
     );
     assertEquals(expected, readExportedFile());
@@ -2033,7 +2055,8 @@ public class CalendarAppTest {
   }
 
   @Test
-  public void testCreateRecurringEventWithoutForOrUntil_ShouldFail() throws IOException {
+  public void testCreateRecurringEventWithoutForOrUntil_ShouldFail()
+      throws IOException {
     String[] commands = {
         "create calendar --name IncompleteRepeats --timezone America/New_York",
         "use calendar --name IncompleteRepeats",
@@ -2050,7 +2073,8 @@ public class CalendarAppTest {
   }
 
   @Test
-  public void testCreateAllDayEventUsingFromToInsteadOfOn_ShouldCreateTimedEvent() throws IOException {
+  public void testCreateAllDayEventUsingFromToInsteadOfOn_ShouldCreateTimedEvent()
+      throws IOException {
     String[] commands = {
         "create calendar --name FauxAllDay --timezone America/New_York",
         "use calendar --name FauxAllDay",
@@ -2269,7 +2293,8 @@ public class CalendarAppTest {
   }
 
   @Test
-  public void testCreateTimedEventWithAutoDecline_ShouldExportCorrectly() throws IOException {
+  public void testCreateTimedEventWithAutoDecline_ShouldExportCorrectly()
+      throws IOException {
     String[] commands = {
         "create calendar --name AutoDeclineTimed --timezone America/New_York",
         "use calendar --name AutoDeclineTimed",
@@ -2290,7 +2315,8 @@ public class CalendarAppTest {
   }
 
   @Test
-  public void testCreateRecurringTimedEventWithAutoDecline_ShouldExportCorrectly() throws IOException {
+  public void testCreateRecurringTimedEventWithAutoDecline_ShouldExportCorrectly()
+      throws IOException {
     String[] commands = {
         "create calendar --name AutoRecurring --timezone America/New_York",
         "use calendar --name AutoRecurring",
@@ -2463,7 +2489,8 @@ public class CalendarAppTest {
 
   // Test: Editing an event's description works correctly.
   @Test
-  public void testEditEvent_UpdateDescription_ShouldExportCorrectly() throws IOException {
+  public void testEditEvent_UpdateDescription_ShouldExportCorrectly()
+      throws IOException {
     String[] commands = {
         "create calendar --name EditDescCal --timezone America/New_York",
         "use calendar --name EditDescCal",
@@ -2486,7 +2513,8 @@ public class CalendarAppTest {
   // Test: Editing a recurring event with editAll = false should update only the first
   // occurrence.
   @Test
-  public void testEditRecurringEvent_SingleOccurrenceEdit_ShouldExportCorrectly() throws IOException {
+  public void testEditRecurringEvent_SingleOccurrenceEdit_ShouldExportCorrectly()
+      throws IOException {
     String[] commands = {
         "create calendar --name EditRecurrSingleCal --timezone America/New_York",
         "use calendar --name EditRecurrSingleCal",
@@ -2510,7 +2538,8 @@ public class CalendarAppTest {
 
   // Test: Editing a recurring event with editAll = true should update all occurrences.
   @Test
-  public void testEditRecurringEvent_UpdateAllOccurrences_ShouldExportCorrectly() throws IOException {
+  public void testEditRecurringEvent_UpdateAllOccurrences_ShouldExportCorrectly()
+      throws IOException {
     String[] commands = {
         "create calendar --name EditRecurrCal --timezone America/New_York",
         "use calendar --name EditRecurrCal",
@@ -2555,7 +2584,8 @@ public class CalendarAppTest {
   }
 
   @Test
-  public void testEditNonRecurringEvent_UpdateStart_ShouldExportCorrectly() throws IOException {
+  public void testEditNonRecurringEvent_UpdateStart_ShouldExportCorrectly()
+      throws IOException {
     String[] commands = {
         "create calendar --name EditStartNR --timezone America/New_York",
         "use calendar --name EditStartNR",
@@ -2576,7 +2606,8 @@ public class CalendarAppTest {
   }
 
   @Test
-  public void testEditNonRecurringEvent_UpdateEnd_ShouldExportCorrectly() throws IOException {
+  public void testEditNonRecurringEvent_UpdateEnd_ShouldExportCorrectly()
+      throws IOException {
     String[] commands = {
         "create calendar --name EditEndNR --timezone America/New_York",
         "use calendar --name EditEndNR",
@@ -2595,7 +2626,8 @@ public class CalendarAppTest {
   }
 
   @Test
-  public void testEditNonRecurringEvent_UpdateDescription_ShouldExportCorrectly() throws IOException {
+  public void testEditNonRecurringEvent_UpdateDescription_ShouldExportCorrectly()
+      throws IOException {
     String[] commands = {
         "create calendar --name EditDescNR --timezone America/New_York",
         "use calendar --name EditDescNR",
@@ -2696,13 +2728,15 @@ public class CalendarAppTest {
         "exit"
     };
     runAppWithCommands(commands);
-    assertTrue(outContent.toString().contains("Error Executing command: Please use somme calendar"));
+    assertTrue(outContent.toString().contains("Error Executing command: Please use somme " +
+        "calendar"));
   }
 
   // ---------- Recurring Event Edit Tests for editEvents (plural) ----------
 
   @Test
-  public void testEditRecurringEvents_SingleOccurrenceEdit_ShouldUpdateOnlyFirst() throws IOException {
+  public void testEditRecurringEvents_SingleOccurrenceEdit_ShouldUpdateOnlyFirst()
+      throws IOException {
     String[] commands = {
         "create calendar --name RecurrEditNR_Single --timezone America/New_York",
         "use calendar --name RecurrEditNR_Single",
@@ -2782,32 +2816,33 @@ public class CalendarAppTest {
   @Test
   public void testEditRecurringEvents_CreatesConflict_ShouldEditNothing() throws IOException {
     String[] commands = {
-          "create calendar --name ConflictCal --timezone America/New_York",
-          "use calendar --name ConflictCal",
+        "create calendar --name ConflictCal --timezone America/New_York",
+        "use calendar --name ConflictCal",
 
-          // This goes first: 08:45–09:15
-          "create event Conflict from 2025-04-24T08:45 to 2025-04-24T09:15 repeats R for 3 times",
+        // This goes first: 08:45–09:15
+        "create event Conflict from 2025-04-24T08:45 to 2025-04-24T09:15 repeats R for 3 times",
 
-          // Now safe: 09:30–10:00
-          "create event Standup from 2025-04-24T09:30 to 2025-04-24T10:00 repeats R for 3 times",
+        // Now safe: 09:30–10:00
+        "create event Standup from 2025-04-24T09:30 to 2025-04-24T10:00 repeats R for 3 times",
 
-          // Now shift Standup to 08:45 — will conflict with Conflict
-          "edit events start Standup from 2025-04-24T09:30 with \"2025-04-24T08:45:00\"",
+        // Now shift Standup to 08:45 — will conflict with Conflict
+        "edit events start Standup from 2025-04-24T09:30 with \"2025-04-24T08:45:00\"",
 
-          "export cal " + OUTPUT_FILE,
-          "exit"
+        "export cal " + OUTPUT_FILE,
+        "exit"
     };
 
     runAppWithCommands(commands);
 
     String expected = String.join("\n",
-          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
-          "\"Conflict\",04/24/2025,08:45 AM,04/24/2025,09:15 AM,False,\"\",\"\",False",
-          "\"Conflict\",05/01/2025,08:45 AM,05/01/2025,09:15 AM,False,\"\",\"\",False",
-          "\"Conflict\",05/08/2025,08:45 AM,05/08/2025,09:15 AM,False,\"\",\"\",False",
-          "\"Standup\",04/24/2025,09:30 AM,04/24/2025,10:00 AM,False,\"\",\"\",False",
-          "\"Standup\",05/01/2025,09:30 AM,05/01/2025,10:00 AM,False,\"\",\"\",False",
-          "\"Standup\",05/08/2025,09:30 AM,05/08/2025,10:00 AM,False,\"\",\"\",False"
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location," +
+         "Private",
+        "\"Conflict\",04/24/2025,08:45 AM,04/24/2025,09:15 AM,False,\"\",\"\",False",
+        "\"Conflict\",05/01/2025,08:45 AM,05/01/2025,09:15 AM,False,\"\",\"\",False",
+        "\"Conflict\",05/08/2025,08:45 AM,05/08/2025,09:15 AM,False,\"\",\"\",False",
+        "\"Standup\",04/24/2025,09:30 AM,04/24/2025,10:00 AM,False,\"\",\"\",False",
+        "\"Standup\",05/01/2025,09:30 AM,05/01/2025,10:00 AM,False,\"\",\"\",False",
+        "\"Standup\",05/08/2025,09:30 AM,05/08/2025,10:00 AM,False,\"\",\"\",False"
     );
 
     assertEquals(expected, readExportedFile());
@@ -2816,35 +2851,35 @@ public class CalendarAppTest {
   @Test
   public void testEditRecurringEvents_SecondConflict_ShouldRollbackAllEdits() throws IOException {
     String[] commands = {
-          "create calendar --name PartialConflictCal --timezone America/New_York",
-          "use calendar --name PartialConflictCal",
+        "create calendar --name PartialConflictCal --timezone America/New_York",
+        "use calendar --name PartialConflictCal",
 
-          // Recurring event: 09:00–09:30 on 3 Thursdays
-          "create event Standup from 2025-04-24T09:00 to 2025-04-24T09:30 repeats R for 3 times",
+        // Recurring event: 09:00–09:30 on 3 Thursdays
+        "create event Standup from 2025-04-24T09:00 to 2025-04-24T09:30 repeats R for 3 times",
 
-          // Overlapping event ONLY on May 1st
-          "create event Overlap from 2025-05-01T08:45 to 2025-05-01T09:00",
+        // Overlapping event ONLY on May 1st
+        "create event Overlap from 2025-05-01T08:45 to 2025-05-01T09:00",
 
-          // Attempt to edit recurring event to 08:45 — May 1st conflicts
-          "edit events start Standup from 2025-04-24T09:00 with \"2025-04-24T08:45:00\"",
+        // Attempt to edit recurring event to 08:45 — May 1st conflicts
+        "edit events start Standup from 2025-04-24T09:00 with \"2025-04-24T08:45:00\"",
 
-          "export cal " + OUTPUT_FILE,
-          "exit"
+        "export cal " + OUTPUT_FILE,
+        "exit"
     };
 
     runAppWithCommands(commands);
 
     String expected = String.join("\n",
-          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
-          "\"Standup\",04/24/2025,09:00 AM,04/24/2025,09:30 AM,False,\"\",\"\",False",
-          "\"Standup\",05/01/2025,09:00 AM,05/01/2025,09:30 AM,False,\"\",\"\",False",
-          "\"Standup\",05/08/2025,09:00 AM,05/08/2025,09:30 AM,False,\"\",\"\",False",
-          "\"Overlap\",05/01/2025,08:45 AM,05/01/2025,09:00 AM,False,\"\",\"\",False"
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location," +
+         "Private",
+        "\"Standup\",04/24/2025,09:00 AM,04/24/2025,09:30 AM,False,\"\",\"\",False",
+        "\"Standup\",05/01/2025,09:00 AM,05/01/2025,09:30 AM,False,\"\",\"\",False",
+        "\"Standup\",05/08/2025,09:00 AM,05/08/2025,09:30 AM,False,\"\",\"\",False",
+        "\"Overlap\",05/01/2025,08:45 AM,05/01/2025,09:00 AM,False,\"\",\"\",False"
     );
 
     assertEquals(expected, readExportedFile());
   }
-
 
 
   @Test
@@ -2981,7 +3016,8 @@ public class CalendarAppTest {
     runAppWithCommands(commands);
 
 
-    assertTrue(outContent.toString().contains("Error Executing command: Please use somme calendar"));
+    assertTrue(outContent.toString().contains("Error Executing command: Please use somme " +
+        "calendar"));
   }
 
   // Test: Edit events with null "fromDateTime" should fail.
@@ -3049,7 +3085,8 @@ public class CalendarAppTest {
   }
 
   @Test
-  public void testEditEvents_MixedEvents_UpdateOnlyLaterOccurrence_ShouldUpdateOnlyMatching() throws IOException {
+  public void testEditEvents_MixedEvents_UpdateOnlyLaterOccurrence_ShouldUpdateOnlyMatching()
+      throws IOException {
     String[] commands = {
         "create calendar --name MixedCal --timezone America/New_York",
         "use calendar --name MixedCal",
@@ -3075,7 +3112,8 @@ public class CalendarAppTest {
 
   // --------- Multiple Occurrences: editAll true updates all occurrences ---------
   @Test
-  public void testEditEvents_MultipleOccurrences_EditAllTrue_ShouldUpdateAll() throws IOException {
+  public void testEditEvents_MultipleOccurrences_EditAllTrue_ShouldUpdateAll()
+      throws IOException {
     String[] commands = {
         "create calendar --name RecurrEditAllExtra --timezone America/New_York",
         "use calendar --name RecurrEditAllExtra",
@@ -3104,7 +3142,8 @@ public class CalendarAppTest {
   // Create two non-recurring events with the same name, then update description only
   // for those with start time >= given boundary.
   @Test
-  public void testEditEvents_UpdateDescriptionForLaterEvents_ShouldUpdateOnlyMatching() throws IOException {
+  public void testEditEvents_UpdateDescriptionForLaterEvents_ShouldUpdateOnlyMatching()
+      throws IOException {
     String[] commands = {
         "create calendar --name DescUpdateCal --timezone America/New_York",
         "use calendar --name DescUpdateCal",
@@ -3204,7 +3243,8 @@ public class CalendarAppTest {
   }
 
   @Test
-  public void testEditEvents_UpdateDescriptionWithWhitespace_ShouldExportCorrectly() throws IOException {
+  public void testEditEvents_UpdateDescriptionWithWhitespace_ShouldExportCorrectly()
+      throws IOException {
     String[] commands = {
         "create calendar --name WhiteSpaceNR --timezone America/New_York",
         "use calendar --name WhiteSpaceNR",
@@ -3433,7 +3473,8 @@ public class CalendarAppTest {
   // Test: Edit recurring event so that only occurrences starting at or after a
   // specified time are updated.
   @Test
-  public void testEditRecurringEvent_PartialOccurrenceUpdate_ShouldUpdateOnlyLaterOccurrences() throws IOException {
+  public void testEditRecurringEvent_PartialOccurrenceUpdate_ShouldUpdateOnlyLaterOccurrences()
+      throws IOException {
     String[] commands = {
         "create calendar --name RecurrPartialCal --timezone America/New_York",
         "use calendar --name RecurrPartialCal",
@@ -3462,7 +3503,8 @@ public class CalendarAppTest {
 
   // Test: Edit recurring event updating description for only the last occurrence.
   @Test
-  public void testEditRecurringEvent_UpdateDescriptionForLastOccurrence_ShouldUpdateOnlyLast() throws IOException {
+  public void testEditRecurringEvent_UpdateDescriptionForLastOccurrence_ShouldUpdateOnlyLast()
+      throws IOException {
     String[] commands = {
         "create calendar --name RecurrDescCal --timezone America/New_York",
         "use calendar --name RecurrDescCal",
@@ -3490,7 +3532,8 @@ public class CalendarAppTest {
 
   // Test: Edit recurring event – update ispublic flag for all occurrences.
   @Test
-  public void testEditRecurringEvent_UpdateIsPublic_ShouldUpdateAllOccurrences() throws IOException {
+  public void testEditRecurringEvent_UpdateIsPublic_ShouldUpdateAllOccurrences()
+      throws IOException {
     String[] commands = {
         "create calendar --name RecurrBoolCal --timezone America/New_York",
         "use calendar --name RecurrBoolCal",
@@ -3514,7 +3557,8 @@ public class CalendarAppTest {
   // Test: Edit recurring event – update start time for all occurrences, ensuring no
   // conflict.
   @Test
-  public void testEditRecurringEvent_UpdateStartTimeAllOccurrences_ShouldUpdateAll() throws IOException {
+  public void testEditRecurringEvent_UpdateStartTimeAllOccurrences_ShouldUpdateAll()
+      throws IOException {
     String[] commands = {
         "create calendar --name RecurrStartUpdateCal --timezone America/New_York",
         "use calendar --name RecurrStartUpdateCal",
@@ -3539,7 +3583,8 @@ public class CalendarAppTest {
 
   // Test: Edit recurring event – update end time for all occurrences.
   @Test
-  public void testEditRecurringEvent_UpdateEndTimeAllOccurrences_ShouldUpdateAll() throws IOException {
+  public void testEditRecurringEvent_UpdateEndTimeAllOccurrences_ShouldUpdateAll()
+      throws IOException {
     String[] commands = {
         "create calendar --name RecurrEndUpdateCal --timezone America/New_York",
         "use calendar --name RecurrEndUpdateCal",
@@ -3564,7 +3609,8 @@ public class CalendarAppTest {
   // Test: Edit recurring events – attempt update that would cause a conflict among
   // occurrences.
   @Test
-  public void testEditRecurringEvent_UpdateStartTimeConflict_ShouldFail() throws IOException {
+  public void testEditRecurringEvent_UpdateStartTimeConflict_ShouldFail()
+      throws IOException {
     String[] commands = {
         "create calendar --name RecurrConflictUpdate --timezone America/New_York",
         "use calendar --name RecurrConflictUpdate",
@@ -3592,10 +3638,11 @@ public class CalendarAppTest {
 
   // Test: Successfully update the start time of a non-recurring event.
   @Test
-  public void testEditEvent_UpdateStart_ShouldExportCorrectly() throws IOException {
+  public void testEditEvent_UpdateStart_ShouldExportCorrectly()
+      throws IOException {
     String[] commands = {
         "create calendar --name EditStartSingle --timezone America/New_York",
-          "", //just to check if the logic works fine if empty lines arer added
+        "", //just to check if the logic works fine if empty lines arer added
         "use calendar --name EditStartSingle",
         "create event Briefing from 2025-06-15T14:00 to 2025-06-15T15:00",
         "edit event start Briefing from 2025-06-15T14:00 to 2025-06-15T15:00 with " +
@@ -3694,8 +3741,8 @@ public class CalendarAppTest {
   @Test
   public void testEditEvent_CalendarNotFound_ShouldFail() {
     String[] commands = {
-          "edit event location Meeting from 2025-07-10T10:00 to 2025-07-10T11:00 with \"Room Z\"",
-          "exit"
+        "edit event location Meeting from 2025-07-10T10:00 to 2025-07-10T11:00 with \"Room Z\"",
+        "exit"
     };
     runAppWithCommands(commands);
 
@@ -3764,7 +3811,8 @@ public class CalendarAppTest {
 
   // Test: Update the event location with special characters.
   @Test
-  public void testEditEvent_UpdateLocationWithSpecialCharacters_ShouldExportCorrectly() throws IOException {
+  public void testEditEvent_UpdateLocationWithSpecialCharacters_ShouldExportCorrectly()
+      throws IOException {
     String[] commands = {
         "create calendar --name SpecialLocSingle --timezone America/New_York",
         "use calendar --name SpecialLocSingle",
@@ -3813,7 +3861,8 @@ public class CalendarAppTest {
 
   // Test: Update event ispublic using uppercase "TRUE".
   @Test
-  public void testEditEvent_UpdateIsPublic_WithUpperCase_ShouldExportCorrectly() throws IOException {
+  public void testEditEvent_UpdateIsPublic_WithUpperCase_ShouldExportCorrectly()
+      throws IOException {
     String[] commands = {
         "create calendar --name BoolCaseCal --timezone America/New_York",
         "use calendar --name BoolCaseCal",
@@ -4039,21 +4088,21 @@ public class CalendarAppTest {
   @Test
   public void testCopyEvents_CommandBased_Success() throws IOException {
     String[] commands = {
-          "create calendar --name SourceCal --timezone America/New_York",
-          "create calendar --name TargetCal --timezone Asia/Tokyo",
-          "use calendar --name SourceCal",
-          "create event Meeting from 2025-09-15T09:00 to 2025-09-15T10:00",
-          "copy events between 2025-09-15 and 2025-09-15 --target TargetCal to 2025-09-16",
-          "use calendar --name TargetCal",
-          "export cal " + OUTPUT_FILE,
-          "exit"
+        "create calendar --name SourceCal --timezone America/New_York",
+        "create calendar --name TargetCal --timezone Asia/Tokyo",
+        "use calendar --name SourceCal",
+        "create event Meeting from 2025-09-15T09:00 to 2025-09-15T10:00",
+        "copy events between 2025-09-15 and 2025-09-15 --target TargetCal to 2025-09-16",
+        "use calendar --name TargetCal",
+        "export cal " + OUTPUT_FILE,
+        "exit"
     };
     runAppWithCommands(commands);
 
     String expected = String.join("\n",
-          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
-                "Location,Private",
-          "\"Meeting\",09/16/2025,10:00 PM,09/16/2025,11:00 PM,False,\"\",\"\",False"
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
+            "Location,Private",
+        "\"Meeting\",09/16/2025,10:00 PM,09/16/2025,11:00 PM,False,\"\",\"\",False"
     );
     assertEquals(expected, readExportedFile());
   }
@@ -4062,17 +4111,17 @@ public class CalendarAppTest {
   @Test
   public void testCopyEvents_Conflict_ShouldFail() throws IOException {
     String[] commands = {
-          "create calendar --name SourceCal --timezone America/New_York",
-          "create calendar --name TargetCal --timezone America/New_York",
-          "use calendar --name SourceCal",
-          "create event Original from 2025-10-01T09:00 to 2025-10-01T10:00",
-          "use calendar --name TargetCal",
-          "create event Conflict from 2025-11-01T09:00 to 2025-11-01T10:00",
-          "use calendar --name SourceCal",
-          "copy events between 2025-10-01 and 2025-10-01 --target TargetCal to 2025-11-01",
-          "use calendar --name TargetCal",
-          "export cal " + OUTPUT_FILE,
-          "exit"
+        "create calendar --name SourceCal --timezone America/New_York",
+        "create calendar --name TargetCal --timezone America/New_York",
+        "use calendar --name SourceCal",
+        "create event Original from 2025-10-01T09:00 to 2025-10-01T10:00",
+        "use calendar --name TargetCal",
+        "create event Conflict from 2025-11-01T09:00 to 2025-11-01T10:00",
+        "use calendar --name SourceCal",
+        "copy events between 2025-10-01 and 2025-10-01 --target TargetCal to 2025-11-01",
+        "use calendar --name TargetCal",
+        "export cal " + OUTPUT_FILE,
+        "exit"
     };
     runAppWithCommands(commands);
 
@@ -4080,9 +4129,9 @@ public class CalendarAppTest {
     assertTrue(output.contains("conflict detected") || output.contains("error copying event"));
 
     String expected = String.join("\n",
-          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
-                "Location,Private",
-          "\"Conflict\",11/01/2025,09:00 AM,11/01/2025,10:00 AM,False,\"\",\"\",False"
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
+            "Location,Private",
+        "\"Conflict\",11/01/2025,09:00 AM,11/01/2025,10:00 AM,False,\"\",\"\",False"
     );
     assertEquals(expected, readExportedFile());
   }
@@ -4091,21 +4140,21 @@ public class CalendarAppTest {
   @Test
   public void testCopyEvents_SimpleCommand() throws IOException {
     String[] commands = {
-          "create calendar --name FallCal --timezone America/New_York",
-          "create calendar --name SpringCal --timezone America/New_York",
-          "use calendar --name FallCal",
-          "create event CS5010 from 2025-09-10T10:00 to 2025-09-10T11:00",
-          "copy events between 2025-09-10 and 2025-09-10 --target SpringCal to 2026-01-10", // ✅ Fixed
-          "use calendar --name SpringCal",
-          "export cal " + OUTPUT_FILE,
-          "exit"
+        "create calendar --name FallCal --timezone America/New_York",
+        "create calendar --name SpringCal --timezone America/New_York",
+        "use calendar --name FallCal",
+        "create event CS5010 from 2025-09-10T10:00 to 2025-09-10T11:00",
+        "copy events between 2025-09-10 and 2025-09-10 --target SpringCal to 2026-01-10", // ✅ Fixed
+        "use calendar --name SpringCal",
+        "export cal " + OUTPUT_FILE,
+        "exit"
     };
     runAppWithCommands(commands);
 
     String expected = String.join("\n",
-          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
-                "Location,Private",
-          "\"CS5010\",01/10/2026,10:00 AM,01/10/2026,11:00 AM,False,\"\",\"\",False"
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
+            "Location,Private",
+        "\"CS5010\",01/10/2026,10:00 AM,01/10/2026,11:00 AM,False,\"\",\"\",False"
     );
     assertEquals(expected, readExportedFile());
   }
@@ -4134,41 +4183,42 @@ public class CalendarAppTest {
   @Test
   public void testCopyEvents_CommandWithConflict_ShouldThrow() throws IOException {
     String[] commands = {
-          "create calendar --name Original --timezone America/New_York",
-          "create calendar --name Target --timezone America/New_York",
-          "use calendar --name Original",
-          "create event Lecture from 2025-09-01T09:00 to 2025-09-01T10:00",
-          "use calendar --name Target",
-          "create event Conflict from 2025-10-01T09:00 to 2025-10-01T10:00",
-          "use calendar --name Original",
-          "copy events between 2025-09-01 and 2025-09-01 --target Target to 2025-10-01", // fixed
-          "exit"
+        "create calendar --name Original --timezone America/New_York",
+        "create calendar --name Target --timezone America/New_York",
+        "use calendar --name Original",
+        "create event Lecture from 2025-09-01T09:00 to 2025-09-01T10:00",
+        "use calendar --name Target",
+        "create event Conflict from 2025-10-01T09:00 to 2025-10-01T10:00",
+        "use calendar --name Original",
+        "copy events between 2025-09-01 and 2025-09-01 --target Target to 2025-10-01", // fixed
+        "exit"
     };
     runAppWithCommands(commands);
 
     String output = outContent.toString().toLowerCase();
-    assertTrue(output.contains("error executing command: conflict detected when copying event: lecture"));
+    assertTrue(output.contains("error executing command: conflict detected when copying event: " +
+        "lecture"));
   }
 
 
   @Test
   public void testCopyEvents_SingleEvent_SameCalendar() throws IOException {
     String[] commands = {
-          "create calendar --name Cal1 --timezone America/New_York",
-          "use calendar --name Cal1",
-          "create event Event1 from 2025-01-01T09:00 to 2025-01-01T10:00",
-          "copy events between 2025-01-01 and 2025-01-01 --target Cal1 to 2025-01-02",
-          "export cal " + OUTPUT_FILE,
-          "exit"
+        "create calendar --name Cal1 --timezone America/New_York",
+        "use calendar --name Cal1",
+        "create event Event1 from 2025-01-01T09:00 to 2025-01-01T10:00",
+        "copy events between 2025-01-01 and 2025-01-01 --target Cal1 to 2025-01-02",
+        "export cal " + OUTPUT_FILE,
+        "exit"
     };
 
     runAppWithCommands(commands);
 
     String expected = String.join("\n",
-          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
-                "Location,Private",
-          "\"Event1\",01/01/2025,09:00 AM,01/01/2025,10:00 AM,False,\"\",\"\",False",
-          "\"Event1\",01/02/2025,09:00 AM,01/02/2025,10:00 AM,False,\"\",\"\",False"
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
+            "Location,Private",
+        "\"Event1\",01/01/2025,09:00 AM,01/01/2025,10:00 AM,False,\"\",\"\",False",
+        "\"Event1\",01/02/2025,09:00 AM,01/02/2025,10:00 AM,False,\"\",\"\",False"
     );
 
     assertEquals(expected, readExportedFile());
@@ -4178,21 +4228,21 @@ public class CalendarAppTest {
   @Test
   public void testCopyEvents_SingleEvent_DifferentDate() throws IOException {
     String[] commands = {
-          "create calendar --name Cal2 --timezone America/New_York",
-          "use calendar --name Cal2",
-          "create event Event2 from 2025-01-02T09:00 to 2025-01-02T10:00",
-          "copy events between 2025-01-02 and 2025-01-02 --target Cal2 to 2025-01-04",
-          "export cal "+ OUTPUT_FILE,
-          "exit"
+        "create calendar --name Cal2 --timezone America/New_York",
+        "use calendar --name Cal2",
+        "create event Event2 from 2025-01-02T09:00 to 2025-01-02T10:00",
+        "copy events between 2025-01-02 and 2025-01-02 --target Cal2 to 2025-01-04",
+        "export cal " + OUTPUT_FILE,
+        "exit"
     };
 
     runAppWithCommands(commands);
 
     String expected = String.join("\n",
-          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
-                "Location,Private",
-          "\"Event2\",01/02/2025,09:00 AM,01/02/2025,10:00 AM,False,\"\",\"\",False",
-          "\"Event2\",01/04/2025,09:00 AM,01/04/2025,10:00 AM,False,\"\",\"\",False"
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
+            "Location,Private",
+        "\"Event2\",01/02/2025,09:00 AM,01/02/2025,10:00 AM,False,\"\",\"\",False",
+        "\"Event2\",01/04/2025,09:00 AM,01/04/2025,10:00 AM,False,\"\",\"\",False"
     );
 
     assertEquals(expected, readExportedFile());
@@ -4202,22 +4252,22 @@ public class CalendarAppTest {
   @Test
   public void testCopyEvents_AcrossCalendars() throws IOException {
     String[] commands = {
-          "create calendar --name SourceCal --timezone America/New_York",
-          "create calendar --name TargetCal --timezone America/New_York",
-          "use calendar --name SourceCal",
-          "create event Event3 from 2025-01-03T09:00 to 2025-01-03T10:00",
-          "copy events between 2025-01-03 and 2025-01-03 --target TargetCal to 2025-01-05",
-          "use calendar --name TargetCal",
-          "export cal "+ OUTPUT_FILE,
-          "exit"
+        "create calendar --name SourceCal --timezone America/New_York",
+        "create calendar --name TargetCal --timezone America/New_York",
+        "use calendar --name SourceCal",
+        "create event Event3 from 2025-01-03T09:00 to 2025-01-03T10:00",
+        "copy events between 2025-01-03 and 2025-01-03 --target TargetCal to 2025-01-05",
+        "use calendar --name TargetCal",
+        "export cal " + OUTPUT_FILE,
+        "exit"
     };
 
     runAppWithCommands(commands);
 
     String expected = String.join("\n",
-          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
-                "Location,Private",
-          "\"Event3\",01/05/2025,09:00 AM,01/05/2025,10:00 AM,False,\"\",\"\",False"
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
+            "Location,Private",
+        "\"Event3\",01/05/2025,09:00 AM,01/05/2025,10:00 AM,False,\"\",\"\",False"
     );
 
     assertEquals(expected, readExportedFile());
@@ -4250,21 +4300,21 @@ public class CalendarAppTest {
   @Test
   public void testCopyEvents_TimezoneAdjustedCorrectly() throws IOException {
     String[] commands = {
-          "create calendar --name Source --timezone America/New_York",
-          "create calendar --name Target --timezone Asia/Kolkata",
-          "use calendar --name Source",
-          "create event Sync from 2025-03-01T09:00 to 2025-03-01T10:00",
-          "copy events between 2025-03-01 and 2025-03-01 --target Target to 2025-03-02",
-          "use calendar --name Target",
-          "export cal " + OUTPUT_FILE,
-          "exit"
+        "create calendar --name Source --timezone America/New_York",
+        "create calendar --name Target --timezone Asia/Kolkata",
+        "use calendar --name Source",
+        "create event Sync from 2025-03-01T09:00 to 2025-03-01T10:00",
+        "copy events between 2025-03-01 and 2025-03-01 --target Target to 2025-03-02",
+        "use calendar --name Target",
+        "export cal " + OUTPUT_FILE,
+        "exit"
     };
     runAppWithCommands(commands);
 
     String expected = String.join("\n",
-          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
-                "Location,Private",
-          "\"Sync\",03/02/2025,07:30 PM,03/02/2025,08:30 PM,False,\"\",\"\",False"
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
+            "Location,Private",
+        "\"Sync\",03/02/2025,07:30 PM,03/02/2025,08:30 PM,False,\"\",\"\",False"
     );
     assertEquals(expected, readExportedFile());
   }
@@ -4413,30 +4463,30 @@ public class CalendarAppTest {
   @Test
   public void testCopyEvents_ConflictPreventsCopy() throws IOException {
     String[] commands = {
-          "create calendar --name Source --timezone America/New_York",
-          "create calendar --name Target --timezone America/New_York",
+        "create calendar --name Source --timezone America/New_York",
+        "create calendar --name Target --timezone America/New_York",
 
-          "use calendar --name Source",
-          "create event Duplicate from 2025-04-10T10:00 to 2025-04-10T11:00",
+        "use calendar --name Source",
+        "create event Duplicate from 2025-04-10T10:00 to 2025-04-10T11:00",
 
-          "use calendar --name Target",
-          "create event Conflict from 2025-05-01T10:00 to 2025-05-01T11:00",
+        "use calendar --name Target",
+        "create event Conflict from 2025-05-01T10:00 to 2025-05-01T11:00",
 
-          // Set context back to Source before copying
-          "use calendar --name Source",
-          "copy events between 2025-04-10 and 2025-04-10 --target Target to 2025-05-01",
+        // Set context back to Source before copying
+        "use calendar --name Source",
+        "copy events between 2025-04-10 and 2025-04-10 --target Target to 2025-05-01",
 
-          "use calendar --name Target",
-          "export cal " + OUTPUT_FILE,
-          "exit"
+        "use calendar --name Target",
+        "export cal " + OUTPUT_FILE,
+        "exit"
     };
     runAppWithCommands(commands);
 
     // Conflict detected, event not copied
     String expected = String.join("\n",
-          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
-                "Location,Private",
-          "\"Conflict\",05/01/2025,10:00 AM,05/01/2025,11:00 AM,False,\"\",\"\",False"
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
+            "Location,Private",
+        "\"Conflict\",05/01/2025,10:00 AM,05/01/2025,11:00 AM,False,\"\",\"\",False"
     );
     assertEquals(expected, readExportedFile());
 
@@ -4472,7 +4522,8 @@ public class CalendarAppTest {
         "create calendar --name WeeklyCal --timezone UTC",
         "create calendar --name MirrorCal --timezone UTC",
         "use calendar --name WeeklyCal",
-        "create event --autoDecline Recurring from 2025-03-03T09:00 to 2025-03-03T10:00 repeats M for 2 times",
+        "create event --autoDecline Recurring from 2025-03-03T09:00 to 2025-03-03T10:00 repeats M" +
+         " for 2 times",
         "use calendar --name WeeklyCal",
         "copy events between 2025-03-02 and 2025-03-10 --target MirrorCal to 2025-04-07",
         "use calendar --name MirrorCal",
@@ -4494,17 +4545,17 @@ public class CalendarAppTest {
   @Test
   public void testCopyEvents_Conflict_ThrowsError() throws IOException {
     String[] commands = {
-          "create calendar --name Source --timezone UTC",
-          "create calendar --name Target --timezone UTC",
-          "use calendar --name Source",
-          "create event Meeting from 2025-06-10T09:00 to 2025-06-10T10:00",
-          "use calendar --name Target",
-          "create event Conflict from 2025-07-01T09:00 to 2025-07-01T10:00",
-          "use calendar --name Source",
-          "copy events between 2025-06-10 and 2025-06-10 --target Target to 2025-07-01",
-          "use calendar --name Target",
-          "export cal " + OUTPUT_FILE,
-          "exit"
+        "create calendar --name Source --timezone UTC",
+        "create calendar --name Target --timezone UTC",
+        "use calendar --name Source",
+        "create event Meeting from 2025-06-10T09:00 to 2025-06-10T10:00",
+        "use calendar --name Target",
+        "create event Conflict from 2025-07-01T09:00 to 2025-07-01T10:00",
+        "use calendar --name Source",
+        "copy events between 2025-06-10 and 2025-06-10 --target Target to 2025-07-01",
+        "use calendar --name Target",
+        "export cal " + OUTPUT_FILE,
+        "exit"
     };
     runAppWithCommands(commands);
 
@@ -4516,13 +4567,13 @@ public class CalendarAppTest {
   @Test
   public void testCopyEvents_InvalidDateRange_ShouldFail() throws IOException {
     String[] commands = {
-          "create calendar --name A --timezone UTC",
-          "create calendar --name B --timezone UTC",
-          "use calendar --name A",
-          "create event Test from 2025-05-01T10:00 to 2025-05-01T11:00",
-          "copy events between 2025-05-02 and 2025-05-01 --target B to 2025-05-10",
-          "export cal " + OUTPUT_FILE,
-          "exit"
+        "create calendar --name A --timezone UTC",
+        "create calendar --name B --timezone UTC",
+        "use calendar --name A",
+        "create event Test from 2025-05-01T10:00 to 2025-05-01T11:00",
+        "copy events between 2025-05-02 and 2025-05-01 --target B to 2025-05-10",
+        "export cal " + OUTPUT_FILE,
+        "exit"
     };
     runAppWithCommands(commands);
 
@@ -4534,21 +4585,21 @@ public class CalendarAppTest {
   @Test
   public void testCopyEvents_AcrossTimezones_WithExpectedExport() throws IOException {
     String[] commands = {
-          "create calendar --name NYCal --timezone America/New_York",
-          "create calendar --name TokyoCal --timezone Asia/Tokyo",
-          "use calendar --name NYCal",
-          "create event TeamSync from 2025-04-01T09:00 to 2025-04-01T10:00",
-          "copy events between 2025-04-01 and 2025-04-01 --target TokyoCal to 2025-04-02",
-          "use calendar --name TokyoCal",
-          "export cal " + OUTPUT_FILE,
-          "exit"
+        "create calendar --name NYCal --timezone America/New_York",
+        "create calendar --name TokyoCal --timezone Asia/Tokyo",
+        "use calendar --name NYCal",
+        "create event TeamSync from 2025-04-01T09:00 to 2025-04-01T10:00",
+        "copy events between 2025-04-01 and 2025-04-01 --target TokyoCal to 2025-04-02",
+        "use calendar --name TokyoCal",
+        "export cal " + OUTPUT_FILE,
+        "exit"
     };
     runAppWithCommands(commands);
 
     String expected = String.join("\n",
-          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
-                "Location,Private",
-          "\"TeamSync\",04/02/2025,10:00 PM,04/02/2025,11:00 PM,False,\"\",\"\",False"
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
+            "Location,Private",
+        "\"TeamSync\",04/02/2025,10:00 PM,04/02/2025,11:00 PM,False,\"\",\"\",False"
     );
 
     assertEquals(expected, readExportedFile());
@@ -4580,23 +4631,23 @@ public class CalendarAppTest {
   @Test
   public void testCopyEvents_MultipleSpacedEvents() throws IOException {
     String[] commands = {
-          "create calendar --name SpringCal --timezone America/New_York",
-          "create calendar --name FallCal --timezone America/New_York",
-          "use calendar --name SpringCal",
-          "create event EventA from 2025-03-01T09:00 to 2025-03-01T10:00",
-          "create event EventB from 2025-03-03T14:00 to 2025-03-03T15:00",
-          "copy events between 2025-03-01 and 2025-03-03 --target FallCal to 2025-09-01", // ✅ fixed
-          "use calendar --name FallCal",
-          "export cal " + OUTPUT_FILE,
-          "exit"
+        "create calendar --name SpringCal --timezone America/New_York",
+        "create calendar --name FallCal --timezone America/New_York",
+        "use calendar --name SpringCal",
+        "create event EventA from 2025-03-01T09:00 to 2025-03-01T10:00",
+        "create event EventB from 2025-03-03T14:00 to 2025-03-03T15:00",
+        "copy events between 2025-03-01 and 2025-03-03 --target FallCal to 2025-09-01", // ✅ fixed
+        "use calendar --name FallCal",
+        "export cal " + OUTPUT_FILE,
+        "exit"
     };
     runAppWithCommands(commands);
 
     String expected = String.join("\n",
-          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
-                "Location,Private",
-          "\"EventA\",09/01/2025,09:00 AM,09/01/2025,10:00 AM,False,\"\",\"\",False",
-          "\"EventB\",09/03/2025,02:00 PM,09/03/2025,03:00 PM,False,\"\",\"\",False"
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
+            "Location,Private",
+        "\"EventA\",09/01/2025,09:00 AM,09/01/2025,10:00 AM,False,\"\",\"\",False",
+        "\"EventB\",09/03/2025,02:00 PM,09/03/2025,03:00 PM,False,\"\",\"\",False"
     );
     assertEquals(expected, readExportedFile());
   }
@@ -4619,7 +4670,8 @@ public class CalendarAppTest {
     // In Los Angeles, event is at 10:00 AM PDT. Tokyo is 16 hours ahead, so:
     // Event should be at 10:00 AM JST on 2025-05-11.
     String expected = String.join("\n",
-        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location," +
+         "Private",
         "\"DesignReview\",05/12/2025,02:00 AM,05/12/2025,03:00 AM,False,\"\",\"\",False"
     );
     assertEquals(expected, readExportedFile());
@@ -4628,21 +4680,21 @@ public class CalendarAppTest {
   @Test
   public void testCopyEvents_UTCtoIST_AdjustTime() throws IOException {
     String[] commands = {
-          "create calendar --name Global --timezone UTC",
-          "create calendar --name India --timezone Asia/Kolkata",
-          "use calendar --name Global",
-          "create event Standup from 2025-08-01T08:00 to 2025-08-01T09:00",
-          "copy events between 2025-08-01 and 2025-08-01 --target India to 2025-08-02",
-          "use calendar --name India",
-          "export cal " + OUTPUT_FILE,
-          "exit"
+        "create calendar --name Global --timezone UTC",
+        "create calendar --name India --timezone Asia/Kolkata",
+        "use calendar --name Global",
+        "create event Standup from 2025-08-01T08:00 to 2025-08-01T09:00",
+        "copy events between 2025-08-01 and 2025-08-01 --target India to 2025-08-02",
+        "use calendar --name India",
+        "export cal " + OUTPUT_FILE,
+        "exit"
     };
     runAppWithCommands(commands);
 
     String expected = String.join("\n",
-          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
-                "Location,Private",
-          "\"Standup\",08/02/2025,01:30 PM,08/02/2025,02:30 PM,False,\"\",\"\",False"
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
+            "Location,Private",
+        "\"Standup\",08/02/2025,01:30 PM,08/02/2025,02:30 PM,False,\"\",\"\",False"
     );
     assertEquals(expected, readExportedFile());
   }
@@ -4651,21 +4703,21 @@ public class CalendarAppTest {
   @Test
   public void testCopyEvents_DST_NewYorkToLondon() throws IOException {
     String[] commands = {
-          "create calendar --name NY --timezone America/New_York",
-          "create calendar --name London --timezone Europe/London",
-          "use calendar --name NY",
-          "create event DSTMeeting from 2025-03-09T02:00 to 2025-03-09T03:00",
-          "copy events between 2025-03-09 and 2025-03-09 --target London to 2025-03-10",
-          "use calendar --name London",
-          "export cal " + OUTPUT_FILE,
-          "exit"
+        "create calendar --name NY --timezone America/New_York",
+        "create calendar --name London --timezone Europe/London",
+        "use calendar --name NY",
+        "create event DSTMeeting from 2025-03-09T02:00 to 2025-03-09T03:00",
+        "copy events between 2025-03-09 and 2025-03-09 --target London to 2025-03-10",
+        "use calendar --name London",
+        "export cal " + OUTPUT_FILE,
+        "exit"
     };
     runAppWithCommands(commands);
 
     String expected = String.join("\n",
-          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
-                "Location,Private",
-          "\"DSTMeeting\",03/10/2025,07:00 AM,03/10/2025,08:00 AM,False,\"\",\"\",False"
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
+            "Location,Private",
+        "\"DSTMeeting\",03/10/2025,07:00 AM,03/10/2025,08:00 AM,False,\"\",\"\",False"
     );
     assertEquals(expected, readExportedFile());
   }
@@ -4674,21 +4726,21 @@ public class CalendarAppTest {
   @Test
   public void testCopyEvents_KathmanduToChicago_HalfHourZone() throws IOException {
     String[] commands = {
-          "create calendar --name KTM --timezone Asia/Kathmandu",
-          "create calendar --name Chicago --timezone America/Chicago",
-          "use calendar --name KTM",
-          "create event HalfHourTest from 2025-07-15T09:00 to 2025-07-15T10:00",
-          "copy events between 2025-07-15 and 2025-07-15 --target Chicago to 2025-07-16",
-          "use calendar --name Chicago",
-          "export cal " + OUTPUT_FILE,
-          "exit"
+        "create calendar --name KTM --timezone Asia/Kathmandu",
+        "create calendar --name Chicago --timezone America/Chicago",
+        "use calendar --name KTM",
+        "create event HalfHourTest from 2025-07-15T09:00 to 2025-07-15T10:00",
+        "copy events between 2025-07-15 and 2025-07-15 --target Chicago to 2025-07-16",
+        "use calendar --name Chicago",
+        "export cal " + OUTPUT_FILE,
+        "exit"
     };
     runAppWithCommands(commands);
 
     String expected = String.join("\n",
-          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
-                "Location,Private",
-          "\"HalfHourTest\",07/15/2025,10:15 PM,07/15/2025,11:15 PM,False,\"\",\"\",False"
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
+            "Location,Private",
+        "\"HalfHourTest\",07/15/2025,10:15 PM,07/15/2025,11:15 PM,False,\"\",\"\",False"
     );
     assertEquals(expected, readExportedFile());
   }
@@ -4745,7 +4797,8 @@ public class CalendarAppTest {
 
     // Only the original conflicting event should be in the export
     String expected = String.join("\n",
-        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location," +
+         "Private",
         "\"Conflict\",11/01/2025,11:00 AM,11/01/2025,12:00 PM,False,\"\",\"\",False"
     );
 
@@ -4765,7 +4818,8 @@ public class CalendarAppTest {
     runAppWithCommands(commands);
 
     String expected = String.join("\n",
-        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location," +
+         "Private",
         "\"Standup\",06/01/2025,09:00 AM,06/01/2025,09:30 AM,False,\"\",\"\",False",
         "\"Standup\",06/08/2025,09:00 AM,06/08/2025,09:30 AM,False,\"\",\"\",False"
     );
@@ -4787,7 +4841,8 @@ public class CalendarAppTest {
     runAppWithCommands(commands);
 
     String expected = String.join("\n",
-        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location," +
+         "Private",
         "\"TeamCall\",07/02/2025,07:30 PM,07/02/2025,08:30 PM,False,\"\",\"\",False"
     );
     assertEquals(expected, readExportedFile());
@@ -4841,7 +4896,8 @@ public class CalendarAppTest {
     runAppWithCommands(commands);
 
     String expected = String.join("\n",
-        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location," +
+         "Private",
         "\"Task1\",07/01/2025,09:00 AM,07/01/2025,10:00 AM,False,\"\",\"\",False",
         "\"Task1\",07/02/2025,09:00 AM,07/02/2025,10:00 AM,False,\"\",\"\",False"
     );
@@ -4864,7 +4920,8 @@ public class CalendarAppTest {
 
     // 08:00 London = 12:30 Kolkata
     String expected = String.join("\n",
-        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location," +
+         "Private",
         "\"MorningSync\",08/15/2025,12:30 PM,08/15/2025,01:30 PM,False,\"\",\"\",False"
     );
     assertEquals(expected, readExportedFile());
@@ -4886,29 +4943,25 @@ public class CalendarAppTest {
   }
 
 
-
-
-
-
   @Test
   public void testCopySingleEvent_WithConflict_ShouldFail() throws IOException {
     String[] commands = {
-          "create calendar --name SourceCal --timezone America/New_York",
-          "create calendar --name TargetCal --timezone America/New_York",
+        "create calendar --name SourceCal --timezone America/New_York",
+        "create calendar --name TargetCal --timezone America/New_York",
 
-          "use calendar --name SourceCal",
-          "create event Standup from 2025-08-01T09:00 to 2025-08-01T09:30",
+        "use calendar --name SourceCal",
+        "create event Standup from 2025-08-01T09:00 to 2025-08-01T09:30",
 
-          "use calendar --name TargetCal",
-          "create event Blocker from 2025-09-01T09:00 to 2025-09-01T09:30", // conflict
+        "use calendar --name TargetCal",
+        "create event Blocker from 2025-09-01T09:00 to 2025-09-01T09:30", // conflict
 
-          // Set context back to SourceCal before issuing the copy command
-          "use calendar --name SourceCal",
-          "copy events between 2025-08-01 and 2025-08-01 --target TargetCal to 2025-09-01",
+        // Set context back to SourceCal before issuing the copy command
+        "use calendar --name SourceCal",
+        "copy events between 2025-08-01 and 2025-08-01 --target TargetCal to 2025-09-01",
 
-          "use calendar --name TargetCal",
-          "export cal " + OUTPUT_FILE,
-          "exit"
+        "use calendar --name TargetCal",
+        "export cal " + OUTPUT_FILE,
+        "exit"
     };
 
     runAppWithCommands(commands);
@@ -4917,9 +4970,9 @@ public class CalendarAppTest {
     assertTrue(output.contains("conflict detected"));
 
     String expected = String.join("\n",
-          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
-                "Location,Private",
-          "\"Blocker\",09/01/2025,09:00 AM,09/01/2025,09:30 AM,False,\"\",\"\",False"
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
+            "Location,Private",
+        "\"Blocker\",09/01/2025,09:00 AM,09/01/2025,09:30 AM,False,\"\",\"\",False"
     );
     assertEquals(expected, readExportedFile());
   }
@@ -4928,22 +4981,22 @@ public class CalendarAppTest {
   @Test
   public void testCopyEvent_Success() throws IOException {
     String[] commands = {
-          "create calendar --name SourceCal --timezone America/New_York",
-          "create calendar --name TargetCal --timezone America/New_York",
-          "use calendar --name SourceCal",
-          "create event Meeting from 2025-08-01T09:00 to 2025-08-01T10:00",
-          "copy event Meeting on 2025-08-01T09:00 --target TargetCal to 2025-09-01T09:00",
-          "use calendar --name TargetCal",
-          "export cal " + OUTPUT_FILE,
-          "exit"
+        "create calendar --name SourceCal --timezone America/New_York",
+        "create calendar --name TargetCal --timezone America/New_York",
+        "use calendar --name SourceCal",
+        "create event Meeting from 2025-08-01T09:00 to 2025-08-01T10:00",
+        "copy event Meeting on 2025-08-01T09:00 --target TargetCal to 2025-09-01T09:00",
+        "use calendar --name TargetCal",
+        "export cal " + OUTPUT_FILE,
+        "exit"
     };
 
     runAppWithCommands(commands);
 
     String expected = String.join("\n",
-          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
-                "Location,Private",
-          "\"Meeting\",09/01/2025,09:00 AM,09/01/2025,10:00 AM,False,\"\",\"\",False"
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
+            "Location,Private",
+        "\"Meeting\",09/01/2025,09:00 AM,09/01/2025,10:00 AM,False,\"\",\"\",False"
     );
     assertEquals(expected, readExportedFile());
   }
@@ -4965,17 +5018,18 @@ public class CalendarAppTest {
     runAppWithCommands(commands);
 
     String output = outContent.toString();
-    assertTrue(output.contains("Error Executing command: Event with name 'Session' on 2025-08-01T09:00 not found in calendar TargetCal"));
+    assertTrue(output.contains("Error Executing command: Event with name 'Session' on " +
+        "2025-08-01T09:00 not found in calendar TargetCal"));
   }
 
   @Test
   public void testCopyEvent_EventNotFound_ShouldFail() throws IOException {
     String[] commands = {
-          "create calendar --name SourceCal --timezone America/New_York",
-          "create calendar --name TargetCal --timezone America/New_York",
-          "use calendar --name SourceCal",
-          "copy event GhostEvent on 2025-08-01T09:00 --target TargetCal to 2025-09-01T09:00",
-          "exit"
+        "create calendar --name SourceCal --timezone America/New_York",
+        "create calendar --name TargetCal --timezone America/New_York",
+        "use calendar --name SourceCal",
+        "copy event GhostEvent on 2025-08-01T09:00 --target TargetCal to 2025-09-01T09:00",
+        "exit"
     };
 
     runAppWithCommands(commands);
@@ -4986,22 +5040,22 @@ public class CalendarAppTest {
   @Test
   public void testCopyEvent_Timezones_KeepSameLocalTime() throws IOException {
     String[] commands = {
-          "create calendar --name SourceCal --timezone America/New_York",
-          "create calendar --name TargetCal --timezone Asia/Kolkata",
-          "use calendar --name SourceCal",
-          "create event Sync from 2025-08-01T08:00 to 2025-08-01T09:00",
-          "copy event Sync on 2025-08-01T08:00 --target TargetCal to 2025-08-02T08:00",
-          "use calendar --name TargetCal",
-          "export cal " + OUTPUT_FILE,
-          "exit"
+        "create calendar --name SourceCal --timezone America/New_York",
+        "create calendar --name TargetCal --timezone Asia/Kolkata",
+        "use calendar --name SourceCal",
+        "create event Sync from 2025-08-01T08:00 to 2025-08-01T09:00",
+        "copy event Sync on 2025-08-01T08:00 --target TargetCal to 2025-08-02T08:00",
+        "use calendar --name TargetCal",
+        "export cal " + OUTPUT_FILE,
+        "exit"
     };
 
     runAppWithCommands(commands);
 
     String expected = String.join("\n",
-          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
-                "Location,Private",
-          "\"Sync\",08/02/2025,08:00 AM,08/02/2025,09:00 AM,False,\"\",\"\",False"
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
+            "Location,Private",
+        "\"Sync\",08/02/2025,08:00 AM,08/02/2025,09:00 AM,False,\"\",\"\",False"
     );
     assertEquals(expected, readExportedFile());
   }
@@ -5010,20 +5064,20 @@ public class CalendarAppTest {
   @Test
   public void testCopyEvent_SameCalendar_Success() throws IOException {
     String[] commands = {
-          "create calendar --name MyCal --timezone America/New_York",
-          "use calendar --name MyCal",
-          "create event Original from 2025-11-01T14:00 to 2025-11-01T15:00",
-          "copy event Original on 2025-11-01T14:00 --target MyCal to 2025-11-02T14:00",
-          "export cal " + OUTPUT_FILE,
-          "exit"
+        "create calendar --name MyCal --timezone America/New_York",
+        "use calendar --name MyCal",
+        "create event Original from 2025-11-01T14:00 to 2025-11-01T15:00",
+        "copy event Original on 2025-11-01T14:00 --target MyCal to 2025-11-02T14:00",
+        "export cal " + OUTPUT_FILE,
+        "exit"
     };
     runAppWithCommands(commands);
 
     String expected = String.join("\n",
-          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
-                "Location,Private",
-          "\"Original\",11/01/2025,02:00 PM,11/01/2025,03:00 PM,False,\"\",\"\",False",
-          "\"Original\",11/02/2025,02:00 PM,11/02/2025,03:00 PM,False,\"\",\"\",False"
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
+            "Location,Private",
+        "\"Original\",11/01/2025,02:00 PM,11/01/2025,03:00 PM,False,\"\",\"\",False",
+        "\"Original\",11/02/2025,02:00 PM,11/02/2025,03:00 PM,False,\"\",\"\",False"
     );
     assertEquals(expected, readExportedFile());
   }
@@ -5032,21 +5086,21 @@ public class CalendarAppTest {
   @Test
   public void testCopyEvent_CaseInsensitiveMatch() throws IOException {
     String[] commands = {
-          "create calendar --name Cal1 --timezone America/New_York",
-          "create calendar --name Cal2 --timezone America/New_York",
-          "use calendar --name Cal1",
-          "create event ImportantEvent from 2025-06-15T09:00 to 2025-06-15T10:00",
-          "copy event importantevent on 2025-06-15T09:00 --target Cal2 to 2025-07-01T09:00",
-          "use calendar --name Cal2",
-          "export cal " + OUTPUT_FILE,
-          "exit"
+        "create calendar --name Cal1 --timezone America/New_York",
+        "create calendar --name Cal2 --timezone America/New_York",
+        "use calendar --name Cal1",
+        "create event ImportantEvent from 2025-06-15T09:00 to 2025-06-15T10:00",
+        "copy event importantevent on 2025-06-15T09:00 --target Cal2 to 2025-07-01T09:00",
+        "use calendar --name Cal2",
+        "export cal " + OUTPUT_FILE,
+        "exit"
     };
     runAppWithCommands(commands);
 
     String expected = String.join("\n",
-          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
-                "Location,Private",
-          "\"ImportantEvent\",07/01/2025,09:00 AM,07/01/2025,10:00 AM,False,\"\",\"\",False"
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
+            "Location,Private",
+        "\"ImportantEvent\",07/01/2025,09:00 AM,07/01/2025,10:00 AM,False,\"\",\"\",False"
     );
     assertEquals(expected, readExportedFile());
   }
@@ -5061,9 +5115,9 @@ public class CalendarAppTest {
         "create event A from 2025-12-01T08:00 to 2025-12-01T09:00",
         "use calendar --name Target",
         "create event B from 2025-12-01T09:00 to 2025-12-01T10:00",
-          "use calendar --name Source",
+        "use calendar --name Source",
         "copy event A on 2025-12-01T08:00 --target Target to 2025-12-01T08:00",
-          "use calendar --name Target",
+        "use calendar --name Target",
         "export cal " + OUTPUT_FILE,
         "exit"
     };
@@ -5095,12 +5149,12 @@ public class CalendarAppTest {
   @Test
   public void testCopyEvent_WrongTime_ShouldFail() throws IOException {
     String[] commands = {
-          "create calendar --name Source --timezone America/New_York",
-          "create calendar --name Target --timezone America/New_York",
-          "use calendar --name Source",
-          "create event EventX from 2025-10-10T10:00 to 2025-10-10T11:00",
-          "copy event EventX on 2025-10-10T09:00 --target Target to 2025-10-15T10:00",
-          "exit"
+        "create calendar --name Source --timezone America/New_York",
+        "create calendar --name Target --timezone America/New_York",
+        "use calendar --name Source",
+        "create event EventX from 2025-10-10T10:00 to 2025-10-10T11:00",
+        "copy event EventX on 2025-10-10T09:00 --target Target to 2025-10-15T10:00",
+        "exit"
     };
     runAppWithCommands(commands);
 
@@ -5112,22 +5166,23 @@ public class CalendarAppTest {
   @Test
   public void testCopyEvent_AcrossTimezones_ShiftedCorrectly() throws IOException {
     String[] commands = {
-          "create calendar --name ESTCal --timezone America/New_York",
-          "create calendar --name ISTCal --timezone Asia/Kolkata",
-          "use calendar --name ESTCal",
-          "create event TeamCall from 2025-09-01T09:00 to 2025-09-01T10:00",
-          "copy event TeamCall on 2025-09-01T09:00 --target ISTCal to 2025-09-02T18:30", // fixed syntax
-          "use calendar --name ISTCal",
-          "export cal " + OUTPUT_FILE,
-          "exit"
+        "create calendar --name ESTCal --timezone America/New_York",
+        "create calendar --name ISTCal --timezone Asia/Kolkata",
+        "use calendar --name ESTCal",
+        "create event TeamCall from 2025-09-01T09:00 to 2025-09-01T10:00",
+        "copy event TeamCall on 2025-09-01T09:00 --target ISTCal to 2025-09-02T18:30", // fixed
+        // syntax
+        "use calendar --name ISTCal",
+        "export cal " + OUTPUT_FILE,
+        "exit"
     };
 
     runAppWithCommands(commands);
 
     String expected = String.join("\n",
-          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
-                "Location,Private",
-          "\"TeamCall\",09/02/2025,06:30 PM,09/02/2025,07:30 PM,False,\"\",\"\",False"
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
+            "Location,Private",
+        "\"TeamCall\",09/02/2025,06:30 PM,09/02/2025,07:30 PM,False,\"\",\"\",False"
     );
     assertEquals(expected, readExportedFile());
   }
@@ -5142,7 +5197,7 @@ public class CalendarAppTest {
         "create event OverlapMe from 2025-07-01T10:00 to 2025-07-01T11:00",
         "use calendar --name B",
         "create event Blocker from 2025-07-02T10:00 to 2025-07-02T11:00",
-          "use calendar --name A",
+        "use calendar --name A",
         "copy event OverlapMe on 2025-07-01T10:00 --target B to 2025-07-02T10:00",//
         // Conflict with Blocker
         "exit"
@@ -5157,21 +5212,21 @@ public class CalendarAppTest {
   @Test
   public void testCopyEvent_ToEarlierDate() throws IOException {
     String[] commands = {
-          "create calendar --name C --timezone America/New_York",
-          "use calendar --name C",
-          "create event PastEvent from 2025-12-01T13:00 to 2025-12-01T14:00",
-          "copy event PastEvent on 2025-12-01T13:00 --target C to 2025-11-01T13:00", // Fixed
-          "export cal " + OUTPUT_FILE,
-          "exit"
+        "create calendar --name C --timezone America/New_York",
+        "use calendar --name C",
+        "create event PastEvent from 2025-12-01T13:00 to 2025-12-01T14:00",
+        "copy event PastEvent on 2025-12-01T13:00 --target C to 2025-11-01T13:00", // Fixed
+        "export cal " + OUTPUT_FILE,
+        "exit"
     };
 
     runAppWithCommands(commands);
 
     String expected = String.join("\n",
-          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
-                "Location,Private",
-          "\"PastEvent\",12/01/2025,01:00 PM,12/01/2025,02:00 PM,False,\"\",\"\",False",
-          "\"PastEvent\",11/01/2025,01:00 PM,11/01/2025,02:00 PM,False,\"\",\"\",False"
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
+            "Location,Private",
+        "\"PastEvent\",12/01/2025,01:00 PM,12/01/2025,02:00 PM,False,\"\",\"\",False",
+        "\"PastEvent\",11/01/2025,01:00 PM,11/01/2025,02:00 PM,False,\"\",\"\",False"
     );
     assertEquals(expected, readExportedFile());
   }
@@ -5198,25 +5253,25 @@ public class CalendarAppTest {
   @Test
   public void testCopyEvent_WithMetadata() throws IOException {
     String[] commands = {
-          "create calendar --name MetaCal --timezone America/New_York",
-          "use calendar --name MetaCal",
-          "create event Workshop from 2025-11-05T15:00 to 2025-11-05T16:00 " +
-                "--description " +
-                "\"Hands-on\" --location \"Lab 42\"",
-          "copy event Workshop on 2025-11-05T15:00 --target MetaCal to 2025-11-06T15:00",
-          "export cal " + OUTPUT_FILE,
-          "exit"
+        "create calendar --name MetaCal --timezone America/New_York",
+        "use calendar --name MetaCal",
+        "create event Workshop from 2025-11-05T15:00 to 2025-11-05T16:00 " +
+            "--description " +
+            "\"Hands-on\" --location \"Lab 42\"",
+        "copy event Workshop on 2025-11-05T15:00 --target MetaCal to 2025-11-06T15:00",
+        "export cal " + OUTPUT_FILE,
+        "exit"
     };
 
     runAppWithCommands(commands);
 
     String expected = String.join("\n",
-          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
-                "Location,Private",
-          "\"Workshop\",11/05/2025,03:00 PM,11/05/2025,04:00 PM,False,\"Hands-on\"," +
-                "\"Lab 42\",False",
-          "\"Workshop\",11/06/2025,03:00 PM,11/06/2025,04:00 PM,False,\"Hands-on\"," +
-                "\"Lab 42\",False"
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
+            "Location,Private",
+        "\"Workshop\",11/05/2025,03:00 PM,11/05/2025,04:00 PM,False,\"Hands-on\"," +
+            "\"Lab 42\",False",
+        "\"Workshop\",11/06/2025,03:00 PM,11/06/2025,04:00 PM,False,\"Hands-on\"," +
+            "\"Lab 42\",False"
     );
     assertEquals(expected, readExportedFile());
   }
@@ -5225,21 +5280,21 @@ public class CalendarAppTest {
   @Test
   public void testCopyEvent_SameCalendar_DifferentTime() throws IOException {
     String[] commands = {
-          "create calendar --name SoloCal --timezone America/New_York",
-          "use calendar --name SoloCal",
-          "create event DailyStandup from 2025-09-01T10:00 to 2025-09-01T10:30",
-          "copy event DailyStandup on 2025-09-01T10:00 --target SoloCal to 2025-09-02T10:00",
-          "export cal " + OUTPUT_FILE,
-          "exit"
+        "create calendar --name SoloCal --timezone America/New_York",
+        "use calendar --name SoloCal",
+        "create event DailyStandup from 2025-09-01T10:00 to 2025-09-01T10:30",
+        "copy event DailyStandup on 2025-09-01T10:00 --target SoloCal to 2025-09-02T10:00",
+        "export cal " + OUTPUT_FILE,
+        "exit"
     };
 
     runAppWithCommands(commands);
 
     String expected = String.join("\n",
-          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
-                "Location,Private",
-          "\"DailyStandup\",09/01/2025,10:00 AM,09/01/2025,10:30 AM,False,\"\",\"\",False",
-          "\"DailyStandup\",09/02/2025,10:00 AM,09/02/2025,10:30 AM,False,\"\",\"\",False"
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
+            "Location,Private",
+        "\"DailyStandup\",09/01/2025,10:00 AM,09/01/2025,10:30 AM,False,\"\",\"\",False",
+        "\"DailyStandup\",09/02/2025,10:00 AM,09/02/2025,10:30 AM,False,\"\",\"\",False"
     );
     assertEquals(expected, readExportedFile());
   }
@@ -5248,22 +5303,23 @@ public class CalendarAppTest {
   @Test
   public void testCopyEvent_PrivateEvent() throws IOException {
     String[] commands = {
-          "create calendar --name SecureCal --timezone America/New_York",
-          "use calendar --name SecureCal",
-          "create event StrategySession from 2025-10-10T14:00 to 2025-10-10T15:00 " +
-                "--private",
-          "copy event StrategySession on 2025-10-10T14:00 --target SecureCal to 2025-10-17T14:00", // fixed
-          "export cal " + OUTPUT_FILE,
-          "exit"
+        "create calendar --name SecureCal --timezone America/New_York",
+        "use calendar --name SecureCal",
+        "create event StrategySession from 2025-10-10T14:00 to 2025-10-10T15:00 " +
+            "--private",
+        "copy event StrategySession on 2025-10-10T14:00 --target SecureCal to 2025-10-17T14:00",
+        // fixed
+        "export cal " + OUTPUT_FILE,
+        "exit"
     };
 
     runAppWithCommands(commands);
 
     String expected = String.join("\n",
-          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
-                "Location,Private",
-          "\"StrategySession\",10/10/2025,02:00 PM,10/10/2025,03:00 PM,False,\"\",\"\",True",
-          "\"StrategySession\",10/17/2025,02:00 PM,10/17/2025,03:00 PM,False,\"\",\"\",True"
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
+            "Location,Private",
+        "\"StrategySession\",10/10/2025,02:00 PM,10/10/2025,03:00 PM,False,\"\",\"\",True",
+        "\"StrategySession\",10/17/2025,02:00 PM,10/17/2025,03:00 PM,False,\"\",\"\",True"
     );
     assertEquals(expected, readExportedFile());
   }
@@ -5272,36 +5328,38 @@ public class CalendarAppTest {
   @Test
   public void testCopyEvent_NullCalendar_ShouldFail() throws IOException {
     String[] commands = {
-          "create calendar --name MainCal --timezone America/New_York",
-          "use calendar --name MainCal",
-          "create event Keynote from 2025-10-01T09:00 to 2025-10-01T10:00",
-          "copy event Keynote on 2025-10-01T09:00 --target  to 2025-10-05T09:00", // Fixed syntax, missing target
-          "exit"
+        "create calendar --name MainCal --timezone America/New_York",
+        "use calendar --name MainCal",
+        "create event Keynote from 2025-10-01T09:00 to 2025-10-01T10:00",
+        "copy event Keynote on 2025-10-01T09:00 --target  to 2025-10-05T09:00", // Fixed syntax,
+        // missing target
+        "exit"
     };
 
     runAppWithCommands(commands);
 
     String output = outContent.toString();
-    assertTrue(output.contains("Error Executing command: Expected 'to' after target calendar name.") || output.contains("invalid"));
+    assertTrue(output.contains("Error Executing command: Expected 'to' after target calendar name" +
+        ".") || output.contains("invalid"));
   }
 
 
   @Test
   public void testCopyEvent_ZeroDuration() throws IOException {
     String[] commands = {
-          "create calendar --name OddCal --timezone America/New_York",
-          "use calendar --name OddCal",
-          "create event InstantEvent from 2025-10-10T11:00 to 2025-10-10T11:00",
-          "copy event InstantEvent on 2025-10-10T11:00 --target OddCal to 2025-10-11T11:00",
-          "export cal " + OUTPUT_FILE,
-          "exit"
+        "create calendar --name OddCal --timezone America/New_York",
+        "use calendar --name OddCal",
+        "create event InstantEvent from 2025-10-10T11:00 to 2025-10-10T11:00",
+        "copy event InstantEvent on 2025-10-10T11:00 --target OddCal to 2025-10-11T11:00",
+        "export cal " + OUTPUT_FILE,
+        "exit"
     };
 
     runAppWithCommands(commands);
     //event wwill not be creted as theh duration of the creation of event is zero.
     String expected = String.join("\n",
-          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
-                "Location,Private"
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
+            "Location,Private"
     );
     assertEquals(expected, readExportedFile());
   }
@@ -5309,22 +5367,22 @@ public class CalendarAppTest {
   @Test
   public void testCopyEvent_AutoDecline_NoConflict() throws IOException {
     String[] commands = {
-          "create calendar --name AutoCal --timezone America/New_York",
-          "use calendar --name AutoCal",
-          "create event --autoDecline SecureMeeting from 2025-10-20T09:00 to " +
-                "2025-10-20T10:00",
-          "copy event SecureMeeting on 2025-10-20T09:00 --target AutoCal to 2025-10-21T09:00", // fixed
-          "export cal " + OUTPUT_FILE,
-          "exit"
+        "create calendar --name AutoCal --timezone America/New_York",
+        "use calendar --name AutoCal",
+        "create event --autoDecline SecureMeeting from 2025-10-20T09:00 to " +
+            "2025-10-20T10:00",
+        "copy event SecureMeeting on 2025-10-20T09:00 --target AutoCal to 2025-10-21T09:00",
+        "export cal " + OUTPUT_FILE,
+        "exit"
     };
 
     runAppWithCommands(commands);
 
     String expected = String.join("\n",
-          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
-                "Location,Private",
-          "\"SecureMeeting\",10/20/2025,09:00 AM,10/20/2025,10:00 AM,False,\"\",\"\",False",
-          "\"SecureMeeting\",10/21/2025,09:00 AM,10/21/2025,10:00 AM,False,\"\",\"\",False"
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
+            "Location,Private",
+        "\"SecureMeeting\",10/20/2025,09:00 AM,10/20/2025,10:00 AM,False,\"\",\"\",False",
+        "\"SecureMeeting\",10/21/2025,09:00 AM,10/21/2025,10:00 AM,False,\"\",\"\",False"
     );
     assertEquals(expected, readExportedFile());
   }
@@ -5333,21 +5391,21 @@ public class CalendarAppTest {
   @Test
   public void testCopyEvent_NewYorkToTokyo() throws IOException {
     String[] commands = {
-          "create calendar --name NYCal --timezone America/New_York",
-          "create calendar --name TokyoCal --timezone Asia/Tokyo",
-          "use calendar --name NYCal",
-          "create event NYMeeting from 2025-06-01T09:00 to 2025-06-01T10:00",
-          "copy event NYMeeting on 2025-06-01T09:00 --target TokyoCal to 2025-06-02T10:00",
-          "use calendar --name TokyoCal",
-          "export cal " + OUTPUT_FILE,
-          "exit"
+        "create calendar --name NYCal --timezone America/New_York",
+        "create calendar --name TokyoCal --timezone Asia/Tokyo",
+        "use calendar --name NYCal",
+        "create event NYMeeting from 2025-06-01T09:00 to 2025-06-01T10:00",
+        "copy event NYMeeting on 2025-06-01T09:00 --target TokyoCal to 2025-06-02T10:00",
+        "use calendar --name TokyoCal",
+        "export cal " + OUTPUT_FILE,
+        "exit"
     };
     runAppWithCommands(commands);
 
     String expected = String.join("\n",
-          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
-                "Location,Private",
-          "\"NYMeeting\",06/02/2025,10:00 AM,06/02/2025,11:00 AM,False,\"\",\"\",False"
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
+            "Location,Private",
+        "\"NYMeeting\",06/02/2025,10:00 AM,06/02/2025,11:00 AM,False,\"\",\"\",False"
     );
     assertEquals(expected, readExportedFile());
   }
@@ -5356,21 +5414,21 @@ public class CalendarAppTest {
   @Test
   public void testCopyEvent_LondonToLA() throws IOException {
     String[] commands = {
-          "create calendar --name LondonCal --timezone Europe/London",
-          "create calendar --name LACal --timezone America/Los_Angeles",
-          "use calendar --name LondonCal",
-          "create event LondonCall from 2025-04-15T14:00 to 2025-04-15T15:30",
-          "copy event LondonCall on 2025-04-15T14:00 --target LACal to 2025-04-15T10:00", // fixed
-          "use calendar --name LACal",
-          "export cal " + OUTPUT_FILE,
-          "exit"
+        "create calendar --name LondonCal --timezone Europe/London",
+        "create calendar --name LACal --timezone America/Los_Angeles",
+        "use calendar --name LondonCal",
+        "create event LondonCall from 2025-04-15T14:00 to 2025-04-15T15:30",
+        "copy event LondonCall on 2025-04-15T14:00 --target LACal to 2025-04-15T10:00", // fixed
+        "use calendar --name LACal",
+        "export cal " + OUTPUT_FILE,
+        "exit"
     };
     runAppWithCommands(commands);
 
     String expected = String.join("\n",
-          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
-                "Location,Private",
-          "\"LondonCall\",04/15/2025,10:00 AM,04/15/2025,11:30 AM,False,\"\",\"\",False"
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
+            "Location,Private",
+        "\"LondonCall\",04/15/2025,10:00 AM,04/15/2025,11:30 AM,False,\"\",\"\",False"
     );
     assertEquals(expected, readExportedFile());
   }
@@ -5452,7 +5510,8 @@ public class CalendarAppTest {
     runAppWithCommands(commands);
 
     String expected = String.join("\n",
-        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location," +
+         "Private",
         "\"DemoDay\",08/20/2025,02:00 PM,08/20/2025,03:00 PM,False,\"\",\"\",False"
     );
     assertEquals(expected, readExportedFile());
@@ -5498,7 +5557,8 @@ public class CalendarAppTest {
     runAppWithCommands(commands);
 
     String expected = String.join("\n",
-        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location," +
+         "Private",
         "\"TeamCall\",10/01/2025,09:00 AM,10/01/2025,10:00 AM,False,\"\",\"\",False"
     );
     assertEquals(expected, readExportedFile());
@@ -5517,7 +5577,8 @@ public class CalendarAppTest {
     runAppWithCommands(commands);
 
     String expected = String.join("\n",
-        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location," +
+            "Private",
         "\"Meeting\",11/15/2025,02:00 PM,11/15/2025,03:00 PM,False,\"\",\"\",False"
     );
     assertEquals(expected, readExportedFile());
@@ -5560,7 +5621,8 @@ public class CalendarAppTest {
     runAppWithCommands(commands);
 
     String expected = String.join("\n",
-        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location," +
+            "Private",
         "\"Kickoff\",06/01/2025,09:00 AM,06/01/2025,10:00 AM,False,\"\",\"\",False"
     );
     assertEquals(expected, readExportedFile());
@@ -5579,7 +5641,8 @@ public class CalendarAppTest {
     runAppWithCommands(commands);
 
     String expected = String.join("\n",
-        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location," +
+         "Private",
         "\"MorningStandup\",03/28/2025,10:00 PM,03/28/2025,11:00 PM,False,\"\",\"\",False"
     );
     assertEquals(expected, readExportedFile());
@@ -5654,12 +5717,12 @@ public class CalendarAppTest {
     runAppWithCommands(commands);
 
     String output = outContent.toString().toLowerCase();
-    assertTrue(output.contains("calendar not found")); // model throws this before reaching "updated = false"
+    assertTrue(output.contains("calendar not found"));
+
   }
 
   @Test
   public void testEditCalendar_ModelReturnsFalse_ShouldShowFailureMessage() throws IOException {
-    // Use a stub model if necessary to simulate false return
     String[] commands = {
         "create calendar --name TestCal --timezone UTC",
         "edit calendar --name TestCal --property invalidProp someValue",
@@ -5669,7 +5732,8 @@ public class CalendarAppTest {
     runAppWithCommands(commands);
 
     String output = outContent.toString();
-    assertTrue(output.contains("Error Executing command: Invalid property. Only 'name' or 'timezone' allowed."));
+    assertTrue(output.contains("Error Executing command: Invalid property. Only 'name' or " +
+        "'timezone' allowed."));
   }
 
   @Test
@@ -5710,7 +5774,8 @@ public class CalendarAppTest {
     runAppWithCommands(commands);
 
     String expected = String.join("\n",
-        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location," +
+            "Private",
         "\"Standup\",07/01/2025,09:00 AM,07/01/2025,09:30 AM,False,\"\",\"\",False"
     );
     assertEquals(expected, readExportedFile());
@@ -5730,7 +5795,8 @@ public class CalendarAppTest {
 
     // Event time should be converted to Tokyo time
     String expected = String.join("\n",
-        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location," +
+         "Private",
         "\"Meeting\",12/02/2025,12:00 AM,12/02/2025,01:00 AM,False,\"\",\"\",False"
     );
     assertEquals(expected, readExportedFile());
@@ -5758,7 +5824,8 @@ public class CalendarAppTest {
     };
     runAppWithCommands(commands);
 
-    assertTrue(outContent.toString().contains("Error Executing command: Invalid property. Only 'name' or 'timezone' allowed."));
+    assertTrue(outContent.toString().contains("Error Executing command: Invalid property. Only " +
+        "'name' or 'timezone' allowed."));
   }
 
   @Test
@@ -5786,7 +5853,8 @@ public class CalendarAppTest {
 
     // UTC 11PM -> 6PM New York time
     String expected = String.join("\n",
-        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location," +
+         "Private",
         "\"NightCall\",12/31/2025,06:00 PM,12/31/2025,07:00 PM,False,\"\",\"\",False"
     );
     assertEquals(expected, readExportedFile());
@@ -5876,7 +5944,8 @@ public class CalendarAppTest {
     runAppWithCommands(commands);
 
     String expected = String.join("\n",
-        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location," +
+            "Private",
         "\"StatusCheck\",09/01/2025,10:00 AM,09/01/2025,11:00 AM,False,\"\",\"\",False"
     );
     assertEquals(expected, readExportedFile());
@@ -5911,7 +5980,8 @@ public class CalendarAppTest {
 
     // UTC 5:00 AM = 10:30 AM IST
     String expected = String.join("\n",
-        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location," +
+            "Private",
         "\"DailyStandup\",10/10/2025,10:30 AM,10/10/2025,11:30 AM,False,\"\",\"\",False"
     );
     assertEquals(expected, readExportedFile());
@@ -5928,7 +5998,8 @@ public class CalendarAppTest {
 
     runAppWithCommands(commands);
 
-    assertTrue(outContent.toString().contains("Error Executing command: Missing new property value.") ||
+    assertTrue(outContent.toString().contains("Error Executing command: Missing new property " +
+        "value.") ||
         outContent.toString().toLowerCase().contains("usage"));
   }
 
@@ -5941,7 +6012,8 @@ public class CalendarAppTest {
 
     runAppWithCommands(commands);
 
-    assertTrue(outContent.toString().contains("Error Executing command: Expected '--name' keyword."));
+    assertTrue(outContent.toString().contains("Error Executing command: Expected '--name' keyword" +
+        "."));
   }
 
   @Test
@@ -5959,7 +6031,8 @@ public class CalendarAppTest {
 
     // 16:00 UTC = 08:00 PST (Standard Time in December)
     String expected = String.join("\n",
-        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location," +
+         "Private",
         "\"Meeting\",12/01/2025,08:00 AM,12/01/2025,09:00 AM,False,\"\",\"\",False"
     );
     assertEquals(expected, readExportedFile());
@@ -5975,7 +6048,8 @@ public class CalendarAppTest {
 
     runAppWithCommands(commands);
 
-    assertTrue(outContent.toString().contains("Error Executing command: Invalid property. Only 'name' or 'timezone' allowed."));
+    assertTrue(outContent.toString().contains("Error Executing command: Invalid property. Only " +
+        "'name' or 'timezone' allowed."));
   }
 
   @Test
@@ -6004,7 +6078,8 @@ public class CalendarAppTest {
     runAppWithCommands(commands);
 
     String expected = String.join("\n",
-        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+        "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location," +
+         "Private",
         "\"TeamMeeting\",07/01/2025,10:00 AM,07/01/2025,11:00 AM,False,\"\",\"\",False"
     );
 
@@ -6016,7 +6091,7 @@ public class CalendarAppTest {
     String[] commands = {
         "create calendar --name MyCal --timezone UTC",
         "use calendar --name MyCal",
-        "create event --autoDecline MistakeEvent from 2025-07-01T11:00 to 2025-07-01T10:00", // invalid time range
+        "create event --autoDecline MistakeEvent from 2025-07-01T11:00 to 2025-07-01T10:00", //
         "exit"
     };
 
@@ -6033,7 +6108,8 @@ public class CalendarAppTest {
         "create calendar --name MyCal --timezone UTC",
         "use calendar --name MyCal",
         "create event --autoDecline WeeklyCall from 2025-07-01T09:00 to 2025-07-01T10:00",
-        "create event --autoDecline WeeklyCall from 2025-07-01T09:00 to 2025-07-01T10:00", // duplicate
+        "create event --autoDecline WeeklyCall from 2025-07-01T09:00 to 2025-07-01T10:00", //
+        // duplicate
         "exit"
     };
 
@@ -6042,8 +6118,6 @@ public class CalendarAppTest {
     String output = outContent.toString().toLowerCase();
     assertTrue(output.contains("conflict detected") || output.contains("error"));
   }
-
-
 
 
 }

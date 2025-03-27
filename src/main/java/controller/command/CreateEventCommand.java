@@ -14,18 +14,18 @@ import java.util.List;
  * with support for optional fields: description, location, and privacy.
  */
 public class CreateEventCommand implements ICommand {
-   final ICalendarModel model;
-   final String calendarName;
+  final ICalendarModel model;
+  final String calendarName;
   final String eventName;
-   LocalDateTime startDateTime;
-   LocalDateTime endDateTime;
-   final boolean autoDecline;
-   final boolean isRecurring;
-   final List<DayOfWeek> recurrenceDays;
+  LocalDateTime startDateTime;
+  LocalDateTime endDateTime;
+  final boolean autoDecline;
+  final boolean isRecurring;
+  final List<DayOfWeek> recurrenceDays;
   final Integer recurrenceCount;
-   LocalDateTime recurrenceEndDate;
+  LocalDateTime recurrenceEndDate;
   String description;
-   String location;
+  String location;
   boolean isPrivate;
   List<String> args;
   Integer index;
@@ -38,7 +38,7 @@ public class CreateEventCommand implements ICommand {
     this.calendarName = calendarName;
     this.recurrenceDays = new ArrayList<>();
     this.args = fromArgs;
-    this.index=0;
+    this.index = 0;
     boolean recurring = false;
     boolean autoDeclineFlag = false;
     this.location = "";
@@ -62,8 +62,7 @@ public class CreateEventCommand implements ICommand {
 
     if (args.get(index).equals("from")) {
       parseFromPart();
-    }
-    else if (args.get(index).equals("on")) {
+    } else if (args.get(index).equals("on")) {
       isOn = true;
       parseOnPart();
     } else {
@@ -87,18 +86,18 @@ public class CreateEventCommand implements ICommand {
   public String execute() {
     try {
       ICalendarEventDTO event = ICalendarEventDTO.builder()
-              .setEventName(eventName)
-              .setStartDateTime(startDateTime)
-              .setEndDateTime(endDateTime)
-              .setRecurring(isRecurring)
-              .setRecurrenceDays(recurrenceDays)
-              .setRecurrenceCount(recurrenceCount)
-              .setRecurrenceEndDate(recurrenceEndDate)
-              .setAutoDecline(Boolean.TRUE)
-              .setEventDescription(description)
-              .setEventLocation(location)
-              .setPrivate(isPrivate)
-              .build();
+          .setEventName(eventName)
+          .setStartDateTime(startDateTime)
+          .setEndDateTime(endDateTime)
+          .setRecurring(isRecurring)
+          .setRecurrenceDays(recurrenceDays)
+          .setRecurrenceCount(recurrenceCount)
+          .setRecurrenceEndDate(recurrenceEndDate)
+          .setAutoDecline(Boolean.TRUE)
+          .setEventDescription(description)
+          .setEventLocation(location)
+          .setPrivate(isPrivate)
+          .build();
 
       boolean success = model.addEvent(calendarName, event);
       return success ? "Event created successfully." : "Error: Event creation failed.";
@@ -111,18 +110,26 @@ public class CreateEventCommand implements ICommand {
 
   private DayOfWeek mapDay(char day) {
     switch (day) {
-      case 'M': return DayOfWeek.MONDAY;
-      case 'T': return DayOfWeek.TUESDAY;
-      case 'W': return DayOfWeek.WEDNESDAY;
-      case 'R': return DayOfWeek.THURSDAY;
-      case 'F': return DayOfWeek.FRIDAY;
-      case 'S': return DayOfWeek.SATURDAY;
-      case 'U': return DayOfWeek.SUNDAY;
-      default: throw new IllegalArgumentException("Invalid weekday character: " + day);
+      case 'M':
+        return DayOfWeek.MONDAY;
+      case 'T':
+        return DayOfWeek.TUESDAY;
+      case 'W':
+        return DayOfWeek.WEDNESDAY;
+      case 'R':
+        return DayOfWeek.THURSDAY;
+      case 'F':
+        return DayOfWeek.FRIDAY;
+      case 'S':
+        return DayOfWeek.SATURDAY;
+      case 'U':
+        return DayOfWeek.SUNDAY;
+      default:
+        throw new IllegalArgumentException("Invalid weekday character: " + day);
     }
   }
 
-  private void parseFromPart(){
+  private void parseFromPart() {
     index++;
     if (index >= args.size()) {
       throw new IllegalArgumentException("Missing start datetime after 'from'");
@@ -133,15 +140,15 @@ public class CreateEventCommand implements ICommand {
       throw new IllegalArgumentException("Expected 'to' after start time");
     }
     index++;
-    if (index >= args.size()){
+    if (index >= args.size()) {
       throw new IllegalArgumentException("Missing end datetime after 'to'");
     }
     this.endDateTime = LocalDateTime.parse(args.get(index++));
   }
 
-  private void parseOnPart(){
+  private void parseOnPart() {
     index++;
-    if (index >= args.size()){
+    if (index >= args.size()) {
       throw new IllegalArgumentException("Missing date after 'on'");
     }
     this.startDateTime = LocalDate.parse(args.get(index)).atStartOfDay();
@@ -149,9 +156,10 @@ public class CreateEventCommand implements ICommand {
     index++;
   }
 
-  private void parseRepeatsPart(){
+  private void parseRepeatsPart() {
     index++;
-    if (index >= args.size()) throw new IllegalArgumentException("Missing weekdays after 'repeats'");
+    if (index >= args.size())
+      throw new IllegalArgumentException("Missing weekdays after 'repeats'");
     for (char c : args.get(index++).toCharArray()) {
       recurrenceDays.add(mapDay(c));
     }
@@ -171,11 +179,10 @@ public class CreateEventCommand implements ICommand {
         if (index >= args.size()) {
           throw new IllegalArgumentException("Missing end date after 'until'");
         }
-        if(isOn){
+        if (isOn) {
           this.recurrenceEndDate =
-                LocalDate.parse(args.get(index++)).atStartOfDay().withHour(23).withMinute(59).withSecond(59);
-        }
-        else {
+              LocalDate.parse(args.get(index++)).atStartOfDay().withHour(23).withMinute(59).withSecond(59);
+        } else {
           this.recurrenceEndDate = LocalDateTime.parse(args.get(index++));
         }
       }
@@ -183,7 +190,7 @@ public class CreateEventCommand implements ICommand {
   }
 
 
-  private void parseOptionalParams(){
+  private void parseOptionalParams() {
     boolean descSet = false;
     boolean locSet = false;
     boolean privateSet = false;
@@ -198,7 +205,7 @@ public class CreateEventCommand implements ICommand {
           }
           descSet = true;
           index++;
-          if (index >= args.size()){
+          if (index >= args.size()) {
             throw new IllegalArgumentException("Missing value for --description");
           }
           this.description = args.get(index++);
@@ -215,7 +222,7 @@ public class CreateEventCommand implements ICommand {
           this.location = args.get(index++);
           break;
         case "--private":
-          if (privateSet){
+          if (privateSet) {
             throw new IllegalArgumentException("Duplicate --private flag");
           }
           privateSet = true;

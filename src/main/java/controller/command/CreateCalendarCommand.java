@@ -1,6 +1,7 @@
 package controller.command;
 
 import java.util.List;
+
 import model.ICalendarModel;
 
 /**
@@ -16,7 +17,8 @@ public class CreateCalendarCommand implements ICommand {
     this.calendarName = currentCalendar;
 
     if (args.size() < 4) {
-      throw new IllegalArgumentException("Usage: create calendar --name <name> --timezone <timezone>");
+      throw new IllegalArgumentException("Usage: create calendar --name <name> --timezone " +
+          "<timezone>");
     }
 
     if (!args.get(0).equals("--name")) {
@@ -32,14 +34,15 @@ public class CreateCalendarCommand implements ICommand {
     this.timezone = args.get(3);
 
     if (args.size() > 4) {
-      throw new IllegalArgumentException("Unrecognized extra arguments: " + String.join(" ", args.subList(4, args.size())));
+      throw new IllegalArgumentException("Unrecognized extra arguments: " + String.join(" ",
+          args.subList(4, args.size())));
     }
   }
 
   @Override
   public String execute() {
     return model.createCalendar(calendarName, timezone)
-            ? "Calendar created successfully."
-            : "Error: Calendar creation failed.";
+        ? "Calendar created successfully."
+        : "Error: Calendar creation failed.";
   }
 }

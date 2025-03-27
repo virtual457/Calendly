@@ -2,6 +2,7 @@ package controller.command;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
 import model.ICalendarModel;
 
 /**
@@ -16,10 +17,10 @@ public class EditEventsCalendarCommand implements ICommand {
   private final LocalDateTime fromDateTime;
   private final boolean hasFromDateTime;
 
-  public EditEventsCalendarCommand(List<String> parts, ICalendarModel model, String currentCalendar) {
+  public EditEventsCalendarCommand(List<String> parts, ICalendarModel model,
+                                   String currentCalendar) {
     this.model = model;
     this.calendarName = currentCalendar;
-
 
 
     int index = 0;

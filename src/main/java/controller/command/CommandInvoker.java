@@ -23,7 +23,7 @@ public class CommandInvoker {
   /**
    * Registers a new command with its corresponding class.
    *
-   * @param commandName The name of the command (e.g., "create", "use", "copy").
+   * @param commandName  The name of the command (e.g., "create", "use", "copy").
    * @param commandClass The class that implements the command.
    */
   public void registerCommand(String commandName, Class<? extends ICommand> commandClass) {
@@ -38,8 +38,8 @@ public class CommandInvoker {
    * Executes a registered command.
    *
    * @param commandName The command to execute.
-   * @param parts The Scanner object containing the rest of the user input.
-   * @param model The Calendar model instance.
+   * @param parts       The Scanner object containing the rest of the user input.
+   * @param model       The Calendar model instance.
    * @return The response message after executing the command.
    */
   public String executeCommand(String commandName, List<String> parts, ICalendarModel model) {
@@ -47,12 +47,14 @@ public class CommandInvoker {
     if (commandClass != null) {
       try {
 
-        if((!(commandName.equalsIgnoreCase("use Calendar") || commandName.equalsIgnoreCase("create calendar") || commandName.equalsIgnoreCase("edit calendar"))) && Objects.isNull(currentCalendar)){
+        if ((!(commandName.equalsIgnoreCase("use Calendar") || commandName.equalsIgnoreCase(
+            "create calendar") || commandName.equalsIgnoreCase("edit calendar"))) && Objects.isNull(currentCalendar)) {
           throw new IllegalArgumentException("Please use somme calendar");
         }
         // Instantiate the command dynamically and pass parameters
-        ICommand command = commandClass.getDeclaredConstructor(List.class, ICalendarModel.class, String.class)
-                .newInstance(parts, model,currentCalendar);
+        ICommand command = commandClass.getDeclaredConstructor(List.class, ICalendarModel.class,
+                String.class)
+            .newInstance(parts, model, currentCalendar);
 
 
         String result = command.execute();

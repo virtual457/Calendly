@@ -23,7 +23,7 @@ import view.IView;
  * Basic controller which works for the basic version of the application
  * supportring create edit print show and export.
  */
-public class CalendarControllerBasic extends AbstractController implements ICalendarController{
+public class CalendarControllerBasic extends AbstractController implements ICalendarController {
   private final ICalendarModel model;
   private final IView view;
   private final CommandInvoker invoker;
@@ -50,23 +50,23 @@ public class CalendarControllerBasic extends AbstractController implements ICale
     try (Scanner scanner = new Scanner(input)) {
       view.display("Welcome to the Calendar App!");
       initBasicMode();
-      runScanner(scanner,true,view,invoker, model);
+      runScanner(scanner, true, view, invoker, model);
     } catch (Exception e) {
       view.display("Error: " + e.getMessage());
     }
   }
 
 
-  private void initBasicMode(){
+  private void initBasicMode() {
     invoker.registerCommand("create calendar", CreateCalendarCommand.class);
     invoker.registerCommand("use calendar", UseCalendarCommand.class);
     String preLines =
-          "create calendar --name Default --timezone America/New_York\n" +
-                "use calendar --name Default\n";
+        "create calendar --name Default --timezone America/New_York\n" +
+            "use calendar --name Default\n";
 
     // Combine prepended lines with the original input
-    Readable combinedInput = new StringReader(preLines );
-    runScanner(new Scanner(combinedInput),false,view,invoker,model);
+    Readable combinedInput = new StringReader(preLines);
+    runScanner(new Scanner(combinedInput), false, view, invoker, model);
     invoker.deregisterCommand("use calendar");
     invoker.deregisterCommand("create calendar");
   }

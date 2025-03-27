@@ -47,6 +47,7 @@ public class ExportEventsCommand implements ICommand {
 
   /**
    * private helper to create thhe export file with the events requested.
+   *
    * @param events the list of events to be included in the exported file
    * @return returns a string specifing the status of the export.
    */
@@ -65,12 +66,13 @@ public class ExportEventsCommand implements ICommand {
 
       try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
         // Write Google Calendar CSV headers
-        writer.write("Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private");
+        writer.write("Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description," +
+            "Location,Private");
         writer.newLine();
 
         for (ICalendarEventDTO event : events) {
           boolean isAllDay = event.getStartDateTime().toLocalTime().equals(LocalTime.MIDNIGHT)
-                  && event.getEndDateTime().toLocalTime().equals(LocalTime.of(23, 59, 59));
+              && event.getEndDateTime().toLocalTime().equals(LocalTime.of(23, 59, 59));
 
           String subject = escapeCSV(event.getEventName());
           String startDate = event.getStartDateTime().format(dateFormatter);
@@ -79,13 +81,15 @@ public class ExportEventsCommand implements ICommand {
           String endTime = event.getEndDateTime().format(timeFormatter);
           String allDay = isAllDay ? "True" : "False";
 
-          String description = event.getEventDescription() != null ? escapeCSV(event.getEventDescription()) : "";
-          String location = event.getEventLocation() != null ? escapeCSV(event.getEventLocation()) : "";
+          String description = event.getEventDescription() != null ?
+              escapeCSV(event.getEventDescription()) : "";
+          String location = event.getEventLocation() != null ?
+              escapeCSV(event.getEventLocation()) : "";
           String isPrivate = event.isPrivate() ? "True" : "False";
 
           writer.write(String.join(",",
-                  subject, startDate, startTime, endDate, endTime,
-                  allDay, description, location, isPrivate));
+              subject, startDate, startTime, endDate, endTime,
+              allDay, description, location, isPrivate));
           writer.newLine();
         }
       }

@@ -3,6 +3,7 @@ package controller.command;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+
 import model.ICalendarEventDTO;
 import model.ICalendarModel;
 
@@ -19,8 +20,7 @@ public class PrintEventsCommand implements ICommand {
     this.model = model;
     this.calendarName = currentCalendar;
 
-    if(parts.isEmpty())
-    {
+    if (parts.isEmpty()) {
       throw new IllegalArgumentException("Print Command too short need more details");
     }
     if (parts.get(0).equals("on")) {
@@ -33,12 +33,14 @@ public class PrintEventsCommand implements ICommand {
 
     } else if (parts.get(0).equals("from")) {
       if (parts.size() != 4 || !parts.get(2).equals("to")) {
-        throw new IllegalArgumentException("Invalid format. Expected: print events from <datetime> to <datetime>");
+        throw new IllegalArgumentException("Invalid format. Expected: print events from " +
+            "<datetime> to <datetime>");
       }
       this.fromDateTime = LocalDateTime.parse(parts.get(1));
       this.toDateTime = LocalDateTime.parse(parts.get(3));
     } else {
-      throw new IllegalArgumentException("Expected 'on' or 'from' at start of print events command.");
+      throw new IllegalArgumentException("Expected 'on' or 'from' at start of print events " +
+          "command.");
     }
   }
 
@@ -55,12 +57,12 @@ public class PrintEventsCommand implements ICommand {
     StringBuilder sb = new StringBuilder();
     for (ICalendarEventDTO event : events) {
       sb.append("- ")
-              .append(event.getEventName())
-              .append(" [")
-              .append(event.getStartDateTime())
-              .append(" to ")
-              .append(event.getEndDateTime())
-              .append("]");
+          .append(event.getEventName())
+          .append(" [")
+          .append(event.getStartDateTime())
+          .append(" to ")
+          .append(event.getEndDateTime())
+          .append("]");
       if (event.getEventLocation() != null && !event.getEventLocation().isEmpty()) {
         sb.append(" at ").append(event.getEventLocation());
       }
