@@ -114,3 +114,6 @@ Both execution modes work in both basic and advanced configurations.
 All members contributed to architecture planning, debugging, and refinement throughout the project.
 
 ---
+
+The Jars created for calendarBasic and calendarAdvanced are for assignment 4 and 
+assignment 4 respectively by changing config in main app.
