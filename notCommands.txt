@@ -7,3 +7,4 @@ copy events between 2024-09-01 --target CollegeCalendar to 2024-10-01
 edit calendar --name CollegeCalendar --property invalidProp Value
 create event BadRepeatEvent from 2024-09-10T09:00 to 2024-09-10T10:00 repeats Z for 3 times
 export calendar work-calendar.csv
+exit
