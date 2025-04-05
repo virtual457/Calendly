@@ -13,7 +13,7 @@ import view.IView;
  * </p>
  */
 
-public interface ICalendarController {
+public interface ICalendarController extends ICommandExecutor{
 
   /**
    * Creates an instance of {@code ICalendarController} based on the specified version.
@@ -35,5 +35,8 @@ public interface ICalendarController {
     }
   }
 
-  void run(Readable readable);
+  /**
+   * Starts the controller.
+   */
+  void start();
 }

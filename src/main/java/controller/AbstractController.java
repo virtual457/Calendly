@@ -38,7 +38,8 @@ abstract class AbstractController {
         continue;
       }
       if (tokens.size() < 2) {
-        view.display("Error: Enter atleast two tokens");
+        view.display("Error: Enter at-least two tokens");
+        break;
       }
       String action = tokens.get(0);
       String subAction = tokens.size() > 1 ? tokens.get(1) : "";
@@ -48,13 +49,9 @@ abstract class AbstractController {
       String response = invoker.executeCommand(commandKey, args, model);
       if (displayMessage) {
         view.display(response);
-        if (!Boolean.getBoolean("run_mode")) {
-          if (response.contains("Error") && Boolean.getBoolean("run.mode")) {
-            break;
-          }
-        }
-
       }
     }
   }
+
+
 }

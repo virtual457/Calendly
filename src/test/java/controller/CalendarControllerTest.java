@@ -73,8 +73,8 @@ public class CalendarControllerTest {
 
   private void testCommandInBothModes(String mode, String command) {
     resetModels();
-    controller.run(new StringReader("create calendar --name default --timezone " +
-        "America/New_york\nuse calendar --name default\n" + command));
+    controller.executeCommand(new StringReader("create calendar --name default --timezone " +
+        "America/New_york\nuse calendar --name default\n" + command).toString());
   }
 
 
@@ -2189,7 +2189,7 @@ public class CalendarControllerTest {
   @Test
   public void testCreateInstance_ValidInputs() {
     ICalendarModel model = ICalendarModel.createInstance("listbased");
-    IView view = IView.createInstance("consoleView");
+    //IView view = IView.createInstance("consoleView", );
 
     ICalendarController controller = ICalendarController.createInstance("Advanced", model,
         view);
@@ -2201,7 +2201,7 @@ public class CalendarControllerTest {
   @Test
   public void testCreateInstance_ValidInputs2() {
     ICalendarModel model = ICalendarModel.createInstance("listbased");
-    IView view = IView.createInstance("consoleView");
+    //IView view = IView.createInstance("consoleView");
 
     ICalendarController controller = ICalendarController.createInstance("Basic", model,
         view);
@@ -2214,7 +2214,7 @@ public class CalendarControllerTest {
   @Test
   public void testCreateInstance_ValidInputs3() {
     ICalendarModel model = ICalendarModel.createInstance("listbased");
-    IView view = IView.createInstance("consoleView");
+    //IView view = IView.createInstance("consoleView");
     try {
       ICalendarController.createInstance("Random", model,
           view);
@@ -2599,6 +2599,11 @@ public class CalendarControllerTest {
     @Override
     public void display(String message) {
       displayedMessages.add(message);
+    }
+
+    @Override
+    public void start(ICommandExecutor commandExecutor) {
+
     }
 
     public String getLastDisplayedMessage() {

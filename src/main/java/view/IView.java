@@ -1,5 +1,7 @@
 package view;
 
+import controller.ICommandExecutor;
+
 /**
  * Represents a generic view interface for the Calendar application.
  * <p>
@@ -26,13 +28,26 @@ public interface IView {
    * @throws IllegalArgumentException if the given {@code type} is invalid or unsupported
    */
 
-  static IView createInstance(String type) {
-    if (type.equalsIgnoreCase("consoleView")) {
-      return new ConsoleView();
+  static IView createInstance(String type, String[] args) {
+    if (type.equals("interactive")) {
+      return new InteractiveConsoleView();
+    } else if (type.equals("headless")) {
+      if (args.length < 3) {
+        throw new IllegalArgumentException("Missing filepath for headless mode");
+      }
+      return new HeadlessConsoleView(args[2]);
     } else {
       throw new IllegalArgumentException("Unknown view type: " + type);
     }
   }
-
+  /**
+   * Displays a message to the user.
+   */
   void display(String message);
+
+  /**
+   * Starts the view's input/interaction loop.
+   * This only has access to command execution.
+   */
+  void start(ICommandExecutor commandExecutor);
 }

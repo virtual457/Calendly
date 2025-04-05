@@ -1,7 +1,6 @@
 package controller;
 
 
-import java.io.BufferedReader;
 import java.util.Scanner;
 
 
@@ -50,16 +49,21 @@ class CalendarController extends AbstractController implements ICalendarControll
 
 
   @Override
-  public void run(Readable input) {
-    try (Scanner scanner = new Scanner(input)) {
-      view.display("Welcome to the Calendar App!");
-      if (input instanceof BufferedReader) {
-        System.setProperty("run.mode","true");
-      }
-      runScanner(scanner, true, view, invoker, model);
-    } catch (Exception e) {
-      view.display("Error: " + e.getMessage());
-    }
+  public void start() {
+    // Display welcome message
+    view.display("Welcome to the Calendar App!");
+
+    // Create default calendar if needed
+    //initializeDefaultCalendar();
+
+    // Start the view - it will handle its own input processing
+    // We pass "this" as an ICommandExecutor (restricted interface)
+    view.start(this);
+  }
+
+  @Override
+  public void executeCommand(String command) {
+    runScanner(new Scanner(command), true, view, invoker, model);
   }
 
 

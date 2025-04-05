@@ -218,6 +218,11 @@ public class CalendarControllerBasicTest {
       messages.add(message);
     }
 
+    @Override
+    public void start(ICommandExecutor commandExecutor) {
+
+    }
+
     public List<String> getMessages() {
       return messages;
     }

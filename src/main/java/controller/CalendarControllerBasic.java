@@ -52,7 +52,6 @@ public class CalendarControllerBasic extends AbstractController implements ICale
   }
 
 
-  @Override
   public void run(Readable input) {
     Scanner scanner = new Scanner(input);
     view.display("Welcome to the Calendar App!");
@@ -73,6 +72,25 @@ public class CalendarControllerBasic extends AbstractController implements ICale
     runScanner(new Scanner(combinedInput), false, view, invoker, model);
     invoker.deregisterCommand("use calendar");
     invoker.deregisterCommand("create calendar");
+  }
+
+
+  @Override
+  public void start() {
+    // Display welcome message
+    view.display("Welcome to the Calendar App!");
+
+    // Create default calendar if needed
+    //initializeDefaultCalendar();
+
+    // Start the view - it will handle its own input processing
+    // We pass "this" as an ICommandExecutor (restricted interface)
+    view.start(this);
+  }
+
+  @Override
+  public void executeCommand(String command) {
+    runScanner(new Scanner(command), true, view, invoker, model);
   }
 
 

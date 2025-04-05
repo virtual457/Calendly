@@ -34,7 +34,7 @@ public class ConsoleViewTest {
 
   @Test
   public void testDisplay() {
-    ConsoleView consoleView = new ConsoleView();
+    InteractiveConsoleView consoleView = new InteractiveConsoleView();
     String message = "Hello, World!";
     consoleView.display(message);
     assertEquals(message + System.lineSeparator(), outContent.toString());
@@ -42,7 +42,7 @@ public class ConsoleViewTest {
 
   @Test
   public void testDisplayEmptyMessage() {
-    ConsoleView consoleView = new ConsoleView();
+    InteractiveConsoleView consoleView = new InteractiveConsoleView();
     String message = "";
     consoleView.display(message);
     assertEquals(System.lineSeparator(), outContent.toString());
@@ -50,7 +50,7 @@ public class ConsoleViewTest {
 
   @Test
   public void testDisplayNullMessage() {
-    ConsoleView consoleView = new ConsoleView();
+    InteractiveConsoleView consoleView = new InteractiveConsoleView();
     consoleView.display(null);
     assertNotNull(outContent.toString());
     assertTrue(outContent.toString().trim().isEmpty());
@@ -58,7 +58,8 @@ public class ConsoleViewTest {
 
   @Test
   public void testCreateInstance_ValidType() {
-    IView view = IView.createInstance("consoleView");
+    String[] args = {"--mode", "interactive"};
+    IView view =IView.createInstance("Blast", args);
 
     assertNotNull(view);
 
@@ -68,7 +69,8 @@ public class ConsoleViewTest {
   @Test
   public void testCreateInstance_InvalidType() {
     Exception exception = assertThrows(IllegalArgumentException.class, () -> {
-      IView.createInstance("invalidView");
+      String[] args = {"--mode", "interactive"};
+      IView.createInstance("Blast", args);
     });
 
     String expectedMessage = "Unknown view type: invalidView";
