@@ -1,5 +1,6 @@
 package view;
 
+import java.util.Objects;
 import java.util.Scanner;
 
 import controller.ICommandExecutor;
@@ -7,7 +8,9 @@ import controller.ICommandExecutor;
 public class InteractiveConsoleView implements IView {
   @Override
   public void display(String message) {
-    System.out.println(message);
+    if(!Objects.isNull(message)) {
+      System.out.println(message);
+    }
   }
 
   @Override

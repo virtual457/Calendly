@@ -58,7 +58,8 @@ class CalendarController extends AbstractController implements ICalendarControll
 
     // Start the view - it will handle its own input processing
     // We pass "this" as an ICommandExecutor (restricted interface)
-    view.start(this);
+    view.start(new CommandExecutorAdaptor(this));
+
   }
 
   @Override

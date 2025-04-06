@@ -67,6 +67,11 @@ public class EditEventsCalendarCommandTest {
     }
 
     @Override
+    public List<String> getCalendarNames() {
+      return List.of();
+    }
+
+    @Override
     public boolean deleteCalendar(String calName) {
       return false;
     }
@@ -170,6 +175,11 @@ public class EditEventsCalendarCommandTest {
       @Override
       public boolean isCalendarAvailable(String calName, LocalDate date) {
         return false;
+      }
+
+      @Override
+      public List<String> getCalendarNames() {
+        return List.of();
       }
 
       @Override

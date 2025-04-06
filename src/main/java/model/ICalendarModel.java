@@ -13,7 +13,7 @@ import java.util.List;
  * </p>
  */
 
-public interface ICalendarModel {
+public interface ICalendarModel extends IReadOnlyCalendarModel {
 
   /**
    * A factory method to create an instance of {@code ICalendarModel} based on the given type.
@@ -46,16 +46,10 @@ public interface ICalendarModel {
   boolean editEvent(String calendarName, String property, String eventName,
                     LocalDateTime fromDateTime, LocalDateTime toDateTime, String newValue);
 
-  boolean isCalendarAvailable(String calName, LocalDate date);
 
   boolean deleteCalendar(String calName);
 
 
-  List<ICalendarEventDTO> getEventsInRange(String calendarName, LocalDateTime fromDateTime,
-                                           LocalDateTime toDateTime);
-
-
-  List<ICalendarEventDTO> getEventsInSpecificDateTime(String calendarName, LocalDateTime dateTime);
 
   boolean copyEvents(String sourceCalendarName,
                      LocalDateTime sourceStart, LocalDateTime sourceEnd,
@@ -65,8 +59,6 @@ public interface ICalendarModel {
   boolean copyEvent(String sourceCalendarName, LocalDateTime sourceStart, String eventName,
                     String targetCalendarName,
                     LocalDateTime targetStart);
-
-  boolean isCalendarPresent(String calName);
 
   boolean editCalendar(String calendarName, String property, String newValue);
 

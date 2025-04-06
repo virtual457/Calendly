@@ -127,6 +127,11 @@ public class ExportEventsCommandTest {
     }
 
     @Override
+    public List<String> getCalendarNames() {
+      return List.of();
+    }
+
+    @Override
     public boolean deleteCalendar(String calName) {
       return false;
     }

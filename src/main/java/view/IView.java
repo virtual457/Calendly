@@ -1,6 +1,7 @@
 package view;
 
 import controller.ICommandExecutor;
+import model.IReadOnlyCalendarModel;
 
 /**
  * Represents a generic view interface for the Calendar application.
@@ -28,7 +29,7 @@ public interface IView {
    * @throws IllegalArgumentException if the given {@code type} is invalid or unsupported
    */
 
-  static IView createInstance(String type, String[] args) {
+  static IView createInstance(String type, String[] args, IReadOnlyCalendarModel model) {
     if (type.equals("interactive")) {
       return new InteractiveConsoleView();
     } else if (type.equals("headless")) {
@@ -36,7 +37,10 @@ public interface IView {
         throw new IllegalArgumentException("Missing filepath for headless mode");
       }
       return new HeadlessConsoleView(args[2]);
-    } else {
+    } if(type.equals("gui")) {
+      return new GuiView(model);
+    }
+    else {
       throw new IllegalArgumentException("Unknown view type: " + type);
     }
   }

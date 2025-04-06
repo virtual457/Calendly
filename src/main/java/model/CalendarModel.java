@@ -309,6 +309,11 @@ class CalendarModel implements ICalendarModel {
     return false;
   }
 
+  @Override
+  public List<String> getCalendarNames() {
+    return calendars.stream().map(ICalendar::getCalendarName).collect(Collectors.toList());
+  }
+
   public boolean deleteCalendar(String calName) {
     for (Iterator<ICalendar> iterator = calendars.iterator(); iterator.hasNext(); ) {
       ICalendar cal = iterator.next();

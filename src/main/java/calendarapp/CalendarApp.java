@@ -2,6 +2,8 @@ package calendarapp;
 
 import controller.ICalendarController;
 import model.ICalendarModel;
+import model.IReadOnlyCalendarModel;
+import model.ReadOnlyCalendarModel;
 import view.IView;
 
 
@@ -21,8 +23,10 @@ public class CalendarApp {
 
     try {
       ICalendarModel model = createModel();
-      IView view = createView(args);
+      IReadOnlyCalendarModel ROModel = new ReadOnlyCalendarModel(model);
+      IView view = createView(args,ROModel);
       ICalendarController controller = createController(model, view);
+
       controller.start();
     } catch (Exception e) {
       System.out.println(e.getMessage());
@@ -33,8 +37,8 @@ public class CalendarApp {
     return ICalendarModel.createInstance("listBased");
   }
 
-  private static IView createView(String[] args) {
-    return IView.createInstance(parseViewType(args), args);
+  private static IView createView(String[] args, IReadOnlyCalendarModel model) {
+    return IView.createInstance(parseViewType(args), args, model);
   }
 
   private static ICalendarController createController(ICalendarModel model, IView view) {

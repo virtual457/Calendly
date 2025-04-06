@@ -1,6 +1,5 @@
 package controller;
 
-import java.util.List;
 
 // Command executor interface - restricted interface for views
 public interface ICommandExecutor {
