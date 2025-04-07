@@ -835,37 +835,48 @@ public class GuiView extends JFrame implements IView {
 
 
   private void exportCalendar() {
-    JFileChooser fileChooser = new JFileChooser();
-    fileChooser.setDialogTitle("Export Calendar");
-    fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("CSV Files", "csv"));
+    // Get filename from user
+    String filename = JOptionPane.showInputDialog(
+          this,
+          "Enter export filename (no extension needed):",
+          "Export Calendar",
+          JOptionPane.QUESTION_MESSAGE
+    );
 
-    int result = fileChooser.showSaveDialog(this);
-    if (result == JFileChooser.APPROVE_OPTION) {
-      File file = fileChooser.getSelectedFile();
-      String path = file.getAbsolutePath();
-      if (!path.endsWith(".csv")) {
-        path += ".csv";
-      }
+    // Check if user canceled
+    if (filename == null) {
+      return;
+    }
 
-      try {
-        boolean exported = exportCalendar(selectedCalendar, path);
-        if (exported) {
-          JOptionPane.showMessageDialog(this,
-                "Calendar exported successfully to " + path,
-                "Export Success",
-                JOptionPane.INFORMATION_MESSAGE);
-        } else {
-          JOptionPane.showMessageDialog(this,
-                "Failed to export calendar.",
-                "Export Error",
-                JOptionPane.ERROR_MESSAGE);
-        }
-      } catch (Exception ex) {
-        JOptionPane.showMessageDialog(this,
-              "Error exporting calendar: " + ex.getMessage(),
-              "Export Error",
-              JOptionPane.ERROR_MESSAGE);
-      }
+    // Validate filename
+    if (filename.trim().isEmpty()) {
+      JOptionPane.showMessageDialog(
+            this,
+            "Filename cannot be empty.",
+            "Invalid Filename",
+            JOptionPane.ERROR_MESSAGE
+      );
+      return;
+    }
+
+    // Remove any extension if user added one
+    if (filename.contains(".")) {
+      filename = filename.substring(0, filename.lastIndexOf('.'));
+    }
+
+    // Add csv extension
+    String outputFile = filename + ".csv";
+
+    try {
+      // Export directly with the provided filename
+      controller.executeCommand("export cal " + outputFile);
+    } catch (Exception ex) {
+      JOptionPane.showMessageDialog(
+            this,
+            "Error exporting calendar: " + ex.getMessage(),
+            "Export Error",
+            JOptionPane.ERROR_MESSAGE
+      );
     }
   }
 

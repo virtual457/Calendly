@@ -46,9 +46,9 @@ public class HeadlessConsoleView implements IView {
   @Override
   public void display(String message) {
     System.out.println(message);
-    if(message.toLowerCase().contains("error")) {
-      System.exit(1);
-    }
+    //if(message.toLowerCase().contains("error")) {
+    //  System.exit(1);
+    //}
   }
 
   @Override
