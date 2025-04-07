@@ -27,7 +27,7 @@ public class GuiView extends JFrame implements IView {
   private JPanel controlPanel;
   private JLabel monthYearLabel;
   private JComboBox<String> calendarSelector;
-  private JButton prevButton, nextButton, createEventButton, exportButton, importButton;
+  private JButton prevButton, nextButton, createEventButton, editEventButton ,exportButton, importButton;
   private JButton createCalendarButton;
   private Map<LocalDate, JPanel> dayPanels;
 
@@ -128,7 +128,8 @@ public class GuiView extends JFrame implements IView {
     createEventButton = new JButton("Create Event");
     createEventButton.addActionListener(e -> createNewEvent());
 
-
+    editEventButton = new JButton("Edit Event");
+    editEventButton.addActionListener(e -> editEvent());
 
     exportButton = new JButton("Export Calendar");
     exportButton.addActionListener(e -> exportCalendar());
@@ -138,12 +139,16 @@ public class GuiView extends JFrame implements IView {
 
     sidePanel.add(createEventButton);
     sidePanel.add(Box.createVerticalStrut(10));
+    sidePanel.add(editEventButton);
+    sidePanel.add(Box.createVerticalStrut(10));
     sidePanel.add(exportButton);
     sidePanel.add(Box.createVerticalStrut(10));
     sidePanel.add(importButton);
 
     add(sidePanel, BorderLayout.EAST);
   }
+
+
 
   private void updateMonthYearLabel() {
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMMM yyyy");
@@ -488,11 +493,167 @@ public class GuiView extends JFrame implements IView {
     }
   }
 
-  private void editEvent(ICalendarEventDTO event) {
-    // Similar to createEventOnDay but pre-filled with event details
-    // Include option to edit just this event or all recurring instances
-    // Implementation details omitted for brevity
+  private void editEvent() {
+    // This method is called from the side panel button
+    // We need to first select an event to edit
+
+    // Create a dialog to select a date
+    JPanel datePanel = new JPanel(new GridLayout(0, 2));
+    JTextField dateField = new JTextField(LocalDate.now().toString());
+    datePanel.add(new JLabel("Enter date (YYYY-MM-DD):"));
+    datePanel.add(dateField);
+
+    int dateResult = JOptionPane.showConfirmDialog(
+        this, datePanel, "Select Date", JOptionPane.OK_CANCEL_OPTION);
+
+    if (dateResult == JOptionPane.OK_OPTION) {
+      try {
+        LocalDate selectedDate = LocalDate.parse(dateField.getText());
+        List<ICalendarEventDTO> events = getEventsForDay(selectedCalendar, selectedDate);
+
+        if (events.isEmpty()) {
+          JOptionPane.showMessageDialog(this,
+              "No events found on selected date.",
+              "No Events",
+              JOptionPane.INFORMATION_MESSAGE);
+          return;
+        }
+
+        // Create a dialog to select an event
+        String[] eventNames = events.stream()
+            .map(e -> e.getEventName() + " (" +
+                e.getStartDateTime().format(DateTimeFormatter.ofPattern("HH:mm")) +
+                " - " +
+                e.getEndDateTime().format(DateTimeFormatter.ofPattern("HH:mm")) + ")")
+            .toArray(String[]::new);
+
+        String selectedEventString = (String) JOptionPane.showInputDialog(
+            this,
+            "Select event to edit:",
+            "Select Event",
+            JOptionPane.QUESTION_MESSAGE,
+            null,
+            eventNames,
+            eventNames[0]);
+
+        if (selectedEventString != null) {
+          // Find the selected event
+          int eventIndex = -1;
+          for (int i = 0; i < eventNames.length; i++) {
+            if (eventNames[i].equals(selectedEventString)) {
+              eventIndex = i;
+              break;
+            }
+          }
+
+          if (eventIndex >= 0) {
+            // Edit the selected event
+            editEvent(events.get(eventIndex));
+          }
+        }
+      } catch (Exception ex) {
+        JOptionPane.showMessageDialog(this,
+            "Error: " + ex.getMessage(),
+            "Error",
+            JOptionPane.ERROR_MESSAGE);
+      }
+    }
   }
+
+  private void editEvent(ICalendarEventDTO event) {
+    // Create event dialog with fields pre-filled from the event
+    JPanel panel = new JPanel(new GridLayout(0, 2));
+
+    JTextField nameField = new JTextField(event.getEventName());
+    JTextField descriptionField = new JTextField(
+        event.getEventDescription() != null ? event.getEventDescription() : "");
+
+    DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+    JTextField startTimeField = new JTextField(event.getStartDateTime().format(timeFormatter));
+    JTextField endTimeField = new JTextField(event.getEndDateTime().format(timeFormatter));
+
+    // For recurring events
+    JCheckBox editAllInstancesCheck = new JCheckBox("Edit all instances of recurring event");
+    editAllInstancesCheck.setEnabled(Boolean.TRUE.equals(event.isRecurring()));
+
+    panel.add(new JLabel("Event Name:"));
+    panel.add(nameField);
+    panel.add(new JLabel("Description:"));
+    panel.add(descriptionField);
+    panel.add(new JLabel("Start Time (HH:MM):"));
+    panel.add(startTimeField);
+    panel.add(new JLabel("End Time (HH:MM):"));
+    panel.add(endTimeField);
+
+    if (Boolean.TRUE.equals(event.isRecurring())) {
+      panel.add(new JLabel("Recurring Event:"));
+      panel.add(editAllInstancesCheck);
+    }
+
+    int result = JOptionPane.showConfirmDialog(
+        this, panel, "Edit Event", JOptionPane.OK_CANCEL_OPTION);
+
+    if (result == JOptionPane.OK_OPTION) {
+      try {
+        String name = nameField.getText();
+        String description = descriptionField.getText();
+
+        if (name.isEmpty()) {
+          throw new IllegalArgumentException("Event name cannot be empty");
+        }
+
+        // Parse times
+        LocalTime startTime = LocalTime.parse(startTimeField.getText());
+        LocalTime endTime = LocalTime.parse(endTimeField.getText());
+
+        if (startTime.isAfter(endTime)) {
+          throw new IllegalArgumentException("Start time must be before end time");
+        }
+
+        // Create new start and end times, preserving the original date
+        LocalDateTime newStartDateTime = LocalDateTime.of(
+            event.getStartDateTime().toLocalDate(), startTime);
+        LocalDateTime newEndDateTime = LocalDateTime.of(
+            event.getEndDateTime().toLocalDate(), endTime);
+
+        // Build the edit command
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
+        StringBuilder command = new StringBuilder();
+        command.append("edit event --calendar \"").append(selectedCalendar).append("\"");
+        command.append(" --eventName \"").append(event.getEventName()).append("\"");
+        command.append(" --from \"").append(event.getStartDateTime().format(formatter)).append("\"");
+        command.append(" --to \"").append(event.getEndDateTime().format(formatter)).append("\"");
+
+        // Add properties to update
+        if (!name.equals(event.getEventName())) {
+          command.append(" --property name --newValue \"").append(name).append("\"");
+        } else if (!description.equals(event.getEventDescription())) {
+          command.append(" --property description --newValue \"").append(description).append("\"");
+        } else if (!newStartDateTime.equals(event.getStartDateTime())) {
+          command.append(" --property start --newValue \"").append(newStartDateTime.format(formatter)).append("\"");
+        } else if (!newEndDateTime.equals(event.getEndDateTime())) {
+          command.append(" --property end --newValue \"").append(newEndDateTime.format(formatter)).append("\"");
+        }
+
+        // Add flag for all instances if applicable
+        if (editAllInstancesCheck.isSelected()) {
+          command.append(" --all");
+        }
+
+        // Execute the command
+        controller.executeCommand(command.toString());
+        refreshCalendarView();
+
+      } catch (Exception ex) {
+        JOptionPane.showMessageDialog(this,
+            "Error updating event: " + ex.getMessage(),
+            "Update Error",
+            JOptionPane.ERROR_MESSAGE);
+      }
+    }
+  }
+
+
 
   private void exportCalendar() {
     JFileChooser fileChooser = new JFileChooser();
