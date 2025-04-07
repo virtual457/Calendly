@@ -12,6 +12,7 @@ import java.util.List;
 import controller.ICommandExecutor;
 import controller.ICalendarController;
 import model.ICalendarEventDTO;
+import model.ICalendarEventDTOBuilder;
 import model.IReadOnlyCalendarModel;
 import model.ICalendarModel;
 import view.IView;
@@ -398,46 +399,171 @@ public class GuiView extends JFrame implements IView {
 
     JTextField nameField = new JTextField();
     JTextField descriptionField = new JTextField();
+    JTextField locationField = new JTextField();
+
+
+    JTextField startDateField = new JTextField(date.toString());
+    JTextField endDateField = new JTextField(date.toString());
+
     JTextField startTimeField = new JTextField("09:00");
     JTextField endTimeField = new JTextField("10:00");
 
+    JPanel daysPanel = new JPanel(new GridLayout(1, 7));
+    JCheckBox[] dayCheckboxes = new JCheckBox[7];
+    String[] dayLabels = {"M", "T", "W", "Th", "F", "S", "Su"};
+    char[] dayCodes = {'M', 'T', 'W', 'R', 'F', 'S', 'U'};
+
+    for (int i = 0; i < 7; i++) {
+      dayCheckboxes[i] = new JCheckBox(dayLabels[i]);
+      dayCheckboxes[i].setEnabled(false); // Initially disabled
+      daysPanel.add(dayCheckboxes[i]);
+    }
+    JCheckBox isPrivate = new JCheckBox("Private Event");
+
     // Recurring event options
     JCheckBox recurringCheck = new JCheckBox("Recurring Event");
-    String[] recurrenceOptions = {"Daily", "Weekly", "Monthly"};
+
+    String[] recurrenceOptions = {"Select...", "Daily", "Weekdays", "Weekends", "Weekly", "Custom"};
     JComboBox<String> recurrenceType = new JComboBox<>(recurrenceOptions);
 
     recurrenceType.setEnabled(false);
+
+    recurrenceType.addActionListener(e -> {
+      String selected = (String) recurrenceType.getSelectedItem();
+
+      // Reset all checkboxes first
+      for (JCheckBox dayBox : dayCheckboxes) {
+        dayBox.setSelected(false);
+      }
+
+      // Enable/disable checkboxes based on selection
+      boolean enableCheckboxes = "Custom".equals(selected);
+      for (JCheckBox dayBox : dayCheckboxes) {
+        dayBox.setEnabled(enableCheckboxes);
+      }
+
+      // Set checkboxes based on pattern
+      switch (selected) {
+        case "Daily":
+          // Select all days
+          for (JCheckBox dayBox : dayCheckboxes) {
+            dayBox.setSelected(true);
+          }
+          break;
+        case "Weekdays":
+          // Select Monday-Friday
+          for (int i = 0; i < 5; i++) {
+            dayCheckboxes[i].setSelected(true);
+          }
+          break;
+        case "Weekends":
+          // Select Saturday-Sunday
+          dayCheckboxes[5].setSelected(true);
+          dayCheckboxes[6].setSelected(true);
+          break;
+        case "Weekly":
+          // Select the current day of week
+          LocalDate selectedDate = LocalDate.parse(startDateField.getText());
+          int dayIndex = selectedDate.getDayOfWeek().getValue() - 1; // 0-6 (Monday-Sunday)
+          dayCheckboxes[dayIndex].setSelected(true);
+          break;
+        case "Custom":
+          // All checkboxes are enabled, none selected by default
+          break;
+      }
+    });
 
 
     panel.add(new JLabel("Event Name:"));
     panel.add(nameField);
     panel.add(new JLabel("Description:"));
     panel.add(descriptionField);
+    panel.add(new JLabel("location:"));
+    panel.add(locationField);
+    panel.add(new JLabel("IsPrivate"));
+    panel.add(isPrivate);
+    panel.add(new JLabel("Start Date (YYYY-MM-DD):"));
+    panel.add(startDateField);
+    panel.add(new JLabel("End Date (YYYY-MM-DD):"));
+    panel.add(endDateField);
     panel.add(new JLabel("Start Time (HH:MM):"));
     panel.add(startTimeField);
     panel.add(new JLabel("End Time (HH:MM):"));
     panel.add(endTimeField);
     panel.add(recurringCheck);
     panel.add(recurrenceType);
+    panel.add(new JLabel("Repeat on:"));
+    panel.add(daysPanel);
 
     // Additional fields for recurring events (initially hidden)
     JPanel recurringPanel = new JPanel(new GridLayout(0, 2));
-    JTextField occurrencesField = new JTextField("10");
-    JTextField endDateField = new JTextField(date.plusMonths(1).toString());
+
+    // Create radio buttons for recurrence termination
+    JRadioButton occurrencesRadio = new JRadioButton("Number of occurrences:");
+    JRadioButton endDateRadio = new JRadioButton("End date:");
+    ButtonGroup terminationGroup = new ButtonGroup();
+    terminationGroup.add(occurrencesRadio);
+    terminationGroup.add(endDateRadio);
+    occurrencesRadio.setSelected(false);
+
+    JTextField occurrencesField = new JTextField();
+    JTextField recurrenceEndDateField = new JTextField();
+    recurrenceEndDateField.setEnabled(false);
     occurrencesField.setEnabled(false);
 
-    recurringPanel.add(new JLabel("Number of Occurrences:"));
+    recurringPanel.add(occurrencesRadio);
     recurringPanel.add(occurrencesField);
-    recurringPanel.add(new JLabel("End Date (YYYY-MM-DD):"));
-    recurringPanel.add(endDateField);
-    endDateField.setEnabled(false);
+    recurringPanel.add(endDateRadio);
+    recurringPanel.add(recurrenceEndDateField);
+
+    occurrencesRadio.setEnabled(false);
+    endDateRadio.setEnabled(false);
+    occurrencesField.setEnabled(false);
+    recurrenceEndDateField.setEnabled(false);
+
+    occurrencesRadio.addActionListener(e -> {
+      occurrencesField.setEnabled(true);
+      occurrencesField.setText("10");
+      recurrenceEndDateField.setEnabled(false);
+      recurrenceEndDateField.setText(null);
+    });
+
+    endDateRadio.addActionListener(e -> {
+      occurrencesField.setEnabled(false);
+      occurrencesField.setText(null);
+      recurrenceEndDateField.setEnabled(true);
+      recurrenceEndDateField.setText(date.plusMonths(1).toString());
+    });
+
+
+
+
 
     recurringCheck.addActionListener(e -> {
       boolean isRecurring = recurringCheck.isSelected();
       recurrenceType.setEnabled(isRecurring);
+
+      // Enable/disable recurrence termination options
+      occurrencesRadio.setEnabled(isRecurring);
+      endDateRadio.setEnabled(isRecurring);
+
+      occurrencesField.setEnabled(isRecurring && occurrencesRadio.isSelected());
+      recurrenceEndDateField.setEnabled(isRecurring && endDateRadio.isSelected());
+
+
+      // Reset and disable day checkboxes when recurring is unchecked
+      if (!isRecurring) {
+        recurrenceType.setSelectedIndex(0); // Reset to "Select..."
+        for (JCheckBox dayBox : dayCheckboxes) {
+          dayBox.setSelected(false);
+          dayBox.setEnabled(false);
+        }
+      }
+
       occurrencesField.setEnabled(isRecurring);
-      endDateField.setEnabled(isRecurring);
+      recurrenceEndDateField.setEnabled(isRecurring);
     });
+
 
     // Create the final dialog panel
     JPanel dialogPanel = new JPanel();
@@ -452,44 +578,66 @@ public class GuiView extends JFrame implements IView {
       try {
         String name = nameField.getText();
         String description = descriptionField.getText();
+        String location = locationField.getText();
 
-        if (name.isEmpty()) {
-          throw new IllegalArgumentException("Event name cannot be empty");
-        }
-
-        // Parse times
+        // Parse dates and times
+        LocalDate startDate = LocalDate.parse(startDateField.getText());
+        LocalDate endDate = LocalDate.parse(endDateField.getText());
         LocalTime startTime = LocalTime.parse(startTimeField.getText());
         LocalTime endTime = LocalTime.parse(endTimeField.getText());
 
-        if (startTime.isAfter(endTime)) {
-          throw new IllegalArgumentException("Start time must be before end time");
+        // Build full date-times
+        LocalDateTime startDateTime = LocalDateTime.of(startDate, startTime);
+        LocalDateTime endDateTime = LocalDateTime.of(endDate, endTime);
+
+        if (endDateTime.isBefore(startDateTime)) {
+          throw new IllegalArgumentException("End date/time must be after start date/time");
         }
 
-        boolean created;
+        // Create event builder with common properties
+        ICalendarEventDTOBuilder<?> builder = ICalendarEventDTO.builder()
+              .setEventName(name)
+              .setEventDescription(description)
+              .setEventLocation(location)
+              .setPrivate(isPrivate.isSelected())
+              .setStartDateTime(startDateTime)
+              .setEndDateTime(endDateTime);
 
+        // Handle recurring events
         if (recurringCheck.isSelected()) {
-          // Create recurring event
-          String recurrence = (String) recurrenceType.getSelectedItem();
-          int occurrences = Integer.parseInt(occurrencesField.getText());
-          LocalDate endDate = LocalDate.parse(endDateField.getText());
-          ICalendarEventDTO event = ICalendarEventDTO.builder()
-                .setEventName(name)
-                .setEventDescription(description)
-                .setStartDateTime(date.atTime(startTime.getHour(),startTime.getMinute()))
-                .setEndDateTime(date.atTime(startTime.getHour(),startTime.getMinute()))
-                .build();
+          // Get selected days
+          List<DayOfWeek> selectedDays = new ArrayList<>();
+          for (int i = 0; i < dayCheckboxes.length; i++) {
+            if (dayCheckboxes[i].isSelected()) {
+              selectedDays.add(getDayOfWeekFromIndex(i));
+            }
+          }
 
-          created = createRecurringEvent(event);
+          if (selectedDays.isEmpty()) {
+            throw new IllegalArgumentException("Please select at least one day for recurring events");
+          }
+
+          // Set recurrence properties
+          builder.setRecurring(true)
+                .setRecurrenceDays(selectedDays);
+
+          // Add either count or end date, not both
+          if (!occurrencesField.getText().isEmpty()) {
+            builder.setRecurrenceCount(Integer.parseInt(occurrencesField.getText()));
+          } else if (!recurrenceEndDateField.getText().isEmpty()) {
+            LocalDate recurrenceEndDate =
+                  LocalDate.parse(recurrenceEndDateField.getText());
+            builder.setRecurrenceEndDate(recurrenceEndDate.atTime(23, 59, 59));
+          } else {
+            throw new IllegalArgumentException("Please specify either occurrence count or end date for recurring events");
+          }
         } else {
-          // Create single event
-          ICalendarEventDTO event = ICalendarEventDTO.builder()
-                .setEventName(name)
-                .setEventDescription(description)
-                .setStartDateTime(date.atTime(startTime.getHour(),startTime.getMinute()))
-                .setEndDateTime(date.atTime(endTime.getHour(),endTime.getMinute()))
-                .build();
-          created = createEvent(event);
+          builder.setRecurring(false);
         }
+
+        // Build the event and create it
+        ICalendarEventDTO event = builder.build();
+        boolean created = createEvent(event);
 
         if (created) {
           refreshCalendarView();
@@ -505,6 +653,21 @@ public class GuiView extends JFrame implements IView {
               "Input Error",
               JOptionPane.ERROR_MESSAGE);
       }
+    }
+
+
+  }
+  // Helper to convert index to DayOfWeek
+  private DayOfWeek getDayOfWeekFromIndex(int index) {
+    switch (index) {
+      case 0: return DayOfWeek.MONDAY;
+      case 1: return DayOfWeek.TUESDAY;
+      case 2: return DayOfWeek.WEDNESDAY;
+      case 3: return DayOfWeek.THURSDAY;
+      case 4: return DayOfWeek.FRIDAY;
+      case 5: return DayOfWeek.SATURDAY;
+      case 6: return DayOfWeek.SUNDAY;
+      default: throw new IllegalArgumentException("Invalid day index: " + index);
     }
   }
 
@@ -779,37 +942,99 @@ public class GuiView extends JFrame implements IView {
     );
   }
 
-
-  private boolean createRecurringEvent(ICalendarEventDTO event) {
-    try {
-      DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
-      String command = "create event --calendar \"" + selectedCalendar + "\" --name \"" + event.getEventName() + "\"" +
-          " from \"" + event.getStartDateTime().format(formatter) + "\"" +
-          " to \"" + event.getEndDateTime().format(formatter) + "\"" +
-          " --recurring";
-      // Add more recurring parameters if needed
-      controller.executeCommand(command);
-    }
-    catch (Exception ex) {
-      return false;
-    }
-    return true;
+  // Helper method to determine if an event is an all-day event
+  private boolean isAllDayEvent(LocalDateTime start, LocalDateTime end) {
+    return start.toLocalTime().equals(LocalTime.MIDNIGHT) &&
+          end.toLocalTime().equals(LocalTime.of(23, 59, 59)) &&
+          start.toLocalDate().equals(end.toLocalDate());
   }
 
   private boolean createEvent(ICalendarEventDTO event) {
     try {
+      StringBuilder command = new StringBuilder();
+      command.append("create event ")
+            .append(event.getEventName());
+
       DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
-      //CREATING  COMMAND SOMething like this create event Test from 2025-05-01T10:00 to 2025-05-01T11:00
-      String command = "create event \"" + event.getEventName() + "\"" +
-          " from \"" + event.getStartDateTime().format(formatter) + "\"" +
-          " to \"" + event.getEndDateTime().format(formatter) + "\"";
-      controller.executeCommand(command);
+
+      // Check if the event is a full-day event or a timed event
+      boolean isAllDayEvent = isAllDayEvent(event.getStartDateTime(), event.getEndDateTime());
+
+      if (isAllDayEvent) {
+        // Format for all-day events
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        command.append(" on ")
+              .append(event.getStartDateTime().toLocalDate().format(dateFormatter));
+      } else {
+        // Format for timed events
+        command.append(" from ")
+              .append(event.getStartDateTime().format(formatter))
+              .append(" to ")
+              .append(event.getEndDateTime().format(formatter));
+      }
+
+      // For recurring events
+      if (Boolean.TRUE.equals(event.isRecurring()) && event.getRecurrenceDays() != null) {
+        // Create recurrence pattern
+        StringBuilder pattern = new StringBuilder();
+        for (DayOfWeek day : event.getRecurrenceDays()) {
+          pattern.append(getDayCode(day));
+        }
+        command.append(" repeats ").append(pattern);
+
+        // Add recurrence termination (count or end date)
+        if (event.getRecurrenceCount() != null) {
+          command.append(" for ").append(event.getRecurrenceCount()).append(" times");
+        } else if (event.getRecurrenceEndDate() != null) {
+          DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+          command.append(" until ").append(event.getRecurrenceEndDate().format(formatter));
+        }
+      }
+
+      // Add description if provided
+      if (event.getEventDescription() != null && !event.getEventDescription().isEmpty()) {
+        command.append(" --description \"")
+              .append(event.getEventDescription())
+              .append("\"");
+      }
+
+      // Add location if provided
+      if (event.getEventLocation() != null && !event.getEventLocation().isEmpty()) {
+        command.append(" --location \"")
+              .append(event.getEventLocation())
+              .append("\"");
+      }
+
+      // Add privacy flag if needed
+      if (Boolean.TRUE.equals(event.isPrivate())) {
+        command.append(" --private");
+      }
+
+      System.out.println("Executing command: " + command.toString());
+      controller.executeCommand(command.toString());
+      return true;
     }
     catch (Exception ex) {
       System.err.println("Error creating event: " + ex.getMessage());
       return false;
     }
-    return true;
+  }
+
+  // Helper method to determine if an event is an all-day event
+
+
+  // Helper to convert DayOfWeek to your specific code format
+  private char getDayCode(DayOfWeek day) {
+    switch (day) {
+      case MONDAY: return 'M';
+      case TUESDAY: return 'T';
+      case WEDNESDAY: return 'W';
+      case THURSDAY: return 'R';
+      case FRIDAY: return 'F';
+      case SATURDAY: return 'S';
+      case SUNDAY: return 'U';
+      default: throw new IllegalArgumentException("Unknown day: " + day);
+    }
   }
 
   private boolean exportCalendar(String calendarName, String path) {
