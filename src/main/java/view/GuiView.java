@@ -462,12 +462,22 @@ public class GuiView extends JFrame implements IView {
           String recurrence = (String) recurrenceType.getSelectedItem();
           int occurrences = Integer.parseInt(occurrencesField.getText());
           LocalDate endDate = LocalDate.parse(endDateField.getText());
-          ICalendarEventDTO event = ICalendarEventDTO.builder().build();
+          ICalendarEventDTO event = ICalendarEventDTO.builder()
+                .setEventName(name)
+                .setEventDescription(description)
+                .setStartDateTime(date.atTime(startTime.getHour(),startTime.getMinute()))
+                .setEndDateTime(date.atTime(startTime.getHour(),startTime.getMinute()))
+                .build();
 
           created = createRecurringEvent(event);
         } else {
           // Create single event
-          ICalendarEventDTO event = ICalendarEventDTO.builder().build();
+          ICalendarEventDTO event = ICalendarEventDTO.builder()
+                .setEventName(name)
+                .setEventDescription(description)
+                .setStartDateTime(date.atTime(startTime.getHour(),startTime.getMinute()))
+                .setEndDateTime(date.atTime(endTime.getHour(),endTime.getMinute()))
+                .build();
           created = createEvent(event);
         }
 
@@ -623,12 +633,14 @@ public class GuiView extends JFrame implements IView {
   private boolean createEvent(ICalendarEventDTO event) {
     try {
       DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
-      String command = "create event --calendar \"" + selectedCalendar + "\" --name \"" + event.getEventName() + "\"" +
+      //CREATING  COMMAND SOMething like this create event Test from 2025-05-01T10:00 to 2025-05-01T11:00
+      String command = "create event \"" + event.getEventName() + "\"" +
           " from \"" + event.getStartDateTime().format(formatter) + "\"" +
           " to \"" + event.getEndDateTime().format(formatter) + "\"";
       controller.executeCommand(command);
     }
     catch (Exception ex) {
+      System.err.println("Error creating event: " + ex.getMessage());
       return false;
     }
     return true;
