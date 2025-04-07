@@ -1,5 +1,11 @@
 package calendarapp;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.InputStreamReader;
+import java.util.Objects;
+import java.util.Scanner;
+
 import controller.ICalendarController;
 import model.ICalendarModel;
 import model.IReadOnlyCalendarModel;
@@ -26,8 +32,14 @@ public class CalendarApp {
       IReadOnlyCalendarModel ROModel = new ReadOnlyCalendarModel(model);
       IView view = createView(args,ROModel);
       ICalendarController controller = createController(model, view);
-
-      controller.start();
+      Readable readable;
+      if(Objects.equals(args[1], "headless")) {
+        readable = new BufferedReader(new FileReader(args[2]));
+      }
+      else {
+        readable = new InputStreamReader(System.in);
+      }
+      controller.start(readable);
     } catch (Exception e) {
       System.out.println(e.getMessage());
     }

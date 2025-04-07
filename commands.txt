@@ -1,4 +1,3 @@
 create calendar --name chandan --timezone UTC
-use ne
 use calendar --name chandan
 exit

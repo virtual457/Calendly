@@ -76,7 +76,7 @@ public class CalendarControllerBasic extends AbstractController implements ICale
 
 
   @Override
-  public void start() {
+  public void start(Readable readable) {
     // Display welcome message
     view.display("Welcome to the Calendar App!");
 
@@ -85,7 +85,7 @@ public class CalendarControllerBasic extends AbstractController implements ICale
 
     // Start the view - it will handle its own input processing
     // We pass "this" as an ICommandExecutor (restricted interface)
-    view.start(this);
+    view.start(this, readable);
   }
 
   @Override

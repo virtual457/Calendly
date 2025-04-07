@@ -53,5 +53,5 @@ public interface IView {
    * Starts the view's input/interaction loop.
    * This only has access to command execution.
    */
-  void start(ICommandExecutor commandExecutor);
+  void start(ICommandExecutor commandExecutor, Readable readable);
 }

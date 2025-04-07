@@ -302,6 +302,7 @@ public class GuiView extends JFrame implements IView {
 
   private void switchCalendar() {
     selectedCalendar = (String) calendarSelector.getSelectedItem();
+    useCalendar(selectedCalendar);
     refreshCalendarView();
   }
 
@@ -1057,13 +1058,41 @@ public class GuiView extends JFrame implements IView {
     return true;
   }
 
+  private boolean useCalendar(String calendarName) {
+    try {
+      controller.executeCommand("use calendar --name \"" + calendarName + "\"");
+    }
+    catch (Exception ex) {
+      return false;
+    }
+    return true;
+  }
+
   @Override
   public void display(String message) {
+
+    // Show message in a dialog box instead of console
+    SwingUtilities.invokeLater(() -> {
+      // Determine message type based on content
+      int messageType = JOptionPane.INFORMATION_MESSAGE;
+      if (message.contains("Error") || message.contains("Failed")) {
+        messageType = JOptionPane.ERROR_MESSAGE;
+      } else if (message.contains("Warning")) {
+        messageType = JOptionPane.WARNING_MESSAGE;
+      }
+
+      JOptionPane.showMessageDialog(
+            this,  // parent component
+            message,
+            "Calendar Notification",
+            messageType
+      );
+    });
     System.out.println(message);
   }
 
   @Override
-  public void start(ICommandExecutor commandExecutor) {
+  public void start(ICommandExecutor commandExecutor, Readable readable) {
     this.controller = commandExecutor;
     initializeUI();
   }

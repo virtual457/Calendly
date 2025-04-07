@@ -14,8 +14,8 @@ public class InteractiveConsoleView implements IView {
   }
 
   @Override
-  public void start(ICommandExecutor commandExecutor) {
-    try (Scanner scanner = new Scanner(System.in)) {
+  public void start(ICommandExecutor commandExecutor, Readable readable) {
+    try (Scanner scanner = new Scanner(readable)) {
       while (scanner.hasNextLine()) {
         String line = scanner.nextLine().trim();
         if (line.equalsIgnoreCase("exit")) {

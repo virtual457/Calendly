@@ -52,8 +52,8 @@ public class HeadlessConsoleView implements IView {
   }
 
   @Override
-  public void start(ICommandExecutor commandExecutor) {
-    try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+  public void start(ICommandExecutor commandExecutor, Readable readable) {
+    try (BufferedReader reader = (BufferedReader) readable) {
       String line;
       while ((line = reader.readLine()) != null) {
         line = line.trim();
