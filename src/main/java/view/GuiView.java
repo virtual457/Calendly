@@ -406,6 +406,9 @@ public class GuiView extends JFrame implements IView {
     String[] recurrenceOptions = {"Daily", "Weekly", "Monthly"};
     JComboBox<String> recurrenceType = new JComboBox<>(recurrenceOptions);
 
+    recurrenceType.setEnabled(false);
+
+
     panel.add(new JLabel("Event Name:"));
     panel.add(nameField);
     panel.add(new JLabel("Description:"));
@@ -421,11 +424,13 @@ public class GuiView extends JFrame implements IView {
     JPanel recurringPanel = new JPanel(new GridLayout(0, 2));
     JTextField occurrencesField = new JTextField("10");
     JTextField endDateField = new JTextField(date.plusMonths(1).toString());
+    occurrencesField.setEnabled(false);
 
     recurringPanel.add(new JLabel("Number of Occurrences:"));
     recurringPanel.add(occurrencesField);
     recurringPanel.add(new JLabel("End Date (YYYY-MM-DD):"));
     recurringPanel.add(endDateField);
+    endDateField.setEnabled(false);
 
     recurringCheck.addActionListener(e -> {
       boolean isRecurring = recurringCheck.isSelected();
