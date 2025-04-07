@@ -149,11 +149,34 @@ public class GuiView extends JFrame implements IView {
   }
 
   private void updateCalendarSelector() {
-    calendarSelector.removeAllItems();
-    for (String calendarName : model.getCalendarNames()) {
-      calendarSelector.addItem(calendarName);
+    ActionListener[] listeners = calendarSelector.getActionListeners();
+
+    // Remove all action listeners temporarily
+    for (ActionListener listener : listeners) {
+      calendarSelector.removeActionListener(listener);
     }
-    calendarSelector.setSelectedItem(selectedCalendar);
+
+    // Update the items
+    calendarSelector.removeAllItems();
+    List<String> calendarNames = model.getCalendarNames();
+    for (String name : calendarNames) {
+      calendarSelector.addItem(name);
+    }
+
+    // Set selection to the first calendar or the previously selected one if it still exists
+    if (calendarSelector.getItemCount() > 0) {
+      if (selectedCalendar != null && calendarNames.contains(selectedCalendar)) {
+        calendarSelector.setSelectedItem(selectedCalendar);
+      } else {
+        calendarSelector.setSelectedIndex(0);
+        selectedCalendar = (String) calendarSelector.getSelectedItem();
+      }
+    }
+
+    // Re-add the action listeners
+    for (ActionListener listener : listeners) {
+      calendarSelector.addActionListener(listener);
+    }
   }
 
   private void refreshCalendarView() {
@@ -563,6 +586,7 @@ public class GuiView extends JFrame implements IView {
       controller.executeCommand("create calendar --name " + name + " --timezone " + timezone);
     }
     catch (Exception ex) {
+      System.err.println("Error creating calendar: " + ex.getMessage());
       return false;
     }
     return true;
