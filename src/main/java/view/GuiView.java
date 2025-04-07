@@ -128,6 +128,8 @@ public class GuiView extends JFrame implements IView {
     createEventButton = new JButton("Create Event");
     createEventButton.addActionListener(e -> createNewEvent());
 
+
+
     exportButton = new JButton("Export Calendar");
     exportButton.addActionListener(e -> exportCalendar());
 
@@ -602,19 +604,53 @@ public class GuiView extends JFrame implements IView {
   }
 
 
-  private boolean createRecurringEvent(ICalendarEventDTO event){
+  private boolean createRecurringEvent(ICalendarEventDTO event) {
+    try {
+      DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
+      String command = "create event --calendar \"" + selectedCalendar + "\" --name \"" + event.getEventName() + "\"" +
+          " from \"" + event.getStartDateTime().format(formatter) + "\"" +
+          " to \"" + event.getEndDateTime().format(formatter) + "\"" +
+          " --recurring";
+      // Add more recurring parameters if needed
+      controller.executeCommand(command);
+    }
+    catch (Exception ex) {
+      return false;
+    }
     return true;
   }
 
-  private boolean createEvent(ICalendarEventDTO event){
+  private boolean createEvent(ICalendarEventDTO event) {
+    try {
+      DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
+      String command = "create event --calendar \"" + selectedCalendar + "\" --name \"" + event.getEventName() + "\"" +
+          " from \"" + event.getStartDateTime().format(formatter) + "\"" +
+          " to \"" + event.getEndDateTime().format(formatter) + "\"";
+      controller.executeCommand(command);
+    }
+    catch (Exception ex) {
+      return false;
+    }
     return true;
   }
 
   private boolean exportCalendar(String calendarName, String path) {
+    try {
+      controller.executeCommand("export cal --calendar \"" + calendarName + "\" --file \"" + path + "\"");
+    }
+    catch (Exception ex) {
+      return false;
+    }
     return true;
   }
 
   private boolean importCalendar(String calendarName, String path) {
+    try {
+      controller.executeCommand("import cal --calendar \"" + calendarName + "\" --file \"" + path + "\"");
+    }
+    catch (Exception ex) {
+      return false;
+    }
     return true;
   }
 
