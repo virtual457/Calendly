@@ -1,6 +1,9 @@
 package view;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.time.*;
@@ -28,7 +31,7 @@ public class GuiView extends JFrame implements IView {
   private JPanel controlPanel;
   private JLabel monthYearLabel;
   private JComboBox<String> calendarSelector;
-  private JButton prevButton, nextButton, createEventButton, editEventButton ,exportButton, importButton;
+  private JButton prevButton, nextButton, createEventButton, editEventsButton ,exportButton, importButton;
   private JButton createCalendarButton;
   private Map<LocalDate, JPanel> dayPanels;
 
@@ -129,8 +132,8 @@ public class GuiView extends JFrame implements IView {
     createEventButton = new JButton("Create Event");
     createEventButton.addActionListener(e -> createNewEvent());
 
-    editEventButton = new JButton("Edit Event");
-    editEventButton.addActionListener(e -> editEvent());
+    editEventsButton = new JButton("Edit Events");
+    editEventsButton.addActionListener(e -> editEvents());
 
     exportButton = new JButton("Export Calendar");
     exportButton.addActionListener(e -> exportCalendar());
@@ -140,7 +143,7 @@ public class GuiView extends JFrame implements IView {
 
     sidePanel.add(createEventButton);
     sidePanel.add(Box.createVerticalStrut(10));
-    sidePanel.add(editEventButton);
+    sidePanel.add(editEventsButton);
     sidePanel.add(Box.createVerticalStrut(10));
     sidePanel.add(exportButton);
     sidePanel.add(Box.createVerticalStrut(10));
@@ -148,7 +151,6 @@ public class GuiView extends JFrame implements IView {
 
     add(sidePanel, BorderLayout.EAST);
   }
-
 
 
   private void updateMonthYearLabel() {
@@ -573,7 +575,7 @@ public class GuiView extends JFrame implements IView {
     dialogPanel.add(recurringPanel);
 
     int result = JOptionPane.showConfirmDialog(
-          this, dialogPanel, "Create New Event", JOptionPane.OK_CANCEL_OPTION);
+        this, dialogPanel, "Create New Event", JOptionPane.OK_CANCEL_OPTION);
 
     if (result == JOptionPane.OK_OPTION) {
       try {
@@ -597,12 +599,12 @@ public class GuiView extends JFrame implements IView {
 
         // Create event builder with common properties
         ICalendarEventDTOBuilder<?> builder = ICalendarEventDTO.builder()
-              .setEventName(name)
-              .setEventDescription(description)
-              .setEventLocation(location)
-              .setPrivate(isPrivate.isSelected())
-              .setStartDateTime(startDateTime)
-              .setEndDateTime(endDateTime);
+            .setEventName(name)
+            .setEventDescription(description)
+            .setEventLocation(location)
+            .setPrivate(isPrivate.isSelected())
+            .setStartDateTime(startDateTime)
+            .setEndDateTime(endDateTime);
 
         // Handle recurring events
         if (recurringCheck.isSelected()) {
@@ -620,14 +622,14 @@ public class GuiView extends JFrame implements IView {
 
           // Set recurrence properties
           builder.setRecurring(true)
-                .setRecurrenceDays(selectedDays);
+              .setRecurrenceDays(selectedDays);
 
           // Add either count or end date, not both
           if (!occurrencesField.getText().isEmpty()) {
             builder.setRecurrenceCount(Integer.parseInt(occurrencesField.getText()));
           } else if (!recurrenceEndDateField.getText().isEmpty()) {
             LocalDate recurrenceEndDate =
-                  LocalDate.parse(recurrenceEndDateField.getText());
+                LocalDate.parse(recurrenceEndDateField.getText());
             builder.setRecurrenceEndDate(recurrenceEndDate.atTime(23, 59, 59));
           } else {
             throw new IllegalArgumentException("Please specify either occurrence count or end date for recurring events");
@@ -644,21 +646,21 @@ public class GuiView extends JFrame implements IView {
           refreshCalendarView();
         } else {
           JOptionPane.showMessageDialog(this,
-                "Failed to create event. There may be a scheduling conflict.",
-                "Creation Error",
-                JOptionPane.ERROR_MESSAGE);
+              "Failed to create event. There may be a scheduling conflict.",
+              "Creation Error",
+              JOptionPane.ERROR_MESSAGE);
         }
       } catch (Exception ex) {
         JOptionPane.showMessageDialog(this,
-              "Error creating event: " + ex.getMessage(),
-              "Input Error",
-              JOptionPane.ERROR_MESSAGE);
+            "Error creating event: " + ex.getMessage(),
+            "Input Error",
+            JOptionPane.ERROR_MESSAGE);
       }
     }
 
 
   }
-  // Helper to convert index to DayOfWeek
+
   private DayOfWeek getDayOfWeekFromIndex(int index) {
     switch (index) {
       case 0: return DayOfWeek.MONDAY;
@@ -672,155 +674,550 @@ public class GuiView extends JFrame implements IView {
     }
   }
 
-  private void editEvent() {
-    // This method is called from the side panel button
-    // We need to first select an event to edit
+  private void editEvents() {
+    // This method is called from the side panel button to edit multiple events
+    // Create a panel with search criteria options and event listing
+    JPanel mainPanel = new JPanel(new BorderLayout());
 
-    // Create a dialog to select a date
-    JPanel datePanel = new JPanel(new GridLayout(0, 2));
-    JTextField dateField = new JTextField(LocalDate.now().toString());
-    datePanel.add(new JLabel("Enter date (YYYY-MM-DD):"));
-    datePanel.add(dateField);
+    // Create the search criteria panel
+    JPanel searchPanel = new JPanel();
+    searchPanel.setLayout(new BoxLayout(searchPanel, BoxLayout.Y_AXIS));
 
-    int dateResult = JOptionPane.showConfirmDialog(
-        this, datePanel, "Select Date", JOptionPane.OK_CANCEL_OPTION);
+    // Create input fields with labels
+    JPanel namePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    JLabel nameLabel = new JLabel("Event Name (required):");
+    JTextField nameField = new JTextField(15);
+    namePanel.add(nameLabel);
+    namePanel.add(nameField);
 
-    if (dateResult == JOptionPane.OK_OPTION) {
+    JPanel startDatePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    JLabel startDateLabel = new JLabel("Start Date (YYYY-MM-DD):");
+    JTextField startDateField = new JTextField(10);
+    startDatePanel.add(startDateLabel);
+    startDatePanel.add(startDateField);
+
+    JPanel endDatePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    JLabel endDateLabel = new JLabel("End Date (YYYY-MM-DD):");
+    JTextField endDateField = new JTextField(10);
+    endDatePanel.add(endDateLabel);
+    endDatePanel.add(endDateField);
+
+    // Add all panels to the search panel
+    searchPanel.add(namePanel);
+    searchPanel.add(startDatePanel);
+    searchPanel.add(endDatePanel);
+
+    // Create non-selectable events list with scrollbar
+    DefaultListModel<String> listModel = new DefaultListModel<>();
+    JList<String> eventList = new JList<>(listModel);
+    eventList.setEnabled(false); // Make list non-selectable
+    JScrollPane scrollPane = new JScrollPane(eventList);
+    scrollPane.setPreferredSize(new Dimension(400, 200));
+
+    // Add label above event list
+    JPanel resultsPanel = new JPanel(new BorderLayout());
+    JLabel resultsLabel = new JLabel("Matching events that will be edited:");
+    resultsPanel.add(resultsLabel, BorderLayout.NORTH);
+    resultsPanel.add(scrollPane, BorderLayout.CENTER);
+
+    // Add components to main panel
+    mainPanel.add(searchPanel, BorderLayout.NORTH);
+    mainPanel.add(resultsPanel, BorderLayout.CENTER);
+
+    // List to store matching events
+    List<ICalendarEventDTO> matchingEvents = new ArrayList<>();
+
+    // Create the filter action
+    ActionListener filterAction = e -> {
       try {
-        LocalDate selectedDate = LocalDate.parse(dateField.getText());
-        List<ICalendarEventDTO> events = getEventsForDay(selectedCalendar, selectedDate);
+        // Get filter criteria from input fields
+        String eventNameFilter = nameField.getText().trim();
+        String startDateStr = startDateField.getText().trim();
+        String endDateStr = endDateField.getText().trim();
 
-        if (events.isEmpty()) {
-          JOptionPane.showMessageDialog(this,
-              "No events found on selected date.",
-              "No Events",
-              JOptionPane.INFORMATION_MESSAGE);
-          return;
-        }
+        // Get events from the model
+        List<ICalendarEventDTO> allEvents;
 
-        // Create a dialog to select an event
-        String[] eventNames = events.stream()
-            .map(e -> e.getEventName() + " (" +
-                e.getStartDateTime().format(DateTimeFormatter.ofPattern("HH:mm")) +
-                " - " +
-                e.getEndDateTime().format(DateTimeFormatter.ofPattern("HH:mm")) + ")")
-            .toArray(String[]::new);
+        if (!startDateStr.isEmpty() || !endDateStr.isEmpty()) {
+          // Use specified date range
+          LocalDate startFilterDate = startDateStr.isEmpty() ?
+              LocalDate.of(1900, 1, 1) : LocalDate.parse(startDateStr);
 
-        String selectedEventString = (String) JOptionPane.showInputDialog(
-            this,
-            "Select event to edit:",
-            "Select Event",
-            JOptionPane.QUESTION_MESSAGE,
-            null,
-            eventNames,
-            eventNames[0]);
+          LocalDate endFilterDate = endDateStr.isEmpty() ?
+              LocalDate.of(2100, 12, 31) : LocalDate.parse(endDateStr);
 
-        if (selectedEventString != null) {
-          // Find the selected event
-          int eventIndex = -1;
-          for (int i = 0; i < eventNames.length; i++) {
-            if (eventNames[i].equals(selectedEventString)) {
-              eventIndex = i;
-              break;
-            }
+          // Swap dates if end is before start
+          if (endFilterDate.isBefore(startFilterDate)) {
+            LocalDate temp = startFilterDate;
+            startFilterDate = endFilterDate;
+            endFilterDate = temp;
           }
 
-          if (eventIndex >= 0) {
-            // Edit the selected event
-            editEvent(events.get(eventIndex));
+          // Get events in the specified range directly from model
+          allEvents = model.getEventsInRange(
+              selectedCalendar,
+              startFilterDate.atStartOfDay(),
+              endFilterDate.atTime(23, 59, 59)
+          );
+        } else {
+          // If no date range specified, get all events (using a wide range)
+          allEvents = model.getEventsInRange(
+              selectedCalendar,
+              LocalDate.of(1900, 1, 1).atStartOfDay(),
+              LocalDate.of(2100, 12, 31).atTime(23, 59, 59)
+          );
+        }
+
+        // Clear previous results
+        matchingEvents.clear();
+        listModel.clear();
+
+        // Filter by name if specified
+        for (ICalendarEventDTO event : allEvents) {
+          boolean nameMatches = eventNameFilter.isEmpty() ||
+              event.getEventName().toLowerCase().contains(eventNameFilter.toLowerCase());
+
+          if (nameMatches) {
+            matchingEvents.add(event);
           }
         }
+
+        // Sort events by start date/time
+        matchingEvents.sort(Comparator.comparing(ICalendarEventDTO::getStartDateTime));
+
+        // Update the list with matching events
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        for (ICalendarEventDTO event : matchingEvents) {
+          listModel.addElement(event.getEventName() + " (" +
+              event.getStartDateTime().format(formatter) + " - " +
+              event.getEndDateTime().format(formatter) + ")");
+        }
+
+        // Update results label
+        resultsLabel.setText("Matching events that will be edited: " + matchingEvents.size() + " found");
+
+      } catch (DateTimeException ex) {
+        // Don't show error dialog during live filtering - just update the label
+        resultsLabel.setText("Invalid date format. Please use YYYY-MM-DD format.");
+        matchingEvents.clear();
+        listModel.clear();
       } catch (Exception ex) {
+        // Don't show error dialog during live filtering - just update the label
+        resultsLabel.setText("Error: " + ex.getMessage());
+        matchingEvents.clear();
+        listModel.clear();
+      }
+    };
+
+    // Create document listeners for auto-filtering
+    DocumentListener documentListener = new DocumentListener() {
+      @Override
+      public void insertUpdate(DocumentEvent e) {
+        filterAction.actionPerformed(null);
+      }
+
+      @Override
+      public void removeUpdate(DocumentEvent e) {
+        filterAction.actionPerformed(null);
+      }
+
+      @Override
+      public void changedUpdate(DocumentEvent e) {
+        filterAction.actionPerformed(null);
+      }
+    };
+
+    // Add document listeners to all input fields
+    nameField.getDocument().addDocumentListener(documentListener);
+    startDateField.getDocument().addDocumentListener(documentListener);
+    endDateField.getDocument().addDocumentListener(documentListener);
+
+    // Initial filter to populate the list
+    filterAction.actionPerformed(null);
+
+    // Show the dialog
+    int result = JOptionPane.showConfirmDialog(
+        this, mainPanel, "Edit Multiple Events", JOptionPane.OK_CANCEL_OPTION);
+
+    if (result == JOptionPane.OK_OPTION) {
+      // Check if event name is provided
+      if (nameField.getText().trim().isEmpty()) {
         JOptionPane.showMessageDialog(this,
-            "Error: " + ex.getMessage(),
-            "Error",
-            JOptionPane.ERROR_MESSAGE);
+            "Please enter an event name to filter events.",
+            "Event Name Required",
+            JOptionPane.WARNING_MESSAGE);
+
+        // Call the method again to reopen the dialog
+        editEvents();
+        return;
+      }
+
+      // Check if there are any matching events
+      if (matchingEvents.isEmpty()) {
+        JOptionPane.showMessageDialog(this,
+            "No events found matching your criteria.",
+            "No Events Found",
+            JOptionPane.INFORMATION_MESSAGE);
+        return;
+      }
+
+      // Create property selection dialog
+      JPanel propertyPanel = new JPanel(new BorderLayout());
+
+      // Create dropdown for property selection
+      JPanel dropdownPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+      JLabel propertyLabel = new JLabel("Select property to edit:");
+      String[] properties = {"Edit Name", "Edit Description", "Edit Location", "Set Private/Public"};
+      JComboBox<String> propertyDropdown = new JComboBox<>(properties);
+
+      dropdownPanel.add(propertyLabel);
+      dropdownPanel.add(propertyDropdown);
+
+      // Create panel for input field
+      JPanel inputPanel = new JPanel(new BorderLayout());
+      JLabel inputLabel = new JLabel("New value:");
+      JTextField inputField = new JTextField(20);
+
+      // For private/public option, use a dropdown instead of text field
+      JComboBox<String> privacyDropdown = new JComboBox<>(new String[]{"Private", "Public"});
+
+      // Show the appropriate input control based on selected property
+      propertyDropdown.addActionListener(e -> {
+        inputPanel.removeAll();
+        String selectedProperty = (String) propertyDropdown.getSelectedItem();
+
+        if ("Set Private/Public".equals(selectedProperty)) {
+          inputPanel.add(new JLabel("Set events to:"), BorderLayout.WEST);
+          inputPanel.add(privacyDropdown, BorderLayout.CENTER);
+        } else {
+          inputPanel.add(inputLabel, BorderLayout.WEST);
+          inputPanel.add(inputField, BorderLayout.CENTER);
+        }
+
+        inputPanel.revalidate();
+        inputPanel.repaint();
+      });
+
+      // Initialize with first option
+      if ("Set Private/Public".equals(propertyDropdown.getSelectedItem())) {
+        inputPanel.add(new JLabel("Set events to:"), BorderLayout.WEST);
+        inputPanel.add(privacyDropdown, BorderLayout.CENTER);
+      } else {
+        inputPanel.add(inputLabel, BorderLayout.WEST);
+        inputPanel.add(inputField, BorderLayout.CENTER);
+      }
+
+      // Add components to property panel
+      propertyPanel.add(dropdownPanel, BorderLayout.NORTH);
+      propertyPanel.add(inputPanel, BorderLayout.CENTER);
+
+      // Add message about number of events
+      JLabel eventsLabel = new JLabel("This will update " + matchingEvents.size() + " events");
+      eventsLabel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
+      propertyPanel.add(eventsLabel, BorderLayout.SOUTH);
+
+      // Show property edit dialog
+      int editResult = JOptionPane.showConfirmDialog(
+          this, propertyPanel, "Edit Events Property", JOptionPane.OK_CANCEL_OPTION);
+
+      if (editResult == JOptionPane.OK_OPTION) {
+        String selectedProperty = (String) propertyDropdown.getSelectedItem();
+        String propertyName;
+        String newValue;
+
+        // Determine property name and new value based on selection
+        switch (selectedProperty) {
+          case "Edit Name":
+            propertyName = "name";
+            newValue = inputField.getText().trim();
+
+            // Validate name is not empty
+            if (newValue.isEmpty()) {
+              JOptionPane.showMessageDialog(this,
+                  "Event name cannot be empty.",
+                  "Invalid Input",
+                  JOptionPane.WARNING_MESSAGE);
+              return;
+            }
+            break;
+          case "Edit Description":
+            propertyName = "description";
+            newValue = inputField.getText();
+            break;
+          case "Edit Location":
+            propertyName = "location";
+            newValue = inputField.getText();
+            break;
+          case "Set Private/Public":
+            propertyName = "isprivate";
+            // Convert dropdown selection to boolean string
+            newValue = "Private".equals(privacyDropdown.getSelectedItem()) ? "true" : "false";
+            break;
+          default:
+            JOptionPane.showMessageDialog(this,
+                "Invalid property selected.",
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Confirm before proceeding with many events
+        if (matchingEvents.size() > 10) {
+          int confirmResult = JOptionPane.showConfirmDialog(this,
+              "You are about to edit " + matchingEvents.size() + " events. Continue?",
+              "Confirm Batch Edit",
+              JOptionPane.YES_NO_OPTION);
+
+          if (confirmResult != JOptionPane.YES_OPTION) {
+            return;
+          }
+        }
+
+        try {
+          // Format the command according to the required pattern
+          DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
+
+          // Get the eventName for the command
+          String eventName = nameField.getText().trim();
+
+          // Format the new value
+          String valueParam = newValue.isEmpty() ? "null" : newValue;
+
+          String command;
+
+          // If a date is specified, use the format with "from"
+          if (!startDateField.getText().trim().isEmpty()) {
+            LocalDate startDate = LocalDate.parse(startDateField.getText().trim());
+            String fromDateStr = startDate.atStartOfDay().format(formatter);
+
+            // Build command: edit events property eventName from dateTime with newValue
+            command = "edit events " + propertyName + " " + eventName +
+                " from " + fromDateStr + " with " + valueParam;
+          } else {
+            // If no date specified, use the simpler format
+            // Build command: edit events property eventName newValue
+            command = "edit events " + propertyName + " " + eventName + " " + valueParam;
+          }
+
+          controller.executeCommand(command);
+
+          JOptionPane.showMessageDialog(this,
+              "Successfully updated " + matchingEvents.size() + " events.",
+              "Update Success",
+              JOptionPane.INFORMATION_MESSAGE);
+
+          // Refresh view
+          refreshCalendarView();
+
+        } catch (Exception ex) {
+          JOptionPane.showMessageDialog(this,
+              "Error updating events: " + ex.getMessage(),
+              "Update Error",
+              JOptionPane.ERROR_MESSAGE);
+        }
       }
     }
   }
 
+
+
   private void editEvent(ICalendarEventDTO event) {
-    // Create event dialog with fields pre-filled from the event
-    JPanel panel = new JPanel(new GridLayout(0, 2));
+    // Create main panel with BorderLayout
+    JPanel mainPanel = new JPanel(new BorderLayout());
 
-    JTextField nameField = new JTextField(event.getEventName());
-    JTextField descriptionField = new JTextField(
-        event.getEventDescription() != null ? event.getEventDescription() : "");
+    // Create panel for event details
+    JPanel detailsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+    JLabel eventDetailsLabel = new JLabel("Editing: " + event.getEventName() + " (" +
+        event.getStartDateTime().format(formatter) + " - " +
+        event.getEndDateTime().format(formatter) + ")");
+    detailsPanel.add(eventDetailsLabel);
+    mainPanel.add(detailsPanel, BorderLayout.NORTH);
 
-    DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
-    JTextField startTimeField = new JTextField(event.getStartDateTime().format(timeFormatter));
-    JTextField endTimeField = new JTextField(event.getEndDateTime().format(timeFormatter));
+    // Create property selection panel
+    JPanel propertyPanel = new JPanel(new BorderLayout());
 
-    // For recurring events
-    JCheckBox editAllInstancesCheck = new JCheckBox("Edit all instances of recurring event");
-    editAllInstancesCheck.setEnabled(Boolean.TRUE.equals(event.isRecurring()));
+    // Create dropdown for property selection
+    JPanel dropdownPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    JLabel propertyLabel = new JLabel("Select property to edit:");
+    String[] properties = {"Edit Name", "Edit Description", "Edit Location", "Edit Start Time", "Edit End Time", "Set Private/Public"};
+    JComboBox<String> propertyDropdown = new JComboBox<>(properties);
 
-    panel.add(new JLabel("Event Name:"));
-    panel.add(nameField);
-    panel.add(new JLabel("Description:"));
-    panel.add(descriptionField);
-    panel.add(new JLabel("Start Time (HH:MM):"));
-    panel.add(startTimeField);
-    panel.add(new JLabel("End Time (HH:MM):"));
-    panel.add(endTimeField);
+    dropdownPanel.add(propertyLabel);
+    dropdownPanel.add(propertyDropdown);
+    propertyPanel.add(dropdownPanel, BorderLayout.NORTH);
 
+    // Create panel for input field
+    JPanel inputPanel = new JPanel(new BorderLayout());
+    JLabel inputLabel = new JLabel("New value:");
+    JTextField inputField = new JTextField(20);
+
+    // For private/public option, use a dropdown
+    JComboBox<String> privacyDropdown = new JComboBox<>(new String[]{"Private", "Public"});
+
+    // For time fields, show a formatted example
+    JLabel helpLabel = new JLabel("");
+    helpLabel.setFont(helpLabel.getFont().deriveFont(Font.ITALIC, 10f));
+
+    // Show the appropriate input field based on selected property
+    propertyDropdown.addActionListener(e -> {
+      inputPanel.removeAll();
+      String selectedProperty = (String) propertyDropdown.getSelectedItem();
+
+      // Pre-fill field with current value
+      switch (selectedProperty) {
+        case "Edit Name":
+          inputPanel.add(inputLabel, BorderLayout.WEST);
+          inputPanel.add(inputField, BorderLayout.CENTER);
+          inputField.setText(event.getEventName());
+          helpLabel.setText("");
+          inputPanel.add(helpLabel, BorderLayout.SOUTH);
+          break;
+        case "Edit Description":
+          inputPanel.add(inputLabel, BorderLayout.WEST);
+          inputPanel.add(inputField, BorderLayout.CENTER);
+          inputField.setText(event.getEventDescription() != null ? event.getEventDescription() : "");
+          helpLabel.setText("");
+          inputPanel.add(helpLabel, BorderLayout.SOUTH);
+          break;
+        case "Edit Location":
+          inputPanel.add(inputLabel, BorderLayout.WEST);
+          inputPanel.add(inputField, BorderLayout.CENTER);
+          inputField.setText(event.getEventLocation() != null ? event.getEventLocation() : "");
+          helpLabel.setText("");
+          inputPanel.add(helpLabel, BorderLayout.SOUTH);
+          break;
+        case "Edit Start Time":
+          inputPanel.add(inputLabel, BorderLayout.WEST);
+          inputPanel.add(inputField, BorderLayout.CENTER);
+          DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+          inputField.setText(event.getStartDateTime().format(timeFormatter));
+          helpLabel.setText("Format: HH:MM (24-hour)");
+          inputPanel.add(helpLabel, BorderLayout.SOUTH);
+          break;
+        case "Edit End Time":
+          inputPanel.add(inputLabel, BorderLayout.WEST);
+          inputPanel.add(inputField, BorderLayout.CENTER);
+          DateTimeFormatter endTimeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+          inputField.setText(event.getEndDateTime().format(endTimeFormatter));
+          helpLabel.setText("Format: HH:MM (24-hour)");
+          inputPanel.add(helpLabel, BorderLayout.SOUTH);
+          break;
+        case "Set Private/Public":
+          inputPanel.add(new JLabel("Set event to:"), BorderLayout.WEST);
+          inputPanel.add(privacyDropdown, BorderLayout.CENTER);
+          boolean isPrivate = Boolean.TRUE.equals(event.isPrivate());
+          privacyDropdown.setSelectedItem(isPrivate ? "Private" : "Public");
+          break;
+      }
+
+      inputPanel.revalidate();
+      inputPanel.repaint();
+    });
+
+    // Initialize with first property
+    propertyDropdown.setSelectedIndex(0);
+
+    // Add input panel to property panel
+    propertyPanel.add(inputPanel, BorderLayout.CENTER);
+
+    // Add property panel to main panel
+    mainPanel.add(propertyPanel, BorderLayout.CENTER);
+
+    // For recurring events, add checkbox at the bottom
     if (Boolean.TRUE.equals(event.isRecurring())) {
-      panel.add(new JLabel("Recurring Event:"));
-      panel.add(editAllInstancesCheck);
+      JPanel checkboxPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+      JCheckBox editAllInstancesCheck = new JCheckBox("Edit all instances of recurring event");
+      editAllInstancesCheck.setEnabled(true);
+      checkboxPanel.add(editAllInstancesCheck);
+      mainPanel.add(checkboxPanel, BorderLayout.SOUTH);
     }
 
+    // Show the dialog
     int result = JOptionPane.showConfirmDialog(
-        this, panel, "Edit Event", JOptionPane.OK_CANCEL_OPTION);
+        this, mainPanel, "Edit Event", JOptionPane.OK_CANCEL_OPTION);
 
     if (result == JOptionPane.OK_OPTION) {
       try {
-        String name = nameField.getText();
-        String description = descriptionField.getText();
+        String selectedProperty = (String) propertyDropdown.getSelectedItem();
+        String propertyName;
+        String newValue;
+        boolean editAll = Boolean.TRUE.equals(event.isRecurring()) &&
+            ((JCheckBox)((JPanel)mainPanel.getComponent(2)).getComponent(0)).isSelected();
 
-        if (name.isEmpty()) {
-          throw new IllegalArgumentException("Event name cannot be empty");
+        // Validate and process input based on selected property
+        switch (selectedProperty) {
+          case "Edit Name":
+            propertyName = "name";
+            newValue = inputField.getText().trim();
+            if (newValue.isEmpty()) {
+              throw new IllegalArgumentException("Event name cannot be empty");
+            }
+            break;
+          case "Edit Description":
+            propertyName = "description";
+            newValue = inputField.getText().trim();
+            break;
+          case "Edit Location":
+            propertyName = "location";
+            newValue = inputField.getText().trim();
+            break;
+          case "Edit Start Time":
+            propertyName = "start";
+            // Validate time format and logic
+            try {
+              LocalTime newStartTime = LocalTime.parse(inputField.getText().trim());
+              LocalDateTime newStartDateTime = LocalDateTime.of(
+                  event.getStartDateTime().toLocalDate(), newStartTime);
+              if (newStartDateTime.isAfter(event.getEndDateTime())) {
+                throw new IllegalArgumentException("Start time must be before end time");
+              }
+              // Format for command
+              DateTimeFormatter cmdFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
+              newValue = newStartDateTime.format(cmdFormatter);
+            } catch (DateTimeParseException ex) {
+              throw new IllegalArgumentException("Invalid time format. Use HH:MM");
+            }
+            break;
+          case "Edit End Time":
+            propertyName = "end";
+            // Validate time format and logic
+            try {
+              LocalTime newEndTime = LocalTime.parse(inputField.getText().trim());
+              LocalDateTime newEndDateTime = LocalDateTime.of(
+                  event.getEndDateTime().toLocalDate(), newEndTime);
+              if (newEndDateTime.isBefore(event.getStartDateTime())) {
+                throw new IllegalArgumentException("End time must be after start time");
+              }
+              // Format for command
+              DateTimeFormatter endFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
+              newValue = newEndDateTime.format(endFormatter);
+            } catch (DateTimeParseException ex) {
+              throw new IllegalArgumentException("Invalid time format. Use HH:MM");
+            }
+            break;
+          case "Set Private/Public":
+            propertyName = "isprivate";
+            newValue = "Private".equals(privacyDropdown.getSelectedItem()) ? "true" : "false";
+            break;
+          default:
+            throw new IllegalArgumentException("Invalid property selected");
         }
 
-        // Parse times
-        LocalTime startTime = LocalTime.parse(startTimeField.getText());
-        LocalTime endTime = LocalTime.parse(endTimeField.getText());
-
-        if (startTime.isAfter(endTime)) {
-          throw new IllegalArgumentException("Start time must be before end time");
-        }
-
-        // Create new start and end times, preserving the original date
-        LocalDateTime newStartDateTime = LocalDateTime.of(
-            event.getStartDateTime().toLocalDate(), startTime);
-        LocalDateTime newEndDateTime = LocalDateTime.of(
-            event.getEndDateTime().toLocalDate(), endTime);
-
-        // Build the edit command
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
-        StringBuilder command = new StringBuilder();
-        command.append("edit event --calendar \"").append(selectedCalendar).append("\"");
-        command.append(" --eventName \"").append(event.getEventName()).append("\"");
-        command.append(" --from \"").append(event.getStartDateTime().format(formatter)).append("\"");
-        command.append(" --to \"").append(event.getEndDateTime().format(formatter)).append("\"");
-
-        // Add properties to update
-        if (!name.equals(event.getEventName())) {
-          command.append(" --property name --newValue \"").append(name).append("\"");
-        } else if (!description.equals(event.getEventDescription())) {
-          command.append(" --property description --newValue \"").append(description).append("\"");
-        } else if (!newStartDateTime.equals(event.getStartDateTime())) {
-          command.append(" --property start --newValue \"").append(newStartDateTime.format(formatter)).append("\"");
-        } else if (!newEndDateTime.equals(event.getEndDateTime())) {
-          command.append(" --property end --newValue \"").append(newEndDateTime.format(formatter)).append("\"");
-        }
+        // Build command: edit event property eventName from startDateTime to endDateTime with newValue
+        DateTimeFormatter cmdFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
+        String command = "edit event " + propertyName + " " + event.getEventName() +
+            " from " + event.getStartDateTime().format(cmdFormatter) +
+            " to " + event.getEndDateTime().format(cmdFormatter) +
+            " with " + newValue;
 
         // Add flag for all instances if applicable
-        if (editAllInstancesCheck.isSelected()) {
-          command.append(" --all");
+        if (editAll) {
+          command += " --all";
         }
 
         // Execute the command
-        controller.executeCommand(command.toString());
+        controller.executeCommand(command);
         refreshCalendarView();
 
       } catch (Exception ex) {

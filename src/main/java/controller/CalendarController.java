@@ -62,8 +62,10 @@ class CalendarController extends AbstractController implements ICalendarControll
 
   }
 
+
   @Override
   public void executeCommand(String command) {
+    System.out.println(command);
     runScanner(new Scanner(command), true, view, invoker, model);
   }
 
