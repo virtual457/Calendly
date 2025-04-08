@@ -344,50 +344,6 @@ public class GuiView extends JFrame implements IView {
     return zones.toArray(new String[0]);
   }
 
-  private void showDayEvents(LocalDate date) {
-    List<ICalendarEventDTO> events = getEventsForDay(selectedCalendar, date);
-
-    JPanel eventPanel = new JPanel();
-    eventPanel.setLayout(new BoxLayout(eventPanel, BoxLayout.Y_AXIS));
-
-    JLabel dateLabel = new JLabel(date.format(DateTimeFormatter.ofPattern("EEEE, MMMM d, yyyy")));
-    dateLabel.setFont(new Font("SansSerif", Font.BOLD, 14));
-    eventPanel.add(dateLabel);
-    eventPanel.add(Box.createVerticalStrut(10));
-
-    if (events.isEmpty()) {
-      eventPanel.add(new JLabel("No events scheduled for this day"));
-    } else {
-      for (ICalendarEventDTO event : events) {
-        JPanel singleEventPanel = new JPanel(new BorderLayout());
-        singleEventPanel.setBorder(BorderFactory.createLineBorder(Color.GRAY));
-
-        JLabel titleLabel = new JLabel(event.getEventName());
-        titleLabel.setFont(new Font("SansSerif", Font.BOLD, 12));
-
-        String timeStr = event.getStartDateTime().format(DateTimeFormatter.ofPattern("HH:mm")) +
-              " - " +
-              event.getEndDateTime().format(DateTimeFormatter.ofPattern("HH:mm"));
-        JLabel timeLabel = new JLabel(timeStr);
-
-        JButton editButton = new JButton("Edit");
-        editButton.addActionListener(e -> editEvent(event));
-
-        singleEventPanel.add(titleLabel, BorderLayout.NORTH);
-        singleEventPanel.add(timeLabel, BorderLayout.CENTER);
-        singleEventPanel.add(editButton, BorderLayout.EAST);
-
-        eventPanel.add(singleEventPanel);
-        eventPanel.add(Box.createVerticalStrut(5));
-      }
-    }
-
-    JButton addButton = new JButton("Add New Event");
-    addButton.addActionListener(e -> createEventOnDay(date));
-    eventPanel.add(addButton);
-
-    JOptionPane.showMessageDialog(this, eventPanel, "Events on " + date.toString(), JOptionPane.PLAIN_MESSAGE);
-  }
 
   private void createNewEvent() {
     // Create event on currently selected day or today
@@ -1106,5 +1062,355 @@ public class GuiView extends JFrame implements IView {
   public void start(ICommandExecutor commandExecutor, Readable readable) {
     this.controller = commandExecutor;
     initializeUI();
+  }
+
+
+  // Modification to your GuiView class
+
+  /**
+   * Shows all events for a specific day with options to view details, edit, or add events.
+   *
+   * @param date The date to show events for
+   */
+  private void showDayEvents(LocalDate date) {
+    List<ICalendarEventDTO> events = getEventsForDay(selectedCalendar, date);
+
+    // Create a custom dialog for better control over size and behavior
+    JDialog dialog = new JDialog(this, "Events on " + date.toString(), true);
+    dialog.setLayout(new BorderLayout());
+
+    // Main panel with scrolling capability for many events
+    JPanel mainPanel = new JPanel(new BorderLayout());
+    JPanel eventPanel = new JPanel();
+    eventPanel.setLayout(new BoxLayout(eventPanel, BoxLayout.Y_AXIS));
+    eventPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+    // Date header
+    JLabel dateLabel = new JLabel(date.format(DateTimeFormatter.ofPattern("EEEE, MMMM d, yyyy")));
+    dateLabel.setFont(new Font("SansSerif", Font.BOLD, 16));
+    dateLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
+
+    // Events list or message
+    if (events.isEmpty()) {
+      JLabel noEventsLabel = new JLabel("No events scheduled for this day");
+      noEventsLabel.setFont(new Font("SansSerif", Font.ITALIC, 12));
+      noEventsLabel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
+      eventPanel.add(noEventsLabel);
+    } else {
+      // Add a header or instructions
+      JLabel instructionLabel = new JLabel("Click View to see full event details");
+      instructionLabel.setFont(new Font("SansSerif", Font.ITALIC, 11));
+      instructionLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
+      eventPanel.add(instructionLabel);
+
+      // Add each event with view/edit buttons
+      for (ICalendarEventDTO event : events) {
+        JPanel singleEventPanel = new JPanel(new BorderLayout());
+        singleEventPanel.setBorder(BorderFactory.createCompoundBorder(
+              BorderFactory.createEmptyBorder(3, 0, 3, 0),
+              BorderFactory.createLineBorder(new Color(200, 200, 200))
+        ));
+
+        // Event name and icon based on privacy
+        JPanel titlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 2));
+        JLabel titleLabel = new JLabel(event.getEventName());
+        titleLabel.setFont(new Font("SansSerif", Font.BOLD, 13));
+
+        // Add icon for private events
+        if (Boolean.TRUE.equals(event.isPrivate())) {
+          titleLabel.setIcon(UIManager.getIcon("FileView.fileIcon"));
+        }
+
+        titlePanel.add(titleLabel);
+
+        // Time information
+        String timeStr = event.getStartDateTime().format(DateTimeFormatter.ofPattern("HH:mm")) +
+              " - " +
+              event.getEndDateTime().format(DateTimeFormatter.ofPattern("HH:mm"));
+        JLabel timeLabel = new JLabel(timeStr);
+        timeLabel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0));
+
+        // Button panel with View and Edit options
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 0));
+
+        JButton viewButton = new JButton("View");
+        viewButton.setFont(new Font("SansSerif", Font.PLAIN, 11));
+        viewButton.addActionListener(e -> showEventDetails(event));
+
+        JButton editButton = new JButton("Edit");
+        editButton.setFont(new Font("SansSerif", Font.PLAIN, 11));
+        editButton.addActionListener(e -> {
+          dialog.dispose();  // Close current dialog
+          editEvent(event);
+        });
+
+        buttonPanel.add(viewButton);
+        buttonPanel.add(editButton);
+
+        // Add a preview of location or description if available
+        JPanel previewPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 2));
+        if (event.getEventLocation() != null && !event.getEventLocation().isEmpty()) {
+          JLabel locationLabel = new JLabel("📍 " + event.getEventLocation());
+          locationLabel.setFont(new Font("SansSerif", Font.ITALIC, 11));
+          locationLabel.setForeground(new Color(100, 100, 100));
+          previewPanel.add(locationLabel);
+        } else if (event.getEventDescription() != null && !event.getEventDescription().isEmpty()) {
+          // Show truncated description if no location
+          String descPreview = event.getEventDescription();
+          if (descPreview.length() > 30) {
+            descPreview = descPreview.substring(0, 27) + "...";
+          }
+          JLabel descLabel = new JLabel(descPreview);
+          descLabel.setFont(new Font("SansSerif", Font.ITALIC, 11));
+          descLabel.setForeground(new Color(100, 100, 100));
+          previewPanel.add(descLabel);
+        }
+
+        // Recurring event indicator
+        if (Boolean.TRUE.equals(event.isRecurring())) {
+          JLabel recurringLabel = new JLabel("🔄");
+          recurringLabel.setToolTipText("Recurring event");
+          previewPanel.add(recurringLabel);
+        }
+
+        // Combine all elements
+        JPanel eventInfoPanel = new JPanel(new BorderLayout());
+        eventInfoPanel.add(titlePanel, BorderLayout.NORTH);
+        eventInfoPanel.add(timeLabel, BorderLayout.WEST);
+        eventInfoPanel.add(previewPanel, BorderLayout.SOUTH);
+
+        singleEventPanel.add(eventInfoPanel, BorderLayout.CENTER);
+        singleEventPanel.add(buttonPanel, BorderLayout.EAST);
+
+        eventPanel.add(singleEventPanel);
+        eventPanel.add(Box.createVerticalStrut(5));
+      }
+    }
+
+    // Button panel for adding new events
+    JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+    JButton addButton = new JButton("Add New Event");
+    addButton.addActionListener(e -> {
+      dialog.dispose();
+      createEventOnDay(date);
+    });
+
+    JButton closeButton = new JButton("Close");
+    closeButton.addActionListener(e -> dialog.dispose());
+
+    buttonPanel.add(addButton);
+    buttonPanel.add(closeButton);
+
+    // Assemble all parts
+    JScrollPane scrollPane = new JScrollPane(eventPanel);
+    scrollPane.setBorder(null);
+
+    mainPanel.add(dateLabel, BorderLayout.NORTH);
+    mainPanel.add(scrollPane, BorderLayout.CENTER);
+
+    dialog.add(mainPanel, BorderLayout.CENTER);
+    dialog.add(buttonPanel, BorderLayout.SOUTH);
+
+    // Size and display the dialog
+    dialog.setSize(450, 400);
+    dialog.setLocationRelativeTo(this);
+    dialog.setVisible(true);
+  }
+
+  /**
+   * Shows the detailed view of an event.
+   *
+   * @param event The event to show details for
+   */
+  private void showEventDetails(ICalendarEventDTO event) {
+    EventDetailsView detailsView = new EventDetailsView(this, event);
+    detailsView.setVisible(true);
+  }
+
+  // Add this method to view the details of all events in a calendar
+  private void viewAllEvents() {
+    JPanel optionsPanel = new JPanel(new GridLayout(0, 1));
+
+    JComboBox<String> viewTypeCombo = new JComboBox<>(new String[]{"Current Month", "Date Range", "All Events"});
+    optionsPanel.add(new JLabel("View events by:"));
+    optionsPanel.add(viewTypeCombo);
+
+    JTextField startDateField = new JTextField(10);
+    JTextField endDateField = new JTextField(10);
+
+    JPanel dateRangePanel = new JPanel(new GridLayout(0, 2));
+    dateRangePanel.add(new JLabel("Start Date (YYYY-MM-DD):"));
+    dateRangePanel.add(startDateField);
+    dateRangePanel.add(new JLabel("End Date (YYYY-MM-DD):"));
+    dateRangePanel.add(endDateField);
+
+    startDateField.setText(LocalDate.now().toString());
+    endDateField.setText(LocalDate.now().plusDays(7).toString());
+    dateRangePanel.setVisible(false);
+
+    optionsPanel.add(dateRangePanel);
+
+    viewTypeCombo.addActionListener(e -> {
+      String selected = (String) viewTypeCombo.getSelectedItem();
+      dateRangePanel.setVisible("Date Range".equals(selected));
+      optionsPanel.revalidate();
+      optionsPanel.repaint();
+    });
+
+    int result = JOptionPane.showConfirmDialog(
+          this,
+          optionsPanel,
+          "View Events",
+          JOptionPane.OK_CANCEL_OPTION,
+          JOptionPane.PLAIN_MESSAGE);
+
+    if (result == JOptionPane.OK_OPTION) {
+      String viewType = (String) viewTypeCombo.getSelectedItem();
+      List<ICalendarEventDTO> events;
+
+      if ("Current Month".equals(viewType)) {
+        events = model.getEventsInRange(
+              selectedCalendar,
+              currentYearMonth.atDay(1).atStartOfDay(),
+              currentYearMonth.atEndOfMonth().atTime(23, 59, 59));
+      } else if ("Date Range".equals(viewType)) {
+        try {
+          LocalDate startDate = LocalDate.parse(startDateField.getText());
+          LocalDate endDate = LocalDate.parse(endDateField.getText());
+
+          events = model.getEventsInRange(
+                selectedCalendar,
+                startDate.atStartOfDay(),
+                endDate.atTime(23, 59, 59));
+        } catch (Exception ex) {
+          JOptionPane.showMessageDialog(
+                this,
+                "Invalid date format. Please use YYYY-MM-DD format.",
+                "Input Error",
+                JOptionPane.ERROR_MESSAGE);
+          return;
+        }
+      } else { // All Events
+        events = model.getEventsInRange(
+              selectedCalendar,
+              LocalDateTime.MIN,
+              LocalDateTime.MAX);
+      }
+
+      displayEventsInTable(events, viewType);
+    }
+  }
+
+  /**
+   * Display a list of events in a table format.
+   *
+   * @param events The events to display
+   * @param viewTitle The title for the view window
+   */
+  private void displayEventsInTable(List<ICalendarEventDTO> events, String viewTitle) {
+    if (events.isEmpty()) {
+      JOptionPane.showMessageDialog(
+            this,
+            "No events found in the selected range.",
+            "No Events",
+            JOptionPane.INFORMATION_MESSAGE);
+      return;
+    }
+
+    // Define table column names
+    String[] columnNames = {"Event Name", "Start Date", "Start Time", "End Date", "End Time", "Location"};
+
+    // Create table data
+    Object[][] data = new Object[events.size()][columnNames.length];
+    DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+
+    for (int i = 0; i < events.size(); i++) {
+      ICalendarEventDTO event = events.get(i);
+      data[i][0] = event.getEventName();
+      data[i][1] = event.getStartDateTime().format(dateFormatter);
+      data[i][2] = event.getStartDateTime().format(timeFormatter);
+      data[i][3] = event.getEndDateTime().format(dateFormatter);
+      data[i][4] = event.getEndDateTime().format(timeFormatter);
+      data[i][5] = event.getEventLocation() != null ? event.getEventLocation() : "";
+    }
+
+    // Create table
+    JTable table = new JTable(data, columnNames);
+    table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    table.setAutoCreateRowSorter(true);
+
+    // Make columns an appropriate width
+    table.getColumnModel().getColumn(0).setPreferredWidth(150);  // Event name
+    table.getColumnModel().getColumn(1).setPreferredWidth(100);  // Start date
+    table.getColumnModel().getColumn(2).setPreferredWidth(80);   // Start time
+    table.getColumnModel().getColumn(3).setPreferredWidth(100);  // End date
+    table.getColumnModel().getColumn(4).setPreferredWidth(80);   // End time
+    table.getColumnModel().getColumn(5).setPreferredWidth(150);  // Location
+
+    // Add double-click listener to show event details
+    table.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        if (e.getClickCount() == 2) {
+          JTable target = (JTable) e.getSource();
+          int row = target.getSelectedRow();
+          // Convert view row index to model row index if the table is sorted
+          if (row >= 0) {
+            row = table.convertRowIndexToModel(row);
+            showEventDetails(events.get(row));
+          }
+        }
+      }
+    });
+
+    // Create panel with table and instructions
+    JPanel panel = new JPanel(new BorderLayout());
+    panel.add(new JLabel("Double-click an event to view details"), BorderLayout.NORTH);
+    panel.add(new JScrollPane(table), BorderLayout.CENTER);
+
+    // Add buttons for actions
+    JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+
+    JButton viewButton = new JButton("View Details");
+    viewButton.addActionListener(e -> {
+      int selectedRow = table.getSelectedRow();
+      if (selectedRow >= 0) {
+        selectedRow = table.convertRowIndexToModel(selectedRow);
+        showEventDetails(events.get(selectedRow));
+      } else {
+        JOptionPane.showMessageDialog(
+              this,
+              "Please select an event to view.",
+              "No Selection",
+              JOptionPane.INFORMATION_MESSAGE);
+      }
+    });
+
+    JButton editButton = new JButton("Edit Event");
+    editButton.addActionListener(e -> {
+      int selectedRow = table.getSelectedRow();
+      if (selectedRow >= 0) {
+        selectedRow = table.convertRowIndexToModel(selectedRow);
+        editEvent(events.get(selectedRow));
+      } else {
+        JOptionPane.showMessageDialog(
+              this,
+              "Please select an event to edit.",
+              "No Selection",
+              JOptionPane.INFORMATION_MESSAGE);
+      }
+    });
+
+    buttonPanel.add(viewButton);
+    buttonPanel.add(editButton);
+    panel.add(buttonPanel, BorderLayout.SOUTH);
+
+    // Create and show dialog
+    JDialog dialog = new JDialog(this, "Events - " + viewTitle, true);
+    dialog.setContentPane(panel);
+    dialog.setSize(800, 400);
+    dialog.setLocationRelativeTo(this);
+    dialog.setVisible(true);
   }
 }
