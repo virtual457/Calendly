@@ -72,7 +72,7 @@ public class CalendarAppTest {
   public void testMain_InvalidArguments_ShouldPrintUsageMessage() throws IOException {
     String[] args = {};
     CalendarApp.main(args);
-    String expectedMessage = "Usage: --mode <interactive|headless> [filePath]";
+    String expectedMessage = "Usage: --mode <interactive|headless|gui> [filePath]";
     assertTrue(outContent.toString().trim().contains(expectedMessage));
   }
 

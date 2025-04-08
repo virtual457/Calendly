@@ -73,8 +73,21 @@ public class CalendarControllerTest {
 
   private void testCommandInBothModes(String mode, String command) {
     resetModels();
-    controller.executeCommand(new StringReader("create calendar --name default --timezone " +
-        "America/New_york\nuse calendar --name default\n" + command).toString());
+
+    // Create the complete command string
+    String allCommands = "create calendar --name default --timezone America/New_York\n" +
+          "use calendar --name default\n" +
+          command;
+
+    // Split the string by newlines
+    String[] commandArray = allCommands.split("\n");
+
+    // Execute each command sequentially
+    for (String cmd : commandArray) {
+      if (!cmd.trim().isEmpty()) {
+        controller.executeCommand(cmd);
+      }
+    }
   }
 
 
@@ -1393,7 +1406,7 @@ public class CalendarControllerTest {
     assertEquals("description", model.lastEditEventsProperty);
     assertEquals("Updated Description", model.lastEditEventsNewValue);
     assertEquals("TeamMeeting", model.lastEditEventsName);
-    assertNull(model.lastEditEventsStartDateTime);
+    assertEquals(LocalDateTime.MIN, model.lastEditEventsStartDateTime);
   }
 
   // End of edit events function
@@ -2077,7 +2090,7 @@ public class CalendarControllerTest {
   public void testEditCommandMissingEventType() {
     String command = "edit";
     testCommandInBothModes(mode, command);
-    assertEquals("Error: fromIndex(2) > toIndex(1)",
+    assertEquals("Error: Enter at-least two tokens",
         view.getLastDisplayedMessage());
   }
 
@@ -2450,7 +2463,7 @@ public class CalendarControllerTest {
     // Fields for edit events
     String lastEditEventsProperty;
     String lastEditEventsName;
-    LocalDateTime lastEditEventsStartDateTime;
+    LocalDateTime lastEditEventsStartDateTime = null;
     String lastEditEventsNewValue;
 
     LocalDate lastPrintDate;
