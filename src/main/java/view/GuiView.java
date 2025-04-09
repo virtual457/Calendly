@@ -1,6 +1,7 @@
 package view;
 
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
 import java.io.File;
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -11,7 +12,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.swing.*;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import controller.ICalendarCommandAdapter;
@@ -338,7 +343,7 @@ public class GuiView extends JFrame implements IView {
    * Edits an existing event.
    */
   private void editEvent(ICalendarEventDTO event) {
-    EventEditDialog dialog = new EventEditDialog(this, event);
+    EventEditDialog dialog = new EventEditDialog(this, event,commandAdapter);
     dialog.setVisible(true);
 
     // If dialog closed with edit request
