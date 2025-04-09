@@ -20,6 +20,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -585,6 +586,582 @@ public class CalendarModelTest {
       assertEquals(DayOfWeek.FRIDAY, event.getStartDateTime().getDayOfWeek());
       assertEquals("Friday Review", event.getEventName());
     }
+  }
+
+  @Test
+  public void testAddEvents_SingleEventWithRecurringEvent_NoConflict() {
+    model = new CalendarModel();
+    model.createCalendar("MixedEventsCal", "America/New_York");
+
+    List<ICalendarEventDTO> events = new ArrayList<>();
+
+    // First add a recurring event on Tuesdays
+    events.add(ICalendarEventDTO.builder()
+        .setEventName("Weekly Meeting")
+        .setStartDateTime(LocalDateTime.of(2025, 6, 3, 10, 0))  // Tuesday
+        .setEndDateTime(LocalDateTime.of(2025, 6, 3, 11, 0))
+        .setAutoDecline(true)
+        .setRecurring(true)
+        .setRecurrenceDays(List.of(DayOfWeek.TUESDAY))
+        .setRecurrenceCount(4)  // Will occur on June 3, 10, 17, 24
+        .setEventDescription("Recurring team sync")
+        .setEventLocation("Conference Room")
+        .setPrivate(false)
+        .build());
+
+    // Add a single event that does NOT conflict with the recurring events
+    events.add(ICalendarEventDTO.builder()
+        .setEventName("Special Meeting")
+        .setStartDateTime(LocalDateTime.of(2025, 6, 17, 14, 0))  // Tuesday, but different time (2 PM)
+        .setEndDateTime(LocalDateTime.of(2025, 6, 17, 15, 0))
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("One-time special meeting")
+        .setEventLocation("Executive Room")
+        .setPrivate(true)
+        .build());
+
+    // Add a single event on a completely different day
+    events.add(ICalendarEventDTO.builder()
+        .setEventName("Friday Review")
+        .setStartDateTime(LocalDateTime.of(2025, 6, 20, 10, 0))  // Friday
+        .setEndDateTime(LocalDateTime.of(2025, 6, 20, 11, 0))
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("End of week review")
+        .setEventLocation("Room A")
+        .setPrivate(false)
+        .build());
+
+    // This should succeed since there are no conflicts
+    boolean success = model.addEvents("MixedEventsCal", events);
+    assertTrue(success);
+
+    // Verify all events were added
+    List<ICalendarEventDTO> allEvents = model.getEventsInRange(
+        "MixedEventsCal",
+        LocalDateTime.of(2025, 6, 1, 0, 0),
+        LocalDateTime.of(2025, 6, 30, 23, 59)
+    );
+
+    // Expected: 4 weekly meetings + 1 special meeting + 1 Friday meeting = 6 total
+    assertEquals(6, allEvents.size());
+
+    // Verify the distribution of events across days
+    Map<LocalDate, List<ICalendarEventDTO>> eventsByDate = allEvents.stream()
+        .collect(Collectors.groupingBy(e -> e.getStartDateTime().toLocalDate()));
+
+    // June 3, 10, 17, 24 should have the Weekly Meeting
+    assertTrue(eventsByDate.containsKey(LocalDate.of(2025, 6, 3)));
+    assertTrue(eventsByDate.containsKey(LocalDate.of(2025, 6, 10)));
+    assertTrue(eventsByDate.containsKey(LocalDate.of(2025, 6, 17)));
+    assertTrue(eventsByDate.containsKey(LocalDate.of(2025, 6, 24)));
+
+    // June 17 should have both Weekly Meeting and Special Meeting
+    assertEquals(2, eventsByDate.get(LocalDate.of(2025, 6, 17)).size());
+
+    // June 20 should have the Friday Review
+    assertTrue(eventsByDate.containsKey(LocalDate.of(2025, 6, 20)));
+    assertEquals(1, eventsByDate.get(LocalDate.of(2025, 6, 20)).size());
+
+    // Check the properties of the events on June 17
+    List<ICalendarEventDTO> june17Events = eventsByDate.get(LocalDate.of(2025, 6, 17));
+
+    ICalendarEventDTO morningEvent = june17Events.stream()
+        .filter(e -> e.getStartDateTime().toLocalTime().equals(LocalTime.of(10, 0)))
+        .findFirst()
+        .orElseThrow();
+    assertEquals("Weekly Meeting", morningEvent.getEventName());
+    assertEquals("Conference Room", morningEvent.getEventLocation());
+    assertFalse(morningEvent.isPrivate());
+
+    ICalendarEventDTO afternoonEvent = june17Events.stream()
+        .filter(e -> e.getStartDateTime().toLocalTime().equals(LocalTime.of(14, 0)))
+        .findFirst()
+        .orElseThrow();
+    assertEquals("Special Meeting", afternoonEvent.getEventName());
+    assertEquals("Executive Room", afternoonEvent.getEventLocation());
+    assertTrue(afternoonEvent.isPrivate());
+  }
+
+  @Test
+  public void testAddEvents_MixedSingleAndRecurring() {
+    model = new CalendarModel();
+    model.createCalendar("MixedCal", "America/New_York");
+
+    List<ICalendarEventDTO> events = new ArrayList<>();
+
+    // Add a non-recurring event
+    events.add(ICalendarEventDTO.builder()
+        .setEventName("OneTime Meeting")
+        .setStartDateTime(LocalDateTime.of(2025, 10, 15, 11, 0))
+        .setEndDateTime(LocalDateTime.of(2025, 10, 15, 12, 0))
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("One-time discussion")
+        .setEventLocation("Main Office")
+        .setPrivate(false)
+        .build());
+
+    // Add a recurring event
+    events.add(ICalendarEventDTO.builder()
+        .setEventName("Weekly Status")
+        .setStartDateTime(LocalDateTime.of(2025, 10, 13, 9, 0))
+        .setEndDateTime(LocalDateTime.of(2025, 10, 13, 9, 30))
+        .setAutoDecline(true)
+        .setRecurring(true)
+        .setRecurrenceDays(List.of(DayOfWeek.MONDAY))
+        .setRecurrenceCount(3)
+        .setEventDescription("Weekly team status")
+        .setEventLocation("Conference Room")
+        .setPrivate(false)
+        .build());
+
+    // Add an all-day event
+    events.add(ICalendarEventDTO.builder()
+        .setEventName("Company Holiday")
+        .setStartDateTime(LocalDateTime.of(2025, 10, 31, 0, 0))
+        .setEndDateTime(LocalDateTime.of(2025, 10, 31, 23, 59, 59))
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Halloween")
+        .setEventLocation("")
+        .setPrivate(true)
+        .build());
+
+    // Add the events to the calendar
+    boolean success = model.addEvents("MixedCal", events);
+    assertTrue(success);
+
+    // Verify all events were added correctly
+
+    // Check the one-time meeting
+    List<ICalendarEventDTO> oneTimeMeetings = model.getEventsInRange(
+        "MixedCal",
+        LocalDateTime.of(2025, 10, 15, 0, 0),
+        LocalDateTime.of(2025, 10, 15, 23, 59)
+    );
+
+    assertEquals(1, oneTimeMeetings.size());
+    ICalendarEventDTO oneTimeMeeting = oneTimeMeetings.get(0);
+    assertEquals("OneTime Meeting", oneTimeMeeting.getEventName());
+    assertEquals(LocalDateTime.of(2025, 10, 15, 11, 0), oneTimeMeeting.getStartDateTime());
+    assertEquals(LocalDateTime.of(2025, 10, 15, 12, 0), oneTimeMeeting.getEndDateTime());
+    assertEquals("Main Office", oneTimeMeeting.getEventLocation());
+    assertEquals("One-time discussion", oneTimeMeeting.getEventDescription());
+    assertFalse(oneTimeMeeting.isPrivate());
+
+    // Check the recurring weekly status meetings
+    List<ICalendarEventDTO> weeklyMeetings = model.getEventsInRange(
+            "MixedCal",
+            LocalDateTime.of(2025, 10, 1, 0, 0),
+            LocalDateTime.of(2025, 10, 31, 23, 59)
+        ).stream()
+        .filter(e -> "Weekly Status".equals(e.getEventName()))
+        .collect(Collectors.toList());
+
+    assertEquals(3, weeklyMeetings.size());
+
+    // Verify they all occur on Mondays
+    for (ICalendarEventDTO meeting : weeklyMeetings) {
+      assertEquals(DayOfWeek.MONDAY, meeting.getStartDateTime().getDayOfWeek());
+      assertEquals(LocalTime.of(9, 0), meeting.getStartDateTime().toLocalTime());
+      assertEquals(LocalTime.of(9, 30), meeting.getEndDateTime().toLocalTime());
+      assertEquals("Conference Room", meeting.getEventLocation());
+      assertEquals("Weekly team status", meeting.getEventDescription());
+    }
+
+    // Check the holiday all-day event
+    List<ICalendarEventDTO> holidays = model.getEventsInRange(
+            "MixedCal",
+            LocalDateTime.of(2025, 10, 31, 0, 0),
+            LocalDateTime.of(2025, 10, 31, 23, 59)
+        ).stream()
+        .filter(e -> "Company Holiday".equals(e.getEventName()))
+        .collect(Collectors.toList());
+
+    assertEquals(1, holidays.size());
+    ICalendarEventDTO holiday = holidays.get(0);
+    assertEquals("Company Holiday", holiday.getEventName());
+    assertEquals(LocalDateTime.of(2025, 10, 31, 0, 0), holiday.getStartDateTime());
+    assertEquals(LocalDateTime.of(2025, 10, 31, 23, 59, 59), holiday.getEndDateTime());
+    assertEquals("Halloween", holiday.getEventDescription());
+    assertTrue(holiday.isPrivate());
+  }
+
+  @Test
+  public void testAddEvents_MultipleRecurringPatterns() {
+    model = new CalendarModel();
+    model.createCalendar("MultiRecurringCal", "America/New_York");
+
+    List<ICalendarEventDTO> events = new ArrayList<>();
+
+    // Recurring event with count
+    events.add(ICalendarEventDTO.builder()
+        .setEventName("Team Standup")
+        .setStartDateTime(LocalDateTime.of(2025, 11, 3, 9, 0))  // Monday
+        .setEndDateTime(LocalDateTime.of(2025, 11, 3, 9, 30))
+        .setAutoDecline(true)
+        .setRecurring(true)
+        .setRecurrenceDays(Arrays.asList(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY, DayOfWeek.FRIDAY))
+        .setRecurrenceCount(2)  // 2 occurrences per day
+        .setEventDescription("Daily team standup")
+        .setEventLocation("Virtual Room")
+        .setPrivate(false)
+        .build());
+
+    // Recurring event with end date
+    events.add(ICalendarEventDTO.builder()
+        .setEventName("Sprint Planning")
+        .setStartDateTime(LocalDateTime.of(2025, 11, 4, 14, 0))  // Tuesday
+        .setEndDateTime(LocalDateTime.of(2025, 11, 4, 15, 30))
+        .setAutoDecline(true)
+        .setRecurring(true)
+        .setRecurrenceDays(List.of(DayOfWeek.TUESDAY))
+        .setRecurrenceEndDate(LocalDateTime.of(2025, 12, 15, 23, 59))
+        .setEventDescription("Biweekly planning")
+        .setEventLocation("Conference Room")
+        .setPrivate(false)
+        .build());
+
+    boolean success = model.addEvents("MultiRecurringCal", events);
+    assertTrue(success);
+
+    // Verify Team Standup occurrences (6 total: 2 for each day in M,W,F)
+    List<ICalendarEventDTO> standups = model.getEventsInRange(
+            "MultiRecurringCal",
+            LocalDateTime.of(2025, 11, 1, 0, 0),
+            LocalDateTime.of(2025, 11, 30, 23, 59)
+        ).stream()
+        .filter(e -> "Team Standup".equals(e.getEventName()))
+        .collect(Collectors.toList());
+
+    assertEquals(6, standups.size());
+
+    // Verify distribution across days
+    Map<DayOfWeek, Long> standupsByDay = standups.stream()
+        .collect(Collectors.groupingBy(
+            e -> e.getStartDateTime().getDayOfWeek(),
+            Collectors.counting()
+        ));
+
+    assertEquals(2, (long)standupsByDay.get(DayOfWeek.MONDAY));
+    assertEquals(2, (long)standupsByDay.get(DayOfWeek.WEDNESDAY));
+    assertEquals(2, (long)standupsByDay.get(DayOfWeek.FRIDAY));
+
+    // Verify Sprint Planning occurrences (biweekly until Dec 15)
+    List<ICalendarEventDTO> plannings = model.getEventsInRange(
+            "MultiRecurringCal",
+            LocalDateTime.of(2025, 11, 1, 0, 0),
+            LocalDateTime.of(2025, 12, 31, 23, 59)
+        ).stream()
+        .filter(e -> "Sprint Planning".equals(e.getEventName()))
+        .sorted(Comparator.comparing(ICalendarEventDTO::getStartDateTime))
+        .collect(Collectors.toList());
+
+    // Should be 3 occurrences: Nov 4, Nov 18, Dec 2
+    assertEquals(3, plannings.size());
+
+    // Verify they're on the expected dates
+    assertEquals(LocalDate.of(2025, 11, 4), plannings.get(0).getStartDateTime().toLocalDate());
+    assertEquals(LocalDate.of(2025, 11, 18), plannings.get(1).getStartDateTime().toLocalDate());
+    assertEquals(LocalDate.of(2025, 12, 2), plannings.get(2).getStartDateTime().toLocalDate());
+
+    // Verify their properties
+    for (ICalendarEventDTO planning : plannings) {
+      assertEquals(DayOfWeek.TUESDAY, planning.getStartDateTime().getDayOfWeek());
+      assertEquals(LocalTime.of(14, 0), planning.getStartDateTime().toLocalTime());
+      assertEquals(LocalTime.of(15, 30), planning.getEndDateTime().toLocalTime());
+      assertEquals("Conference Room", planning.getEventLocation());
+      assertEquals("Biweekly planning", planning.getEventDescription());
+    }
+  }
+
+  @Test
+  public void testAddEvents_WithDifferentAutoDeclineSettings_ConflictHandling() {
+    model = new CalendarModel();
+    model.createCalendar("ConflictTestCal", "America/New_York");
+
+    List<ICalendarEventDTO> events = new ArrayList<>();
+
+    // First event with autoDecline = true
+    events.add(ICalendarEventDTO.builder()
+        .setEventName("First Meeting")
+        .setStartDateTime(LocalDateTime.of(2025, 8, 15, 10, 0))
+        .setEndDateTime(LocalDateTime.of(2025, 8, 15, 11, 0))
+        .setAutoDecline(true)  // Will decline conflicts
+        .setRecurring(false)
+        .setEventDescription("Important discussion")
+        .setEventLocation("Room A")
+        .setPrivate(false)
+        .build());
+
+    // Add this first batch of events
+    assertTrue(model.addEvents("ConflictTestCal", events));
+
+    // Now try to add conflicting events
+    List<ICalendarEventDTO> conflictingEvents = new ArrayList<>();
+
+    // Conflicting event with autoDecline = true (should be rejected)
+    conflictingEvents.add(ICalendarEventDTO.builder()
+        .setEventName("Conflicting With AutoDecline")
+        .setStartDateTime(LocalDateTime.of(2025, 8, 15, 10, 30))
+        .setEndDateTime(LocalDateTime.of(2025, 8, 15, 11, 30))
+        .setAutoDecline(true)  // Will prevent creation due to conflict
+        .setRecurring(false)
+        .setEventDescription("Should be rejected")
+        .setEventLocation("Room B")
+        .setPrivate(false)
+        .build());
+
+    // Non-conflicting event (should be accepted)
+    conflictingEvents.add(ICalendarEventDTO.builder()
+        .setEventName("Non-Conflicting Meeting")
+        .setStartDateTime(LocalDateTime.of(2025, 8, 15, 14, 0))
+        .setEndDateTime(LocalDateTime.of(2025, 8, 15, 15, 0))
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Should be accepted")
+        .setEventLocation("Room C")
+        .setPrivate(false)
+        .build());
+
+    try {
+      model.addEvents("ConflictTestCal", conflictingEvents);
+      fail("Expected IllegalStateException for conflict not thrown");
+    } catch (IllegalStateException e) {
+      // Expected exception for conflict
+      assertTrue(e.getMessage().contains("conflict"));
+    }
+
+    // Verify that neither event was added due to the conflict
+    List<ICalendarEventDTO> eventsAfterConflict = model.getEventsInRange(
+        "ConflictTestCal",
+        LocalDateTime.of(2025, 8, 15, 0, 0),
+        LocalDateTime.of(2025, 8, 15, 23, 59)
+    );
+
+    // Only the original meeting should exist
+    assertEquals(1, eventsAfterConflict.size());
+    assertEquals("First Meeting", eventsAfterConflict.get(0).getEventName());
+
+    // Now try a conflicting event without autoDecline
+    List<ICalendarEventDTO> nonAutoDeclineEvents = new ArrayList<>();
+
+    nonAutoDeclineEvents.add(ICalendarEventDTO.builder()
+        .setEventName("Overlapping Without AutoDecline")
+        .setStartDateTime(LocalDateTime.of(2025, 8, 15, 10, 30))
+        .setEndDateTime(LocalDateTime.of(2025, 8, 15, 11, 30))
+        .setAutoDecline(false)  // Will allow overlap
+        .setRecurring(false)
+        .setEventDescription("Should be allowed despite conflict")
+        .setEventLocation("Room D")
+        .setPrivate(false)
+        .build());
+
+    // This should succeed since autoDecline is false
+    assertTrue(model.addEvents("ConflictTestCal", nonAutoDeclineEvents));
+
+    // Verify both events now exist
+    List<ICalendarEventDTO> finalEvents = model.getEventsInRange(
+        "ConflictTestCal",
+        LocalDateTime.of(2025, 8, 15, 0, 0),
+        LocalDateTime.of(2025, 8, 15, 23, 59)
+    );
+
+    assertEquals(2, finalEvents.size());
+
+    // Verify the event names
+    Set<String> eventNames = finalEvents.stream()
+        .map(ICalendarEventDTO::getEventName)
+        .collect(Collectors.toSet());
+
+    assertTrue(eventNames.contains("First Meeting"));
+    assertTrue(eventNames.contains("Overlapping Without AutoDecline"));
+  }
+
+  @Test
+  public void testAddEvents_EditAndCopyRecurringEvents() {
+    model = new CalendarModel();
+    model.createCalendar("SourceCal", "America/New_York");
+    model.createCalendar("TargetCal", "Europe/London");
+
+    List<ICalendarEventDTO> events = new ArrayList<>();
+
+    // Add a recurring event
+    events.add(ICalendarEventDTO.builder()
+        .setEventName("Daily Standup")
+        .setStartDateTime(LocalDateTime.of(2025, 12, 1, 9, 0))  // Monday
+        .setEndDateTime(LocalDateTime.of(2025, 12, 1, 9, 15))
+        .setAutoDecline(true)
+        .setRecurring(true)
+        .setRecurrenceDays(Arrays.asList(DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY,
+            DayOfWeek.THURSDAY, DayOfWeek.FRIDAY))
+        .setRecurrenceCount(2)  // 2 occurrences of each day
+        .setEventDescription("Quick sync")
+        .setEventLocation("Room A")
+        .setPrivate(false)
+        .build());
+
+    // Add a non-recurring event
+    events.add(ICalendarEventDTO.builder()
+        .setEventName("Planning Session")
+        .setStartDateTime(LocalDateTime.of(2025, 12, 1, 14, 0))
+        .setEndDateTime(LocalDateTime.of(2025, 12, 1, 15, 0))
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Project planning")
+        .setEventLocation("Room B")
+        .setPrivate(false)
+        .build());
+
+    // Add all events to source calendar
+    assertTrue(model.addEvents("SourceCal", events));
+
+    // Edit the location of all standup meetings
+    boolean edited = model.editEvents("SourceCal", "location", "Daily Standup",
+        LocalDateTime.of(2025, 12, 1, 0, 0), "Virtual Room", true);
+    assertTrue(edited);
+
+    // Verify standup locations were updated
+    List<ICalendarEventDTO> sourceEvents = model.getEventsInRange(
+        "SourceCal",
+        LocalDateTime.of(2025, 12, 1, 0, 0),
+        LocalDateTime.of(2025, 12, 5, 23, 59)
+    );
+
+    // Count the events
+    long standupCount = sourceEvents.stream()
+        .filter(e -> "Daily Standup".equals(e.getEventName()))
+        .count();
+
+    // Should be 10 standups (5 days × 2 occurrences)
+    assertEquals(10, standupCount);
+
+    // All standups should have updated location
+    for (ICalendarEventDTO event : sourceEvents) {
+      if ("Daily Standup".equals(event.getEventName())) {
+        assertEquals("Virtual Room", event.getEventLocation());
+      }
+    }
+
+    // Now copy all events to the target calendar
+    boolean copied = model.copyEvents(
+        "SourceCal",
+        LocalDateTime.of(2025, 12, 1, 0, 0),
+        LocalDateTime.of(2025, 12, 5, 23, 59),
+        "TargetCal",
+        LocalDate.of(2026, 1, 5)  // January 5, 2026
+    );
+    assertTrue(copied);
+
+    // Verify events in target calendar
+    List<ICalendarEventDTO> targetEvents = model.getEventsInRange(
+        "TargetCal",
+        LocalDateTime.of(2026, 1, 5, 0, 0),
+        LocalDateTime.of(2026, 1, 9, 23, 59)
+    );
+
+    // Should have same number of events (10 standups + 1 planning = 11)
+    assertEquals(11, targetEvents.size());
+
+    // Check timezone adjustment for standups (NY 9:00 → London 14:00, 5 hour difference)
+    for (ICalendarEventDTO event : targetEvents) {
+      if ("Daily Standup".equals(event.getEventName())) {
+        assertEquals(LocalTime.of(14, 0), event.getStartDateTime().toLocalTime());
+        assertEquals(LocalTime.of(14, 15), event.getEndDateTime().toLocalTime());
+        assertEquals("Virtual Room", event.getEventLocation());
+      } else if ("Planning Session".equals(event.getEventName())) {
+        assertEquals(LocalTime.of(19, 0), event.getStartDateTime().toLocalTime());  // 14:00 NY → 19:00 London
+        assertEquals("Room B", event.getEventLocation());
+      }
+    }
+  }
+
+  @Test
+  public void testAddEvents_MultipleDaysMultipleEvents_NoConflicts() {
+    model = new CalendarModel();
+    model.createCalendar("WeekCal", "America/New_York");
+
+    List<ICalendarEventDTO> events = new ArrayList<>();
+
+    // Monday morning meeting
+    events.add(ICalendarEventDTO.builder()
+        .setEventName("Monday Morning")
+        .setStartDateTime(LocalDateTime.of(2025, 5, 5, 9, 0))  // Monday
+        .setEndDateTime(LocalDateTime.of(2025, 5, 5, 10, 0))
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Start of week")
+        .setEventLocation("Room A")
+        .setPrivate(false)
+        .build());
+
+    // Monday afternoon meeting
+    events.add(ICalendarEventDTO.builder()
+        .setEventName("Monday Afternoon")
+        .setStartDateTime(LocalDateTime.of(2025, 5, 5, 14, 0))  // Monday
+        .setEndDateTime(LocalDateTime.of(2025, 5, 5, 15, 0))
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("End of day")
+        .setEventLocation("Room B")
+        .setPrivate(false)
+        .build());
+
+    // Wednesday meeting
+    events.add(ICalendarEventDTO.builder()
+        .setEventName("Wednesday Review")
+        .setStartDateTime(LocalDateTime.of(2025, 5, 7, 11, 0))  // Wednesday
+        .setEndDateTime(LocalDateTime.of(2025, 5, 7, 12, 0))
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("Mid-week review")
+        .setEventLocation("Room C")
+        .setPrivate(false)
+        .build());
+
+    // Friday meeting
+    events.add(ICalendarEventDTO.builder()
+        .setEventName("Friday Wrap-up")
+        .setStartDateTime(LocalDateTime.of(2025, 5, 9, 16, 0))  // Friday
+        .setEndDateTime(LocalDateTime.of(2025, 5, 9, 17, 0))
+        .setAutoDecline(true)
+        .setRecurring(false)
+        .setEventDescription("End of week")
+        .setEventLocation("Conference Room")
+        .setPrivate(true)  // Private event
+        .build());
+
+    // Add all events
+    boolean success = model.addEvents("WeekCal", events);
+    assertTrue(success);
+
+    // Verify all events were added
+    List<ICalendarEventDTO> weekEvents = model.getEventsInRange(
+        "WeekCal",
+        LocalDateTime.of(2025, 5, 5, 0, 0),  // Monday
+        LocalDateTime.of(2025, 5, 9, 23, 59)  // Friday
+    );
+
+    assertEquals(4, weekEvents.size());
+
+    // Verify days of week
+    Map<DayOfWeek, List<ICalendarEventDTO>> eventsByDay = weekEvents.stream()
+        .collect(Collectors.groupingBy(e -> e.getStartDateTime().getDayOfWeek()));
+
+    assertEquals(2, eventsByDay.get(DayOfWeek.MONDAY).size());
+    assertEquals(1, eventsByDay.get(DayOfWeek.WEDNESDAY).size());
+    assertEquals(1, eventsByDay.get(DayOfWeek.FRIDAY).size());
+
+    // Verify the Friday event is private
+    ICalendarEventDTO fridayEvent = weekEvents.stream()
+        .filter(e -> "Friday Wrap-up".equals(e.getEventName()))
+        .findFirst()
+        .orElseThrow();
+
+    assertTrue(fridayEvent.isPrivate());
+    assertEquals("Conference Room", fridayEvent.getEventLocation());
   }
 
 
