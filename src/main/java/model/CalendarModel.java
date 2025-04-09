@@ -8,8 +8,10 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -605,47 +607,77 @@ class CalendarModel implements ICalendarModel {
     ICalendar targetCalendar = getCalendarByName(calendarName);
     List<String> errors = new ArrayList<>();
 
-    // Validate each event
+    // Create a list to hold all new occurrences to check for conflicts among them
+    List<CalendarEvent> allNewOccurrences = new ArrayList<>();
+    // Keep track of which events have autoDecline enabled
+    Map<CalendarEvent, Boolean> autoDeclineMap = new HashMap<>();
+
+    // First validation phase - basic properties + prepare occurrences
     for (ICalendarEventDTO eventDTO : events) {
       try {
         // Basic validation
         validateBasicEvent(eventDTO);
 
+        boolean autoDecline = (eventDTO.isAutoDecline() != null) && eventDTO.isAutoDecline();
+
         if (Boolean.TRUE.equals(eventDTO.isRecurring())) {
           validateRecurringEvent(eventDTO);
+          List<CalendarEvent> occurrences = generateRecurringOccurrences(eventDTO);
+          for (CalendarEvent occurrence : occurrences) {
+            allNewOccurrences.add(occurrence);
+            autoDeclineMap.put(occurrence, autoDecline);
+          }
         } else {
           validateNonRecurringEvent(eventDTO);
-        }
-
-        // Check for conflicts (for events with auto-decline set)
-        if (eventDTO.isAutoDecline() != null && eventDTO.isAutoDecline()) {
-          if (Boolean.TRUE.equals(eventDTO.isRecurring())) {
-            List<CalendarEvent> occurrences = generateRecurringOccurrences(eventDTO);
-            for (CalendarEvent occurrence : occurrences) {
-              if (checkConflictForEvent(occurrence, targetCalendar.getEvents())) {
-                errors.add("Event " + eventDTO.getEventName() +
-                      " has a recurring instance that conflicts with existing events");
-                break;
-              }
-            }
-          } else {
-            if (doesEventConflict(targetCalendar.getEvents(), eventDTO)) {
-              errors.add("Event " + eventDTO.getEventName() +
-                    " conflicts with existing events");
-            }
-          }
+          CalendarEvent event = createSingleEvent(eventDTO);
+          allNewOccurrences.add(event);
+          autoDeclineMap.put(event, autoDecline);
         }
       } catch (Exception e) {
         errors.add("Event " + eventDTO.getEventName() + ": " + e.getMessage());
       }
     }
 
-    // If any validation failed, don't add any events
+// If there are validation errors, stop here
     if (!errors.isEmpty()) {
       throw new IllegalStateException("Cannot add all events: " + String.join("; ", errors));
     }
 
-    // If we got here, all events passed validation, so add them
+// Second phase - check for conflicts (both with existing events and among new events)
+    List<ICalendarEvent> existingEvents = targetCalendar.getEvents();
+    for (int i = 0; i < allNewOccurrences.size(); i++) {
+      CalendarEvent event = allNewOccurrences.get(i);
+
+      // Only check conflicts if this event has autoDecline enabled
+      if (autoDeclineMap.get(event)) {
+        // Check against existing events
+        for (ICalendarEvent existing : existingEvents) {
+          if (existing.doesEventConflict(event)) {
+            errors.add("Event " + event.getEventName() + " conflicts with existing event " + existing.getEventName());
+            break;
+          }
+        }
+
+        // Check against other new events with autoDecline enabled
+        for (int j = 0; j < allNewOccurrences.size(); j++) {
+          if (i == j) continue; // Skip comparing with itself
+
+          CalendarEvent otherNew = allNewOccurrences.get(j);
+          // Only check if the other event also has autoDecline
+          if (autoDeclineMap.get(otherNew) && event.doesEventConflict(otherNew)) {
+            errors.add("New event " + event.getEventName() + " conflicts with another new event " + otherNew.getEventName());
+            break;
+          }
+        }
+      }
+    }
+
+// If any conflicts were found, don't add any events
+    if (!errors.isEmpty()) {
+      throw new IllegalStateException("Cannot add all events: " + String.join("; ", errors));
+    }
+
+// If all checks pass, add all the events
     for (ICalendarEventDTO eventDTO : events) {
       if (Boolean.TRUE.equals(eventDTO.isRecurring())) {
         List<CalendarEvent> occurrences = generateRecurringOccurrences(eventDTO);
