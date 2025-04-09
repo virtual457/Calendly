@@ -1,6 +1,7 @@
 package controller;
 
 import java.util.List;
+import java.util.Objects;
 
 import model.ICalendarModel;
 import view.IView;
@@ -14,7 +15,7 @@ public class CommandExecutorAdaptor implements ICommandExecutor {
   private ICalendarCommandAdapter commandAdapter;
 
   public CommandExecutorAdaptor(ICalendarController controller) {
-    this.controller = controller;
+    this.controller = Objects.requireNonNull(controller);
   }
 
   @Override

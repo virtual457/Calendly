@@ -26,9 +26,7 @@ public interface ICalendarController extends ICommandExecutor{
 
   static ICalendarController createInstance(String version, ICalendarModel model,
                                             IView view) {
-    if (version.equalsIgnoreCase("basic")) {
-      throw new IllegalArgumentException("Unsupported version: " + version);
-    } else if (version.equalsIgnoreCase("advanced")) {
+    if (version.equalsIgnoreCase("advanced")) {
       return new CalendarController(model, view);
     } else {
       throw new IllegalArgumentException("Unsupported version: " + version);
