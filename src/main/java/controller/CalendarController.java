@@ -13,6 +13,7 @@ import controller.command.EditCalendarCommand;
 import controller.command.EditEventCommand;
 import controller.command.EditEventsCalendarCommand;
 import controller.command.ExportEventsCommand;
+import controller.command.ImportCalendarCommand;
 import controller.command.PrintEventsCommand;
 import controller.command.ShowStatusCommand;
 import controller.command.UseCalendarCommand;
@@ -40,6 +41,7 @@ class CalendarController extends AbstractController implements ICalendarControll
     invoker.registerCommand("copy event", CopyEventCommand.class);
     invoker.registerCommand("copy events", CopyEventsCommand.class);
     invoker.registerCommand("export cal", ExportEventsCommand.class);
+    invoker.registerCommand("import cal", ImportCalendarCommand.class);
     invoker.registerCommand("edit event", EditEventCommand.class);
     invoker.registerCommand("edit events", EditEventsCalendarCommand.class);
     invoker.registerCommand("show status", ShowStatusCommand.class);
@@ -50,8 +52,7 @@ class CalendarController extends AbstractController implements ICalendarControll
 
   @Override
   public void start() {
-    // Display welcome message
-    view.display("Welcome to the Calendar App!");
+
 
     // Create default calendar if needed
     //initializeDefaultCalendar();
@@ -59,12 +60,14 @@ class CalendarController extends AbstractController implements ICalendarControll
     // Start the view - it will handle its own input processing
     // We pass "this" as an ICommandExecutor (restricted interface)
     view.start(new CommandExecutorAdaptor(this));
+    view.display("Welcome to the Calendar App!");
 
   }
 
 
   @Override
   public void executeCommand(String command) {
+    System.out.println("Command: " + command);
     runScanner(new Scanner(command), true, view, invoker, model);
   }
 

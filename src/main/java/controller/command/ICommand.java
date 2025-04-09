@@ -1,10 +1,15 @@
 package controller.command;
 
+import java.util.List;
+
+import model.ICalendarModel;
+
 /**
  * ICommand is the interface for all commands in the Calendar application.
  * It defines the structure for executing commands and handling user input.
  */
 public interface ICommand {
+
   /**
    * Executes the command logic.
    *

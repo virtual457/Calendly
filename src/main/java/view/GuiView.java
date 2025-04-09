@@ -732,7 +732,7 @@ public class GuiView extends JFrame implements IView {
         // Filter by name if specified
         for (ICalendarEventDTO event : allEvents) {
           boolean nameMatches = eventNameFilter.isEmpty() ||
-              event.getEventName().toLowerCase().contains(eventNameFilter.toLowerCase());
+              event.getEventName().equals(eventNameFilter);
 
           if (nameMatches) {
             matchingEvents.add(event);
@@ -918,7 +918,7 @@ public class GuiView extends JFrame implements IView {
             return;
         }
 
-        // Confirm before proceeding with many events
+        // Confirm before proceeding with many events - ONLY ONCE
         if (matchingEvents.size() > 10) {
           int confirmResult = JOptionPane.showConfirmDialog(this,
               "You are about to edit " + matchingEvents.size() + " events. Continue?",
@@ -930,42 +930,37 @@ public class GuiView extends JFrame implements IView {
           }
         }
 
-        try {
-          // Format the command according to the required pattern
+        // Get the user-provided start date/time
+        // Get the user-provided start date/time
+        String userStartDateStr = startDateField.getText().trim();
+
+// Format the value parameter
+        String valueParam = newValue.isEmpty() ? "null" : newValue;
+
+// Create the edit events command using the correct format
+        String command;
+
+        if (userStartDateStr.isEmpty()) {
+          // If no from date is provided, use the simpler command format
+          command = "edit events " + propertyName + " \"" + nameField.getText().trim() + "\" " + valueParam;
+        } else {
+          // If from date is provided, use the full command format
+          LocalDate startDate = LocalDate.parse(userStartDateStr);
+          LocalDateTime startDateTime = startDate.atStartOfDay();
           DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
+          String fromDateTimeStr = startDateTime.format(formatter);
 
-          // Get the eventName for the command
-          String eventName = nameField.getText().trim();
+          command = "edit events " + propertyName + " \"" + nameField.getText().trim() + "\"" +
+              " from " + fromDateTimeStr +
+              " with " + valueParam;
+        }
 
-          // Format the new value
-          String valueParam = newValue.isEmpty() ? "null" : newValue;
-
-          String command;
-
-          // If a date is specified, use the format with "from"
-          if (!startDateField.getText().trim().isEmpty()) {
-            LocalDate startDate = LocalDate.parse(startDateField.getText().trim());
-            String fromDateStr = startDate.atStartOfDay().format(formatter);
-
-            // Build command: edit events property eventName from dateTime with newValue
-            command = "edit events " + propertyName + " " + eventName +
-                " from " + fromDateStr + " with " + valueParam;
-          } else {
-            // If no date specified, use the simpler format
-            // Build command: edit events property eventName newValue
-            command = "edit events " + propertyName + " " + eventName + " " + valueParam;
-          }
-
+        try {
+          // Execute the single command for all matching events
           controller.executeCommand(command);
-
-          JOptionPane.showMessageDialog(this,
-              "Successfully updated " + matchingEvents.size() + " events.",
-              "Update Success",
-              JOptionPane.INFORMATION_MESSAGE);
 
           // Refresh view
           refreshCalendarView();
-
         } catch (Exception ex) {
           JOptionPane.showMessageDialog(this,
               "Error updating events: " + ex.getMessage(),
@@ -1244,24 +1239,22 @@ public class GuiView extends JFrame implements IView {
       File file = fileChooser.getSelectedFile();
 
       try {
-        boolean imported = importCalendar(selectedCalendar, file.getAbsolutePath());
-        if (imported) {
-          JOptionPane.showMessageDialog(this,
-                "Calendar imported successfully",
-                "Import Success",
-                JOptionPane.INFORMATION_MESSAGE);
-          refreshCalendarView();
-        } else {
-          JOptionPane.showMessageDialog(this,
-                "Failed to import calendar. There may be scheduling conflicts.",
-                "Import Error",
-                JOptionPane.ERROR_MESSAGE);
-        }
+        // Execute import command with the selected calendar and file path
+        String command = "import cal --calendar \"" + selectedCalendar + "\" --file \"" +
+            file.getAbsolutePath().replace("\\", "\\\\") + "\"";
+
+        controller.executeCommand(command);
+
+        JOptionPane.showMessageDialog(this,
+            "Calendar imported successfully",
+            "Import Success",
+            JOptionPane.INFORMATION_MESSAGE);
+        refreshCalendarView();
       } catch (Exception ex) {
         JOptionPane.showMessageDialog(this,
-              "Error importing calendar: " + ex.getMessage(),
-              "Import Error",
-              JOptionPane.ERROR_MESSAGE);
+            "Error importing calendar: " + ex.getMessage(),
+            "Import Error",
+            JOptionPane.ERROR_MESSAGE);
       }
     }
   }
