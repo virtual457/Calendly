@@ -27,7 +27,7 @@ public interface ICalendarController extends ICommandExecutor{
   static ICalendarController createInstance(String version, ICalendarModel model,
                                             IView view) {
     if (version.equalsIgnoreCase("basic")) {
-      return new CalendarControllerBasic(model, view);
+      throw new IllegalArgumentException("Unsupported version: " + version);
     } else if (version.equalsIgnoreCase("advanced")) {
       return new CalendarController(model, view);
     } else {
@@ -38,5 +38,5 @@ public interface ICalendarController extends ICommandExecutor{
   /**
    * Starts the controller.
    */
-  void start(Readable readable);
+  void start();
 }

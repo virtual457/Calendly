@@ -49,7 +49,7 @@ class CalendarController extends AbstractController implements ICalendarControll
 
 
   @Override
-  public void start(Readable readable) {
+  public void start() {
     // Display welcome message
     view.display("Welcome to the Calendar App!");
 
@@ -58,14 +58,13 @@ class CalendarController extends AbstractController implements ICalendarControll
 
     // Start the view - it will handle its own input processing
     // We pass "this" as an ICommandExecutor (restricted interface)
-    view.start(new CommandExecutorAdaptor(this), readable);
+    view.start(new CommandExecutorAdaptor(this));
 
   }
 
 
   @Override
   public void executeCommand(String command) {
-    System.out.println(command);
     runScanner(new Scanner(command), true, view, invoker, model);
   }
 

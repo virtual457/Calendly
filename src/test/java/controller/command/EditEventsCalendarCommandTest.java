@@ -125,7 +125,7 @@ public class EditEventsCalendarCommandTest {
     String result = command.execute();
     assertEquals("Events updated successfully.", result);
     assertTrue(model.called);
-    assertFalse(model.lastHasFrom);
+    assertEquals(LocalDateTime.MIN,model.lastFrom);
     assertEquals("location", model.lastProperty);
     assertEquals("NewRoom", model.lastNewValue);
   }

@@ -2,29 +2,25 @@ package view;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Objects;
 
 import controller.ICommandExecutor;
 
 public class HeadlessConsoleView implements IView {
   private final String filePath;
 
-  public HeadlessConsoleView(String filePath) {
+  public HeadlessConsoleView(String filePath) throws FileNotFoundException {
     this.filePath = filePath;
     validateFile(filePath);
   }
 
   private void validateFile(String filePath) {
-    try {
-      // Check that the file exists
-      File file = new File(filePath);
-      if (!file.exists()) {
-        throw new IllegalArgumentException("File does not exist: " + filePath);
-      }
-
+    try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
       // Check that the file ends with "exit"
-      BufferedReader reader = new BufferedReader(new FileReader(file));
       String lastLine = null;
       String line;
 
@@ -33,7 +29,6 @@ public class HeadlessConsoleView implements IView {
           lastLine = line.trim();
         }
       }
-      reader.close();
 
       if (lastLine == null || !lastLine.equalsIgnoreCase("exit")) {
         throw new IllegalArgumentException("File must end with 'exit' in headless mode.");
@@ -46,14 +41,14 @@ public class HeadlessConsoleView implements IView {
   @Override
   public void display(String message) {
     System.out.println(message);
-    //if(message.toLowerCase().contains("error")) {
-    //  System.exit(1);
-    //}
+    if(message.toLowerCase().contains("error")) {
+      System.exit(1);
+    }
   }
 
   @Override
-  public void start(ICommandExecutor commandExecutor, Readable readable) {
-    try (BufferedReader reader = (BufferedReader) readable) {
+  public void start(ICommandExecutor commandExecutor) {
+    try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
       String line;
       while ((line = reader.readLine()) != null) {
         line = line.trim();
@@ -67,7 +62,6 @@ public class HeadlessConsoleView implements IView {
 
         // Parse the command
         commandExecutor.executeCommand(line);
-
       }
     } catch (IOException e) {
       display("Error: " + e.getMessage());

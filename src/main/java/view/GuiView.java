@@ -24,6 +24,7 @@ public class GuiView extends JFrame implements IView {
   // Model references
   private IReadOnlyCalendarModel model;
   private ICommandExecutor controller;
+  private boolean displayEnabled;
 
   // GUI components
   private JPanel mainPanel;
@@ -46,8 +47,7 @@ public class GuiView extends JFrame implements IView {
     this.currentTimezone = ZoneId.systemDefault();
     this.selectedCalendar = "Default";
     this.dayPanels = new HashMap<>();
-
-
+    this.displayEnabled = false;
   }
 
   private void initializeUI() {
@@ -72,6 +72,7 @@ public class GuiView extends JFrame implements IView {
     refreshCalendarView();
 
     setVisible(true);
+    this.displayEnabled = true;
   }
 
   private void initializeControlPanel() {
@@ -1436,33 +1437,33 @@ public class GuiView extends JFrame implements IView {
   public void display(String message) {
 
     // Show message in a dialog box instead of console
-    SwingUtilities.invokeLater(() -> {
-      // Determine message type based on content
-      int messageType = JOptionPane.INFORMATION_MESSAGE;
-      if (message.contains("Error") || message.contains("Failed")) {
-        messageType = JOptionPane.ERROR_MESSAGE;
-      } else if (message.contains("Warning")) {
-        messageType = JOptionPane.WARNING_MESSAGE;
-      }
+    if(displayEnabled) {
+      SwingUtilities.invokeLater(() -> {
+        // Determine message type based on content
+        int messageType = JOptionPane.INFORMATION_MESSAGE;
+        if (message.contains("Error") || message.contains("Failed")) {
+          messageType = JOptionPane.ERROR_MESSAGE;
+        } else if (message.contains("Warning")) {
+          messageType = JOptionPane.WARNING_MESSAGE;
+        }
 
-      JOptionPane.showMessageDialog(
-            this,  // parent component
-            message,
-            "Calendar Notification",
-            messageType
-      );
-    });
+        JOptionPane.showMessageDialog(
+              this,  // parent component
+              message,
+              "Calendar Notification",
+              messageType
+        );
+      });
+    }
     System.out.println(message);
   }
 
   @Override
-  public void start(ICommandExecutor commandExecutor, Readable readable) {
+  public void start(ICommandExecutor commandExecutor) {
     this.controller = commandExecutor;
     initializeUI();
   }
 
-
-  // Modification to your GuiView class
 
   /**
    * Shows all events for a specific day with options to view details, edit, or add events.
@@ -1624,190 +1625,4 @@ public class GuiView extends JFrame implements IView {
     detailsView.setVisible(true);
   }
 
-  // Add this method to view the details of all events in a calendar
-  private void viewAllEvents() {
-    JPanel optionsPanel = new JPanel(new GridLayout(0, 1));
-
-    JComboBox<String> viewTypeCombo = new JComboBox<>(new String[]{"Current Month", "Date Range", "All Events"});
-    optionsPanel.add(new JLabel("View events by:"));
-    optionsPanel.add(viewTypeCombo);
-
-    JTextField startDateField = new JTextField(10);
-    JTextField endDateField = new JTextField(10);
-
-    JPanel dateRangePanel = new JPanel(new GridLayout(0, 2));
-    dateRangePanel.add(new JLabel("Start Date (YYYY-MM-DD):"));
-    dateRangePanel.add(startDateField);
-    dateRangePanel.add(new JLabel("End Date (YYYY-MM-DD):"));
-    dateRangePanel.add(endDateField);
-
-    startDateField.setText(LocalDate.now().toString());
-    endDateField.setText(LocalDate.now().plusDays(7).toString());
-    dateRangePanel.setVisible(false);
-
-    optionsPanel.add(dateRangePanel);
-
-    viewTypeCombo.addActionListener(e -> {
-      String selected = (String) viewTypeCombo.getSelectedItem();
-      dateRangePanel.setVisible("Date Range".equals(selected));
-      optionsPanel.revalidate();
-      optionsPanel.repaint();
-    });
-
-    int result = JOptionPane.showConfirmDialog(
-          this,
-          optionsPanel,
-          "View Events",
-          JOptionPane.OK_CANCEL_OPTION,
-          JOptionPane.PLAIN_MESSAGE);
-
-    if (result == JOptionPane.OK_OPTION) {
-      String viewType = (String) viewTypeCombo.getSelectedItem();
-      List<ICalendarEventDTO> events;
-
-      if ("Current Month".equals(viewType)) {
-        events = model.getEventsInRange(
-              selectedCalendar,
-              currentYearMonth.atDay(1).atStartOfDay(),
-              currentYearMonth.atEndOfMonth().atTime(23, 59, 59));
-      } else if ("Date Range".equals(viewType)) {
-        try {
-          LocalDate startDate = LocalDate.parse(startDateField.getText());
-          LocalDate endDate = LocalDate.parse(endDateField.getText());
-
-          events = model.getEventsInRange(
-                selectedCalendar,
-                startDate.atStartOfDay(),
-                endDate.atTime(23, 59, 59));
-        } catch (Exception ex) {
-          JOptionPane.showMessageDialog(
-                this,
-                "Invalid date format. Please use YYYY-MM-DD format.",
-                "Input Error",
-                JOptionPane.ERROR_MESSAGE);
-          return;
-        }
-      } else { // All Events
-        events = model.getEventsInRange(
-              selectedCalendar,
-              LocalDateTime.MIN,
-              LocalDateTime.MAX);
-      }
-
-      displayEventsInTable(events, viewType);
-    }
-  }
-
-  /**
-   * Display a list of events in a table format.
-   *
-   * @param events The events to display
-   * @param viewTitle The title for the view window
-   */
-  private void displayEventsInTable(List<ICalendarEventDTO> events, String viewTitle) {
-    if (events.isEmpty()) {
-      JOptionPane.showMessageDialog(
-            this,
-            "No events found in the selected range.",
-            "No Events",
-            JOptionPane.INFORMATION_MESSAGE);
-      return;
-    }
-
-    // Define table column names
-    String[] columnNames = {"Event Name", "Start Date", "Start Time", "End Date", "End Time", "Location"};
-
-    // Create table data
-    Object[][] data = new Object[events.size()][columnNames.length];
-    DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-    DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
-
-    for (int i = 0; i < events.size(); i++) {
-      ICalendarEventDTO event = events.get(i);
-      data[i][0] = event.getEventName();
-      data[i][1] = event.getStartDateTime().format(dateFormatter);
-      data[i][2] = event.getStartDateTime().format(timeFormatter);
-      data[i][3] = event.getEndDateTime().format(dateFormatter);
-      data[i][4] = event.getEndDateTime().format(timeFormatter);
-      data[i][5] = event.getEventLocation() != null ? event.getEventLocation() : "";
-    }
-
-    // Create table
-    JTable table = new JTable(data, columnNames);
-    table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-    table.setAutoCreateRowSorter(true);
-
-    // Make columns an appropriate width
-    table.getColumnModel().getColumn(0).setPreferredWidth(150);  // Event name
-    table.getColumnModel().getColumn(1).setPreferredWidth(100);  // Start date
-    table.getColumnModel().getColumn(2).setPreferredWidth(80);   // Start time
-    table.getColumnModel().getColumn(3).setPreferredWidth(100);  // End date
-    table.getColumnModel().getColumn(4).setPreferredWidth(80);   // End time
-    table.getColumnModel().getColumn(5).setPreferredWidth(150);  // Location
-
-    // Add double-click listener to show event details
-    table.addMouseListener(new MouseAdapter() {
-      @Override
-      public void mouseClicked(MouseEvent e) {
-        if (e.getClickCount() == 2) {
-          JTable target = (JTable) e.getSource();
-          int row = target.getSelectedRow();
-          // Convert view row index to model row index if the table is sorted
-          if (row >= 0) {
-            row = table.convertRowIndexToModel(row);
-            showEventDetails(events.get(row));
-          }
-        }
-      }
-    });
-
-    // Create panel with table and instructions
-    JPanel panel = new JPanel(new BorderLayout());
-    panel.add(new JLabel("Double-click an event to view details"), BorderLayout.NORTH);
-    panel.add(new JScrollPane(table), BorderLayout.CENTER);
-
-    // Add buttons for actions
-    JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-
-    JButton viewButton = new JButton("View Details");
-    viewButton.addActionListener(e -> {
-      int selectedRow = table.getSelectedRow();
-      if (selectedRow >= 0) {
-        selectedRow = table.convertRowIndexToModel(selectedRow);
-        showEventDetails(events.get(selectedRow));
-      } else {
-        JOptionPane.showMessageDialog(
-              this,
-              "Please select an event to view.",
-              "No Selection",
-              JOptionPane.INFORMATION_MESSAGE);
-      }
-    });
-
-    JButton editButton = new JButton("Edit Event");
-    editButton.addActionListener(e -> {
-      int selectedRow = table.getSelectedRow();
-      if (selectedRow >= 0) {
-        selectedRow = table.convertRowIndexToModel(selectedRow);
-        editEvent(events.get(selectedRow));
-      } else {
-        JOptionPane.showMessageDialog(
-              this,
-              "Please select an event to edit.",
-              "No Selection",
-              JOptionPane.INFORMATION_MESSAGE);
-      }
-    });
-
-    buttonPanel.add(viewButton);
-    buttonPanel.add(editButton);
-    panel.add(buttonPanel, BorderLayout.SOUTH);
-
-    // Create and show dialog
-    JDialog dialog = new JDialog(this, "Events - " + viewTitle, true);
-    dialog.setContentPane(panel);
-    dialog.setSize(800, 400);
-    dialog.setLocationRelativeTo(this);
-    dialog.setVisible(true);
-  }
 }

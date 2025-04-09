@@ -1,5 +1,11 @@
 package view;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.InputStreamReader;
+import java.util.Objects;
+
 import controller.ICommandExecutor;
 import model.IReadOnlyCalendarModel;
 
@@ -29,19 +35,19 @@ public interface IView {
    * @throws IllegalArgumentException if the given {@code type} is invalid or unsupported
    */
 
-  static IView createInstance(String type, String[] args, IReadOnlyCalendarModel model) {
-    if (type.equals("interactive")) {
-      return new InteractiveConsoleView();
-    } else if (type.equals("headless")) {
-      if (args.length < 3) {
-        throw new IllegalArgumentException("Missing filepath for headless mode");
-      }
-      return new HeadlessConsoleView(args[2]);
-    } if(type.equals("gui")) {
-      return new GuiView(model);
-    }
-    else {
-      throw new IllegalArgumentException("Unknown view type: " + type);
+  static IView createInstance(String type, String[] args, IReadOnlyCalendarModel model) throws FileNotFoundException {
+    switch (type) {
+      case "interactive":
+        return new InteractiveConsoleView();
+      case "headless":
+        if (args.length < 3) {
+          throw new IllegalArgumentException("Missing filepath for headless mode");
+        }
+        return new HeadlessConsoleView(args[2]);
+      case "gui":
+        return new GuiView(model);
+      default:
+        throw new IllegalArgumentException("Unknown view type: " + type);
     }
   }
   /**
@@ -53,5 +59,5 @@ public interface IView {
    * Starts the view's input/interaction loop.
    * This only has access to command execution.
    */
-  void start(ICommandExecutor commandExecutor, Readable readable);
+  void start(ICommandExecutor commandExecutor);
 }

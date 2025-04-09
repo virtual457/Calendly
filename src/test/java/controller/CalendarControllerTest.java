@@ -2211,18 +2211,6 @@ public class CalendarControllerTest {
     assertEquals("class controller.CalendarController", controller.getClass().toString());
   }
 
-  @Test
-  public void testCreateInstance_ValidInputs2() {
-    ICalendarModel model = ICalendarModel.createInstance("listbased");
-    //IView view = IView.createInstance("consoleView");
-
-    ICalendarController controller = ICalendarController.createInstance("Basic", model,
-        view);
-
-    assertNotNull(controller);
-    assertEquals("class controller.CalendarControllerBasic",
-        controller.getClass().toString());
-  }
 
   @Test
   public void testCreateInstance_ValidInputs3() {
@@ -2620,7 +2608,7 @@ public class CalendarControllerTest {
     }
 
     @Override
-    public void start(ICommandExecutor commandExecutor, Readable readable) {
+    public void start(ICommandExecutor commandExecutor) {
 
     }
 
