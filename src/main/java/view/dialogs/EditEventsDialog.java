@@ -3,8 +3,10 @@ package view.dialogs;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -275,7 +277,8 @@ public class EditEventsDialog extends JDialog {
     // Property selection dropdown
     JPanel dropdownPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
     JLabel propertyLabel = new JLabel("Select property to edit:");
-    String[] properties = {"Edit Name", "Edit Description", "Edit Location", "Set Private/Public"};
+    String[] properties = {"Edit Name", "Edit Description", "Edit Location", "Edit Start DateTime",
+          "Edit End DateTime", "Set Private/Public"};
     JComboBox<String> propertyDropdown = new JComboBox<>(properties);
 
     dropdownPanel.add(propertyLabel);
@@ -290,6 +293,7 @@ public class EditEventsDialog extends JDialog {
     JComboBox<String> privacyDropdown = new JComboBox<>(new String[]{"Private", "Public"});
 
     // Property change handler
+
     propertyDropdown.addActionListener(e -> {
       inputPanel.removeAll();
       String selectedProperty = (String) propertyDropdown.getSelectedItem();
@@ -297,8 +301,37 @@ public class EditEventsDialog extends JDialog {
       if ("Set Private/Public".equals(selectedProperty)) {
         inputPanel.add(new JLabel("Set events to:"), BorderLayout.WEST);
         inputPanel.add(privacyDropdown, BorderLayout.CENTER);
-      } else {
-        inputPanel.add(inputLabel, BorderLayout.WEST);
+      }
+      else if ("Edit Start DateTime".equals(selectedProperty)) {
+        inputPanel.add(new JLabel("New start time (HH:MM):"), BorderLayout.WEST);
+        inputPanel.add(inputField, BorderLayout.CENTER);
+
+        // Set example format
+        JLabel formatLabel = new JLabel("Enter time only in 24-hour format (e.g., 09:30)");
+        formatLabel.setFont(new Font("SansSerif", Font.ITALIC, 10));
+        inputPanel.add(formatLabel, BorderLayout.SOUTH);
+
+        // Set default value to current time
+        LocalTime now = LocalTime.now();
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+        inputField.setText(now.format(timeFormatter));
+      }
+      else if ("Edit End DateTime".equals(selectedProperty)) {
+        inputPanel.add(new JLabel("New end time (HH:MM):"), BorderLayout.WEST);
+        inputPanel.add(inputField, BorderLayout.CENTER);
+
+        // Set example format
+        JLabel formatLabel = new JLabel("Enter time only in 24-hour format (e.g., 17:30)");
+        formatLabel.setFont(new Font("SansSerif", Font.ITALIC, 10));
+        inputPanel.add(formatLabel, BorderLayout.SOUTH);
+
+        // Set default value to current time
+        LocalTime now = LocalTime.now();
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+        inputField.setText(now.format(timeFormatter));
+      }
+      else {
+        inputPanel.add(new JLabel("New value:"), BorderLayout.WEST);
         inputPanel.add(inputField, BorderLayout.CENTER);
       }
 
@@ -356,6 +389,54 @@ public class EditEventsDialog extends JDialog {
         case "Edit Location":
           propertyName = "location";
           newValue = inputField.getText();
+          break;
+
+        case "Edit Start DateTime":
+          propertyName = "start";
+
+          try {
+            // Parse just the time portion
+            LocalTime timeInput = LocalTime.parse(inputField.getText().trim(),
+                  DateTimeFormatter.ofPattern("HH:mm"));
+
+            // Combine with today's date
+            LocalDate today = LocalDate.now();
+            LocalDateTime fullDateTime = LocalDateTime.of(today, timeInput);
+
+            // Format for the command in the required format
+            DateTimeFormatter cmdFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
+            newValue = fullDateTime.format(cmdFormatter);
+          } catch (DateTimeParseException ex) {
+            JOptionPane.showMessageDialog(this,
+                  "Invalid time format. Use HH:MM (e.g., 09:30)",
+                  "Invalid Input",
+                  JOptionPane.WARNING_MESSAGE);
+            return;
+          }
+          break;
+
+        case "Edit End DateTime":
+          propertyName = "end";
+
+          try {
+            // Parse just the time portion
+            LocalTime timeInput = LocalTime.parse(inputField.getText().trim(),
+                  DateTimeFormatter.ofPattern("HH:mm"));
+
+            // Combine with today's date
+            LocalDate today = LocalDate.now();
+            LocalDateTime fullDateTime = LocalDateTime.of(today, timeInput);
+
+            // Format for the command in the required format
+            DateTimeFormatter cmdFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
+            newValue = fullDateTime.format(cmdFormatter);
+          } catch (DateTimeParseException ex) {
+            JOptionPane.showMessageDialog(this,
+                  "Invalid time format. Use HH:MM (e.g., 17:30)",
+                  "Invalid Input",
+                  JOptionPane.WARNING_MESSAGE);
+            return;
+          }
           break;
 
         case "Set Private/Public":

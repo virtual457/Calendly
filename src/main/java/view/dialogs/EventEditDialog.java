@@ -14,14 +14,17 @@ import java.time.format.DateTimeParseException;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 
+import controller.ICalendarCommandAdapter;
 import model.ICalendarEventDTO;
 
 /**
@@ -37,12 +40,22 @@ public class EventEditDialog extends JDialog {
   private JTextField inputField;
   private JComboBox<String> privacyDropdown;
 
+  // For date-time editing
+  private JTextField dateTimeField;
+
+  private ICalendarCommandAdapter commandAdapter;
+
   /**
-   * Creates a new event edit dialog.
+   * Constructs an EventEditDialog.
+   *
+   * @param parent The parent frame
+   * @param event The event to edit
    */
-  public EventEditDialog(Frame parent, ICalendarEventDTO event) {
+  public EventEditDialog(Frame parent, ICalendarEventDTO event,
+                         ICalendarCommandAdapter adapter) {
     super(parent, "Edit Event", true);
     this.event = event;
+    commandAdapter = adapter;
 
     initializeUI();
     pack();
@@ -72,13 +85,14 @@ public class EventEditDialog extends JDialog {
     JPanel propertyPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
     propertyPanel.add(new JLabel("Select property to edit:"));
 
-    String[] properties = {"Name", "Description", "Location", "Start Time", "End Time", "Privacy"};
+    String[] properties = {"Name", "Description", "Location", "Start", "End", "Privacy"};
     propertySelector = new JComboBox<>(properties);
     propertyPanel.add(propertySelector);
 
     // Input panel (will be updated based on selection)
     inputPanel = new JPanel(new BorderLayout());
     inputField = new JTextField(20);
+    dateTimeField = new JTextField(20);
     privacyDropdown = new JComboBox<>(new String[]{"Private", "Public"});
 
     // Initialize with first property (Name)
@@ -86,6 +100,20 @@ public class EventEditDialog extends JDialog {
 
     // Property change listener
     propertySelector.addActionListener(e -> updateInputPanel());
+
+    // For recurring events, add checkbox at the bottom
+    JPanel checkboxPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+    if (Boolean.TRUE.equals(event.isRecurring())) {
+      JRadioButton editOneRadio = new JRadioButton("Edit only this occurrence");
+      JRadioButton editAllRadio = new JRadioButton("Edit all occurrences");
+      ButtonGroup radioGroup = new ButtonGroup();
+      radioGroup.add(editOneRadio);
+      radioGroup.add(editAllRadio);
+      editOneRadio.setSelected(true);
+
+      checkboxPanel.add(editOneRadio);
+      checkboxPanel.add(editAllRadio);
+    }
 
     // Buttons
     JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -98,12 +126,16 @@ public class EventEditDialog extends JDialog {
     buttonPanel.add(cancelButton);
     buttonPanel.add(saveButton);
 
-    // Assemble all panels
+    // Add components to main panel
     mainPanel.add(detailsPanel);
     mainPanel.add(Box.createVerticalStrut(10));
     mainPanel.add(propertyPanel);
     mainPanel.add(Box.createVerticalStrut(10));
     mainPanel.add(inputPanel);
+    if (Boolean.TRUE.equals(event.isRecurring())) {
+      mainPanel.add(Box.createVerticalStrut(10));
+      mainPanel.add(checkboxPanel);
+    }
 
     // Add to dialog
     add(mainPanel, BorderLayout.CENTER);
@@ -126,33 +158,40 @@ public class EventEditDialog extends JDialog {
         inputField.setText(event.getEventName());
         inputPanel.add(inputField, BorderLayout.CENTER);
         break;
-
       case "Description":
         inputPanel.add(new JLabel("New description:"), BorderLayout.WEST);
         inputField.setText(event.getEventDescription() != null ? event.getEventDescription() : "");
         inputPanel.add(inputField, BorderLayout.CENTER);
         break;
-
       case "Location":
         inputPanel.add(new JLabel("New location:"), BorderLayout.WEST);
         inputField.setText(event.getEventLocation() != null ? event.getEventLocation() : "");
         inputPanel.add(inputField, BorderLayout.CENTER);
         break;
+      case "Start":
+        inputPanel.add(new JLabel("New start date/time:"), BorderLayout.WEST);
+        // Format date/time in required format
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
+        dateTimeField.setText(event.getStartDateTime().format(dateTimeFormatter));
+        inputPanel.add(dateTimeField, BorderLayout.CENTER);
 
-      case "Start Time":
-        inputPanel.add(new JLabel("New start time (HH:MM):"), BorderLayout.WEST);
-        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
-        inputField.setText(event.getStartDateTime().format(timeFormatter));
-        inputPanel.add(inputField, BorderLayout.CENTER);
+        // Add help text
+        JLabel startTimeHelpLabel = new JLabel("Format: YYYY-MM-DDThh:mm (e.g. 2025-06-10T09:30)");
+        startTimeHelpLabel.setFont(new Font("SansSerif", Font.ITALIC, 10));
+        inputPanel.add(startTimeHelpLabel, BorderLayout.SOUTH);
         break;
+      case "End":
+        inputPanel.add(new JLabel("New end date/time:"), BorderLayout.WEST);
+        // Format date/time in required format
+        DateTimeFormatter endFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
+        dateTimeField.setText(event.getEndDateTime().format(endFormatter));
+        inputPanel.add(dateTimeField, BorderLayout.CENTER);
 
-      case "End Time":
-        inputPanel.add(new JLabel("New end time (HH:MM):"), BorderLayout.WEST);
-        DateTimeFormatter endTimeFormatter = DateTimeFormatter.ofPattern("HH:mm");
-        inputField.setText(event.getEndDateTime().format(endTimeFormatter));
-        inputPanel.add(inputField, BorderLayout.CENTER);
+        // Add help text
+        JLabel endTimeHelpLabel = new JLabel("Format: YYYY-MM-DDThh:mm (e.g. 2025-06-10T10:30)");
+        endTimeHelpLabel.setFont(new Font("SansSerif", Font.ITALIC, 10));
+        inputPanel.add(endTimeHelpLabel, BorderLayout.SOUTH);
         break;
-
       case "Privacy":
         inputPanel.add(new JLabel("Set event to:"), BorderLayout.WEST);
         boolean isPrivate = Boolean.TRUE.equals(event.isPrivate());
@@ -171,77 +210,79 @@ public class EventEditDialog extends JDialog {
   private void saveChanges() {
     try {
       String selectedProperty = (String) propertySelector.getSelectedItem();
-      String apiPropertyName;
+      String propertyName;
       String newValue;
 
-      // Map UI property name to API property name and get new value
+      // Determine if this is editing all occurrences or just this one
+      boolean editAll = false;
+      if (Boolean.TRUE.equals(event.isRecurring())) {
+        JPanel checkboxPanel = (JPanel) ((JPanel) getContentPane().getComponent(0)).getComponent(4);
+        JRadioButton editAllRadio = (JRadioButton) checkboxPanel.getComponent(1);
+        editAll = editAllRadio.isSelected();
+      }
+
+      // Validate and process input based on selected property
       switch (selectedProperty) {
         case "Name":
-          apiPropertyName = "name";
+          propertyName = "name";
           newValue = inputField.getText().trim();
           if (newValue.isEmpty()) {
             throw new IllegalArgumentException("Event name cannot be empty");
           }
           break;
-
         case "Description":
-          apiPropertyName = "description";
+          propertyName = "description";
           newValue = inputField.getText().trim();
           break;
-
         case "Location":
-          apiPropertyName = "location";
+          propertyName = "location";
           newValue = inputField.getText().trim();
           break;
-
-        case "Start Time":
-          apiPropertyName = "start";
-          // Validate time format and logic
+        case "Start":
+          propertyName = "start";
+          // Validate date/time format and logic
           try {
-            LocalTime newStartTime = LocalTime.parse(inputField.getText().trim());
-            LocalDateTime newStartDateTime = LocalDateTime.of(
-                  event.getStartDateTime().toLocalDate(), newStartTime);
+            LocalDateTime newStartDateTime = LocalDateTime.parse(dateTimeField.getText().trim(),
+                  DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm"));
+
             if (newStartDateTime.isAfter(event.getEndDateTime())) {
-              throw new IllegalArgumentException("Start time must be before end time");
+              throw new IllegalArgumentException("Start date/time must be before end date/time");
             }
-            // Format for command
-            DateTimeFormatter cmdFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
-            newValue = newStartDateTime.format(cmdFormatter);
+
+            newValue = dateTimeField.getText().trim();
           } catch (DateTimeParseException ex) {
-            throw new IllegalArgumentException("Invalid time format. Use HH:MM");
+            throw new IllegalArgumentException("Invalid format. Use YYYY-MM-DDThh:mm");
           }
           break;
-
-        case "End Time":
-          apiPropertyName = "end";
-          // Validate time format and logic
+        case "End":
+          propertyName = "end";
+          // Validate date/time format and logic
           try {
-            LocalTime newEndTime = LocalTime.parse(inputField.getText().trim());
-            LocalDateTime newEndDateTime = LocalDateTime.of(
-                  event.getEndDateTime().toLocalDate(), newEndTime);
+            LocalDateTime newEndDateTime = LocalDateTime.parse(dateTimeField.getText().trim(),
+                  DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm"));
+
             if (newEndDateTime.isBefore(event.getStartDateTime())) {
-              throw new IllegalArgumentException("End time must be after start time");
+              throw new IllegalArgumentException("End date/time must be after start date/time");
             }
-            // Format for command
-            DateTimeFormatter endFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
-            newValue = newEndDateTime.format(endFormatter);
+
+            newValue = dateTimeField.getText().trim();
           } catch (DateTimeParseException ex) {
-            throw new IllegalArgumentException("Invalid time format. Use HH:MM");
+            throw new IllegalArgumentException("Invalid format. Use YYYY-MM-DDThh:mm");
           }
           break;
-
         case "Privacy":
-          apiPropertyName = "isprivate";
+          propertyName = "isprivate";
           newValue = "Private".equals(privacyDropdown.getSelectedItem()) ? "true" : "false";
           break;
-
         default:
           throw new IllegalArgumentException("Invalid property selected");
       }
 
-      // Format command and execute it via parent GuiView
-      // This would call commandAdapter.editEvent or similar
-      // For now, we'll just set the edited flag and close the dialog
+
+      commandAdapter.editEvent(propertyName, event.getEventName(),
+          event.getStartDateTime(), event.getEndDateTime(), newValue);
+
+      // For now, just mark as edited and close dialog
       edited = true;
       dispose();
 

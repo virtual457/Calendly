@@ -78,14 +78,14 @@ public class ImportCalendarCommand implements ICommand {
         }
 
         // Parse event fields
-        String eventName = fields[0]; // Subject
+        String eventName = fields[0].replaceAll("^\"|\"$", "");
         String startDateStr = fields[1]; // Start Date
         String startTimeStr = fields[2]; // Start Time
         String endDateStr = fields[3]; // End Date
         String endTimeStr = fields[4]; // End Time
         boolean isAllDay = fields.length > 5 && "TRUE".equalsIgnoreCase(fields[5].trim());
-        String description = fields.length > 6 ? fields[6] : ""; // Description
-        String location = fields.length > 7 ? fields[7] : ""; // Location
+        String description = fields.length > 6 ? fields[6].replaceAll("^\"|\"$", "") : ""; // Description
+        String location = fields.length > 7 ? fields[7].replaceAll("^\"|\"$", "") : ""; // Location
         boolean isPrivate = fields.length > 8 && "TRUE".equalsIgnoreCase(fields[8].trim());
 
         // Parse dates and times

@@ -338,7 +338,7 @@ public class GuiView extends JFrame implements IView {
    * Edits an existing event.
    */
   private void editEvent(ICalendarEventDTO event) {
-    EventEditDialog dialog = new EventEditDialog(this, event);
+    EventEditDialog dialog = new EventEditDialog(this, event,commandAdapter);
     dialog.setVisible(true);
 
     // If dialog closed with edit request
