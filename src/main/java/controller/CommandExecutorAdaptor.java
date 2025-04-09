@@ -11,6 +11,7 @@ import view.IView;
  */
 public class CommandExecutorAdaptor implements ICommandExecutor {
   private final ICalendarController controller;
+  private ICalendarCommandAdapter commandAdapter;
 
   public CommandExecutorAdaptor(ICalendarController controller) {
     this.controller = controller;
@@ -19,5 +20,14 @@ public class CommandExecutorAdaptor implements ICommandExecutor {
   @Override
   public void executeCommand(String commandName) {
      controller.executeCommand(commandName);
+  }
+
+  @Override
+  public ICalendarCommandAdapter getCommandAdapter() {
+    // Lazy initialization of the adapter Done when and only when required
+    if (commandAdapter == null) {
+      commandAdapter = new ObjectToCommandAdapter(this);
+    }
+    return commandAdapter;
   }
 }

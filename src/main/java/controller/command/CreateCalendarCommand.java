@@ -1,6 +1,7 @@
 package controller.command;
 
 import java.util.List;
+import java.util.Objects;
 
 import model.ICalendarModel;
 
@@ -15,43 +16,42 @@ public class CreateCalendarCommand implements ICommand {
   /**
    * Constructs a {@code CreateCalendarCommand}
    * that creates a new calendar based on the provided arguments.
-   *
-   * @param args             the list of arguments used to specify the calendar name and timezone
-   * @param model            the calendar model responsible for handling calendar creation logic
-   * @param currentCalendar  the name of the currently active calendar (if any)
    */
-
   public CreateCalendarCommand(List<String> args, ICalendarModel model, String currentCalendar) {
-    this.model = model;
+    this.model = Objects.requireNonNull(model,"Model cannot be null");
     this.calendarName = currentCalendar;
 
-    if (args.size() < 4) {
-      throw new IllegalArgumentException("Usage: create calendar --name <name> --timezone " +
-          "<timezone>");
-    }
+    // Validate minimum required arguments
+    CommandParser.requireMinArgs(args, 4, "Usage: create calendar --name <name> --timezone <timezone>");
 
-    if (!args.get(0).equals("--name")) {
-      throw new IllegalArgumentException("Expected --name flag.");
-    }
+    // Check for correct flags
+    CommandParser.requireKeyword(args, 0, "--name", "Expected --name flag");
 
-    this.calendarName = args.get(1);
+    // Get calendar name
+    this.calendarName = CommandParser.getRequiredArg(args, 1, "Missing calendar name");
 
-    if (!args.get(2).equals("--timezone")) {
-      throw new IllegalArgumentException("Expected --timezone flag.");
-    }
+    // Check timezone flag
+    CommandParser.requireKeyword(args, 2, "--timezone", "Expected --timezone flag");
 
-    this.timezone = args.get(3);
+    // Get timezone
+    this.timezone = CommandParser.getRequiredArg(args, 3, "Missing timezone");
 
+    // Ensure no extra arguments
     if (args.size() > 4) {
-      throw new IllegalArgumentException("Unrecognized extra arguments: " + String.join(" ",
-          args.subList(4, args.size())));
+      throw new IllegalArgumentException("Unrecognized extra arguments: " +
+            String.join(" ", args.subList(4, args.size())));
     }
   }
 
   @Override
   public String execute() {
-    return model.createCalendar(calendarName, timezone)
-        ? "Calendar created successfully."
-        : "Error: Calendar creation failed.";
+    try {
+      boolean success = model.createCalendar(calendarName, timezone);
+      return success ? "Calendar created successfully." : "Error: Calendar creation failed.";
+    } catch (IllegalArgumentException e) {
+      return "Error: " + e.getMessage();
+    } catch (Exception e) {
+      return "An unexpected error occurred: " + e.getMessage();
+    }
   }
 }

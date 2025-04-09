@@ -53,23 +53,27 @@ class CalendarController extends AbstractController implements ICalendarControll
   @Override
   public void start() {
 
-
+    view.display("Welcome to the Calendar App!");
     // Create default calendar if needed
     //initializeDefaultCalendar();
 
     // Start the view - it will handle its own input processing
     // We pass "this" as an ICommandExecutor (restricted interface)
     view.start(new CommandExecutorAdaptor(this));
-    view.display("Welcome to the Calendar App!");
+
 
   }
 
 
   @Override
   public void executeCommand(String command) {
-    System.out.println("Command: " + command);
     runScanner(new Scanner(command), true, view, invoker, model);
   }
 
+  @Override
+  public ICalendarCommandAdapter getCommandAdapter() {
+    CommandExecutorAdaptor executor = new CommandExecutorAdaptor(this);
+    return new ObjectToCommandAdapter(executor);
+  }
 
 }

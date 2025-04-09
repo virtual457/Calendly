@@ -8,29 +8,30 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Command to create single or recurring events, all-day or timed,
  * with support for optional fields: description, location, and privacy.
  */
 public class CreateEventCommand implements ICommand {
-  final ICalendarModel model;
-  final String calendarName;
-  final String eventName;
-  LocalDateTime startDateTime;
-  LocalDateTime endDateTime;
-  final boolean autoDecline;
-  final boolean isRecurring;
-  final List<DayOfWeek> recurrenceDays;
-  final Integer recurrenceCount;
-  LocalDateTime recurrenceEndDate;
-  String description;
-  String location;
-  boolean isPrivate;
-  List<String> args;
-  Integer index;
-  boolean isOn;
-  Integer count = null;
+  private final ICalendarModel model;
+  private final String calendarName;
+  private final String eventName;
+  private LocalDateTime startDateTime;
+  private LocalDateTime endDateTime;
+  private final boolean autoDecline;
+  private final boolean isRecurring;
+  private final List<DayOfWeek> recurrenceDays;
+  private final Integer recurrenceCount;
+  private LocalDateTime recurrenceEndDate;
+  private String description;
+  private String location;
+  private boolean isPrivate;
+  private List<String> args;
+  private Integer index;
+  private boolean isOn;
+  private Integer count = null;
 
   /**
    * Constructs a {@code CreateEventCommand} used to create a new event in the specified calendar.
@@ -43,7 +44,7 @@ public class CreateEventCommand implements ICommand {
 
   public CreateEventCommand(List<String> fromArgs, ICalendarModel model,
                             String calendarName) {
-    this.model = model;
+    this.model = Objects.requireNonNull(model,"Model cannot be null");
     this.calendarName = calendarName;
     this.recurrenceDays = new ArrayList<>();
     this.args = fromArgs;
@@ -112,6 +113,8 @@ public class CreateEventCommand implements ICommand {
       return success ? "Event created successfully." : "Error: Event creation failed.";
     } catch (IllegalArgumentException | IllegalStateException e) {
       return "Error: " + e.getMessage();
+    } catch (Exception e) {
+      return "An unexpected error occurred: " + e.getMessage();
     }
   }
 

@@ -4,6 +4,7 @@ import model.ICalendarModel;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Command to copy a specific event from one calendar to another.
@@ -16,105 +17,99 @@ public class CopyEventCommand implements ICommand {
   private final String targetCalendar;
   private final LocalDateTime targetDateTime;
 
-  /**
-   * Constructs a {@code CopyEventCommand} to copy a specific event from the current calendar
-   * to a target calendar at a specified time.
-   *
-   * @param args             the parsed command
-   *                        arguments including event name,
-   *                         source time, target calendar, and new time
-   * @param model            the calendar model used to perform the event copy operation
-   * @param currentCalendar  the name of the currently active calendar (source calendar)
-   * @throws IllegalArgumentException if the provided arguments are invalid or incomplete
-   */
-
   public CopyEventCommand(List<String> args, ICalendarModel model, String currentCalendar) {
-    this.model = model;
+    this.model = Objects.requireNonNull(model,"Model cannot be null");
     this.sourceCalendar = currentCalendar;
 
+    validateCommandArguments(args);
+
+    // Parse the validated arguments
     int index = 0;
+    this.eventName = args.get(index++);
 
+    // Skip "on" keyword
+    index++;
+
+    this.sourceDateTime = LocalDateTime.parse(args.get(index++));
+
+    // Skip "--target" keyword
+    index++;
+
+    this.targetCalendar = args.get(index++);
+
+    // Skip "to" keyword
+    index++;
+
+    this.targetDateTime = LocalDateTime.parse(args.get(index));
+  }
+
+  /**
+   * Validates the command arguments before parsing.
+   *
+   * @param args the command arguments to validate
+   * @throws IllegalArgumentException if any validation fails
+   */
+  private void validateCommandArguments(List<String> args) {
+    if (args.size() < 6) {
+      throw new IllegalArgumentException(
+            "Insufficient arguments. Expected: event_name on datetime --target calendar_name to datetime");
+    }
+
+    // Validate event name
+    if (args.get(0).isEmpty()) {
+      throw new IllegalArgumentException("Event name cannot be empty.");
+    }
+
+    // Validate "on" keyword
+    if (!args.get(1).equals("on")) {
+      throw new IllegalArgumentException("Expected 'on' after event name.");
+    }
+
+    // Validate source datetime format
     try {
+      LocalDateTime.parse(args.get(2));
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Invalid source date and time format: " + args.get(2));
+    }
 
-      if (index == args.size()) {
-        throw new IllegalArgumentException("Missing event name.");
-      }
-      this.eventName = args.get(index++);
-      if (eventName.isEmpty()) {
-        throw new IllegalArgumentException("Event name cannot be empty.");
-      }
+    // Validate "--target" keyword
+    if (!args.get(3).equals("--target")) {
+      throw new IllegalArgumentException("Expected '--target' after source date and time.");
+    }
 
+    // Validate target calendar name
+    if (args.get(4).isEmpty()) {
+      throw new IllegalArgumentException("Target calendar name cannot be empty.");
+    }
 
-      if (index == args.size()) {
-        throw new IllegalArgumentException("Missing 'on' " +
-            "keyword.");
-      }
-      String onKeyword = args.get(index++);
-      if (!onKeyword.equals("on")) {
-        throw new IllegalArgumentException("Expected 'on' after event name.");
-      }
+    // Validate "to" keyword
+    if (!args.get(5).equals("to")) {
+      throw new IllegalArgumentException("Expected 'to' after target calendar name.");
+    }
 
-
-      if (index == args.size()) {
-        throw new IllegalArgumentException("Missing source " +
-            "datetime.");
-      }
+    // Validate target datetime format
+    if (args.size() > 6) {
       try {
-        this.sourceDateTime = LocalDateTime.parse(args.get(index++));
+        LocalDateTime.parse(args.get(6));
       } catch (Exception e) {
-        throw new IllegalArgumentException("Invalid source date and time format.");
+        throw new IllegalArgumentException("Invalid target date and time format: " + args.get(6));
       }
-
-
-      if (index == args.size()) {
-        throw new IllegalArgumentException("Missing '--target' " +
-            "keyword.");
-      }
-      String targetKeyword = args.get(index++);
-      if (!targetKeyword.equals("--target")) {
-        throw new IllegalArgumentException("Expected '--target' after source date and time.");
-      }
-
-
-      if (index == args.size()) {
-        throw new IllegalArgumentException("Missing target " +
-            "calendar name.");
-      }
-      this.targetCalendar = args.get(index++);
-      if (targetCalendar.isEmpty()) {
-        throw new IllegalArgumentException("Target calendar name cannot be empty.");
-      }
-
-
-      if (index == args.size()) {
-        throw new IllegalArgumentException("Missing 'to' " +
-            "keyword.");
-      }
-      String toKeyword = args.get(index++);
-      if (!toKeyword.equals("to")) {
-        throw new IllegalArgumentException("Expected 'to' after target calendar name.");
-      }
-
-
-      if (index == args.size()) {
-        throw new IllegalArgumentException("Missing target " +
-            "datetime.");
-      }
-      try {
-        this.targetDateTime = LocalDateTime.parse(args.get(index));
-      } catch (Exception e) {
-        throw new IllegalArgumentException("Invalid target date and time format.");
-      }
-
-    } catch (IndexOutOfBoundsException e) {
-      throw new IllegalArgumentException("Incomplete command. Please check the syntax.");
+    } else {
+      throw new IllegalArgumentException("Missing target datetime.");
     }
   }
 
   @Override
   public String execute() {
-    boolean success = model.copyEvent(sourceCalendar, sourceDateTime, eventName, targetCalendar,
-        targetDateTime);
-    return success ? "Event copied successfully." : "Error copying event.";
+    try {
+      boolean success = model.copyEvent(sourceCalendar, sourceDateTime, eventName, targetCalendar,
+            targetDateTime);
+      return success ? "Event copied successfully." : "Error copying event.";
+     } catch (IllegalArgumentException | IllegalStateException e) {
+    return "Error: " + e.getMessage();
+  } catch (Exception e) {
+
+    return "An unexpected error occurred: " + e.getMessage();
+  }
   }
 }

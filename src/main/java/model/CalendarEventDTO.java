@@ -115,7 +115,66 @@ public class CalendarEventDTO implements ICalendarEventDTO {
 
     @Override
     public CalendarEventDTO build() {
+      validateEventData();
       return new CalendarEventDTO(this);
+
+
+    }
+
+    /**
+     * Validates all event data before constructing the object.
+     *
+     * @throws IllegalStateException if any validation fails
+     */
+    private void validateEventData() {
+      // Required fields validation
+      if (eventName == null || eventName.trim().isEmpty()) {
+        throw new IllegalStateException("Event name cannot be empty");
+      }
+
+      if (startDateTime == null) {
+        throw new IllegalStateException("Start date/time cannot be null");
+      }
+
+      if (endDateTime == null) {
+        throw new IllegalStateException("End date/time cannot be null");
+      }
+
+      // Logical validation
+      if (endDateTime.isBefore(startDateTime) || endDateTime.equals(startDateTime)) {
+        throw new IllegalStateException("End date/time must be after start date/time");
+      }
+
+      // Recurring event validation
+      if (Boolean.TRUE.equals(isRecurring)) {
+        // Check if recurrence days are specified
+        if (recurrenceDays == null || recurrenceDays.isEmpty()) {
+          throw new IllegalStateException("Recurring events must specify recurrence days");
+        }
+
+        // Either recurrence count or end date must be specified, but not both
+        if (recurrenceCount != null && recurrenceEndDate != null) {
+          throw new IllegalStateException("Cannot specify both recurrence count and end date");
+        }
+
+        if (recurrenceCount == null && recurrenceEndDate == null) {
+          throw new IllegalStateException("Must specify either recurrence count or end date");
+        }
+
+        if (recurrenceCount != null && recurrenceCount <= 0) {
+          throw new IllegalStateException("Recurrence count must be positive");
+        }
+
+        if (recurrenceEndDate != null && recurrenceEndDate.isBefore(startDateTime)) {
+          throw new IllegalStateException("Recurrence end date must be after start date/time");
+        }
+      } else {
+        // Non-recurring events should not have recurrence parameters
+        if (recurrenceCount != null || recurrenceEndDate != null ||
+              (recurrenceDays != null && !recurrenceDays.isEmpty())) {
+          throw new IllegalStateException("Non-recurring events should not have recurrence parameters");
+        }
+      }
     }
   }
 

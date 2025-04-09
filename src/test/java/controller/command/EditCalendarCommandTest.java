@@ -107,6 +107,11 @@ public class EditCalendarCommandTest {
       return shouldSucceed;
     }
 
+    @Override
+    public boolean addEvents(String calendarName, List<ICalendarEventDTO> events) {
+      return false;
+    }
+
   }
 
   @Test

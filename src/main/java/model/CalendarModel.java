@@ -62,40 +62,73 @@ class CalendarModel implements ICalendarModel {
 
   @Override
   public boolean addEvent(String calendarName, ICalendarEventDTO eventDTO) {
-
+    // Validate calendar existence
     ICalendar targetCalendar = getCalendarByName(calendarName);
 
+    // Validate event data
+    validateEvent(eventDTO);
 
-    validateBasicEvent(eventDTO);
-
-    if (Boolean.TRUE.equals(eventDTO.isRecurring())) {
-      validateRecurringEvent(eventDTO);
-      List<CalendarEvent> occurrences = generateRecurringOccurrences(eventDTO);
-
-
-      if (eventDTO.isAutoDecline()) {
-        occurrences.forEach(occurrence -> targetCalendar.getEvents().forEach(event -> {
-          if (event.doesEventConflict(occurrence)) {
-            throw new IllegalStateException("Conflict detected on "
-                + occurrence.getStartDateTime() + ", event not created");
-          }
-        }));
+    try {
+      // Handle adding the event based on recurrence status
+      if (Boolean.TRUE.equals(eventDTO.isRecurring())) {
+        addRecurringEvent(targetCalendar, eventDTO);
+      } else {
+        addSingleEvent(targetCalendar, eventDTO);
       }
 
+      return true;
+    } catch (IllegalStateException e) {
+      // Pass through validation/conflict exceptions
+      throw e;
+    } catch (Exception e) {
+      // Log and handle other unexpected errors
+      System.err.println("Error adding event: " + e.getMessage());
+      return false;
+    }
+  }
 
-      targetCalendar.addEvents(occurrences);
-    } else {
+  /**
+   * Adds a recurring event to the calendar, handling all occurrences.
+   *
+   * @param calendar the calendar to add the event to
+   * @param eventDTO the recurring event data
+   * @throws IllegalStateException if there are conflicts
+   */
+  private void addRecurringEvent(ICalendar calendar, ICalendarEventDTO eventDTO) {
+    List<CalendarEvent> occurrences = generateRecurringOccurrences(eventDTO);
 
-      validateNonRecurringEvent(eventDTO);
-      if (eventDTO.isAutoDecline()) {
-        if (doesEventConflict(targetCalendar.getEvents(), eventDTO)) {
-          throw new IllegalStateException("Conflict detected, event not created");
+    // Check for conflicts if auto-decline is enabled
+    if (eventDTO.isAutoDecline()) {
+      for (CalendarEvent occurrence : occurrences) {
+        for (ICalendarEvent existingEvent : calendar.getEvents()) {
+          if (existingEvent.doesEventConflict(occurrence)) {
+            throw new IllegalStateException("Conflict detected on " +
+                  occurrence.getStartDateTime() + ", event not created");
+          }
         }
       }
-      CalendarEvent event = createSingleEvent(eventDTO);
-      targetCalendar.addEvent(event);
     }
-    return true;
+
+    // Add all occurrences
+    calendar.addEvents(occurrences);
+  }
+
+  /**
+   * Adds a single, non-recurring event to the calendar.
+   *
+   * @param calendar the calendar to add the event to
+   * @param eventDTO the event data
+   * @throws IllegalStateException if there are conflicts
+   */
+  private void addSingleEvent(ICalendar calendar, ICalendarEventDTO eventDTO) {
+    // Check for conflicts if auto-decline is enabled
+    if (eventDTO.isAutoDecline() && doesEventConflict(calendar.getEvents(), eventDTO)) {
+      throw new IllegalStateException("Conflict detected, event not created");
+    }
+
+    // Create and add the event
+    CalendarEvent event = createSingleEvent(eventDTO);
+    calendar.addEvent(event);
   }
 
   @Override
@@ -107,8 +140,8 @@ class CalendarModel implements ICalendarModel {
 
 
 
-    if (newValue == null || (newValue.trim().isEmpty() && !property.equalsIgnoreCase(
-        "name"))) {
+    if (newValue == null || (newValue.trim().isEmpty() && (!property.equalsIgnoreCase(
+        "description") || property.equalsIgnoreCase("location")))) {
       throw new IllegalArgumentException("Missing value for property update.");
     }
 
@@ -565,6 +598,67 @@ class CalendarModel implements ICalendarModel {
     }
   }
 
+
+  @Override
+  public boolean addEvents(String calendarName, List<ICalendarEventDTO> events) {
+    // First validate all events
+    ICalendar targetCalendar = getCalendarByName(calendarName);
+    List<String> errors = new ArrayList<>();
+
+    // Validate each event
+    for (ICalendarEventDTO eventDTO : events) {
+      try {
+        // Basic validation
+        validateBasicEvent(eventDTO);
+
+        if (Boolean.TRUE.equals(eventDTO.isRecurring())) {
+          validateRecurringEvent(eventDTO);
+        } else {
+          validateNonRecurringEvent(eventDTO);
+        }
+
+        // Check for conflicts (for events with auto-decline set)
+        if (eventDTO.isAutoDecline() != null && eventDTO.isAutoDecline()) {
+          if (Boolean.TRUE.equals(eventDTO.isRecurring())) {
+            List<CalendarEvent> occurrences = generateRecurringOccurrences(eventDTO);
+            for (CalendarEvent occurrence : occurrences) {
+              if (checkConflictForEvent(occurrence, targetCalendar.getEvents())) {
+                errors.add("Event " + eventDTO.getEventName() +
+                      " has a recurring instance that conflicts with existing events");
+                break;
+              }
+            }
+          } else {
+            if (doesEventConflict(targetCalendar.getEvents(), eventDTO)) {
+              errors.add("Event " + eventDTO.getEventName() +
+                    " conflicts with existing events");
+            }
+          }
+        }
+      } catch (Exception e) {
+        errors.add("Event " + eventDTO.getEventName() + ": " + e.getMessage());
+      }
+    }
+
+    // If any validation failed, don't add any events
+    if (!errors.isEmpty()) {
+      throw new IllegalStateException("Cannot add all events: " + String.join("; ", errors));
+    }
+
+    // If we got here, all events passed validation, so add them
+    for (ICalendarEventDTO eventDTO : events) {
+      if (Boolean.TRUE.equals(eventDTO.isRecurring())) {
+        List<CalendarEvent> occurrences = generateRecurringOccurrences(eventDTO);
+        targetCalendar.addEvents(occurrences);
+      } else {
+        CalendarEvent event = createSingleEvent(eventDTO);
+        targetCalendar.addEvent(event);
+      }
+    }
+
+    return true;
+  }
+
   private ICalendar getCalendarByName(String calName) {
     for (ICalendar cal : calendars) {
       if (cal.getCalendarName().equalsIgnoreCase(calName)) {
@@ -646,41 +740,62 @@ class CalendarModel implements ICalendarModel {
     LocalTime endTime = eventDTO.getEndDateTime().toLocalTime();
     int count = 0;
     LocalDate currentDate = startDate;
-    LocalDate recurrenceEnd = (eventDTO.getRecurrenceEndDate() != null)
-        ? eventDTO.getRecurrenceEndDate().toLocalDate()
-        : null;
+    LocalDate recurrenceEnd = getRecurrenceEndDate(eventDTO);
 
-
-    while (true) {
-      if (eventDTO.getRecurrenceCount() != null && eventDTO.getRecurrenceCount() > 0) {
-        if (count >= eventDTO.getRecurrenceCount()) {
-          break;
-        }
-      } else if (recurrenceEnd != null) {
-        if (currentDate.isAfter(recurrenceEnd)) {
-          break;
-        }
-      }
-      if (eventDTO.getRecurrenceDays().contains(currentDate.getDayOfWeek())) {
-        LocalDateTime occurrenceStart = LocalDateTime.of(currentDate, startTime);
-        LocalDateTime occurrenceEnd = LocalDateTime.of(currentDate, endTime);
-
-        Boolean isPrivate = eventDTO.isPrivate();
-        Boolean isPublic = isPrivate == null || !isPrivate;
-        occurrences.add(CalendarEvent.builder()
-            .setEventName(eventDTO.getEventName())
-            .setStartDateTime(occurrenceStart)
-            .setEndDateTime(occurrenceEnd)
-            .setEventDescription(eventDTO.getEventDescription())
-            .setEventLocation(eventDTO.getEventLocation())
-            .setPublic(Boolean.TRUE.equals(isPublic))
-            .build()
-        );
+    while (!isRecurrenceComplete(eventDTO, currentDate, count, recurrenceEnd)) {
+      if (isRecurrenceDay(eventDTO, currentDate)) {
+        CalendarEvent occurrence = createOccurrence(eventDTO, currentDate, startTime, endTime);
+        occurrences.add(occurrence);
         count++;
       }
       currentDate = getNextRecurrenceDate(currentDate, eventDTO.getRecurrenceDays());
     }
     return occurrences;
+  }
+
+  private LocalDate getRecurrenceEndDate(ICalendarEventDTO eventDTO) {
+    return eventDTO.getRecurrenceEndDate() != null
+          ? eventDTO.getRecurrenceEndDate().toLocalDate()
+          : null;
+  }
+
+  private boolean isRecurrenceComplete(ICalendarEventDTO eventDTO, LocalDate currentDate,
+                                       int count, LocalDate recurrenceEnd) {
+    // Check count-based termination
+    if (eventDTO.getRecurrenceCount() != null && eventDTO.getRecurrenceCount() > 0) {
+      if (count >= eventDTO.getRecurrenceCount()) {
+        return true;
+      }
+    }
+    // Check date-based termination
+    else if (recurrenceEnd != null) {
+      if (currentDate.isAfter(recurrenceEnd)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean isRecurrenceDay(ICalendarEventDTO eventDTO, LocalDate date) {
+    return eventDTO.getRecurrenceDays().contains(date.getDayOfWeek());
+  }
+
+  private CalendarEvent createOccurrence(ICalendarEventDTO eventDTO, LocalDate date,
+                                         LocalTime startTime, LocalTime endTime) {
+    LocalDateTime occurrenceStart = LocalDateTime.of(date, startTime);
+    LocalDateTime occurrenceEnd = LocalDateTime.of(date, endTime);
+
+    Boolean isPrivate = eventDTO.isPrivate();
+    Boolean isPublic = isPrivate == null || !isPrivate;
+
+    return CalendarEvent.builder()
+          .setEventName(eventDTO.getEventName())
+          .setStartDateTime(occurrenceStart)
+          .setEndDateTime(occurrenceEnd)
+          .setEventDescription(eventDTO.getEventDescription())
+          .setEventLocation(eventDTO.getEventLocation())
+          .setPublic(Boolean.TRUE.equals(isPublic))
+          .build();
   }
 
   // Creates a single, non-recurring event.
@@ -761,5 +876,84 @@ class CalendarModel implements ICalendarModel {
     int dayShift = targetZoned.toLocalDate().compareTo(sourceZoned.toLocalDate());
     LocalDate adjustedDate = targetDate.plusDays(dayShift);
     return LocalDateTime.of(adjustedDate, targetTime);
+  }
+
+
+  /**
+   * Comprehensive validation for calendar events.
+   * Validates both recurring and non-recurring events in a centralized method.
+   *
+   * @param eventDTO the event data to validate
+   * @throws IllegalArgumentException if validation fails
+   */
+  private void validateEvent(ICalendarEventDTO eventDTO) {
+    // 1. Basic validation that applies to all events
+    if (eventDTO.getStartDateTime() == null) {
+      throw new IllegalArgumentException("Start date and time are required.");
+    }
+    if (eventDTO.getEndDateTime() == null) {
+      throw new IllegalArgumentException("End date and time are required.");
+    }
+    if (!eventDTO.getEndDateTime().isAfter(eventDTO.getStartDateTime())) {
+      throw new IllegalArgumentException("End date and time must be after start date and time.");
+    }
+
+    // 2. Specific validation based on recurring status
+    if (Boolean.TRUE.equals(eventDTO.isRecurring())) {
+      validateRecurringEventRules(eventDTO);
+    } else {
+      validateNonRecurringEventRules(eventDTO);
+    }
+  }
+
+  /**
+   * Validates rules specific to recurring events.
+   *
+   * @param eventDTO the recurring event to validate
+   * @throws IllegalArgumentException if validation fails
+   */
+  private void validateRecurringEventRules(ICalendarEventDTO eventDTO) {
+    // Verify start and end are on the same day
+    if (!eventDTO.getStartDateTime().toLocalDate().equals(eventDTO.getEndDateTime().toLocalDate())) {
+      throw new IllegalArgumentException("Recurring events must have start and end on the same day.");
+    }
+
+    // Verify recurrence termination is specified
+    Integer recCount = eventDTO.getRecurrenceCount();
+    LocalDateTime recEndDate = eventDTO.getRecurrenceEndDate();
+
+    if (recCount == null && recEndDate == null) {
+      throw new IllegalArgumentException("Either recurrence count or recurrence end date must be defined for a recurring event.");
+    }
+    if (recCount != null && recEndDate != null) {
+      throw new IllegalArgumentException("Cannot define both recurrence count and recurrence end date for a recurring event.");
+    }
+    if (recCount != null && recCount <= 0) {
+      throw new IllegalArgumentException("Recurrence count must be greater than 0.");
+    }
+
+    // Verify recurrence days are specified
+    if (eventDTO.getRecurrenceDays() == null || eventDTO.getRecurrenceDays().isEmpty()) {
+      throw new IllegalArgumentException("Recurrence days must be provided for recurring events.");
+    }
+
+    // Verify recurrence end date is after start date
+    if (recEndDate != null && !recEndDate.isAfter(eventDTO.getStartDateTime())) {
+      throw new IllegalArgumentException("Recurrence end date must be after the event start date.");
+    }
+  }
+
+  /**
+   * Validates rules specific to non-recurring events.
+   *
+   * @param eventDTO the non-recurring event to validate
+   * @throws IllegalArgumentException if validation fails
+   */
+  private void validateNonRecurringEventRules(ICalendarEventDTO eventDTO) {
+    // Non-recurring events should not have recurrence parameters
+    if (eventDTO.getRecurrenceCount() != null || eventDTO.getRecurrenceEndDate() != null ||
+          (eventDTO.getRecurrenceDays() != null && !eventDTO.getRecurrenceDays().isEmpty())) {
+      throw new IllegalArgumentException("Non-recurring event should not have recurrence parameters.");
+    }
   }
 }

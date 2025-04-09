@@ -108,6 +108,11 @@ public class EditEventCommandTest {
     public boolean editCalendar(String calendarName, String property, String newValue) {
       return false;
     }
+
+    @Override
+    public boolean addEvents(String calendarName, List<ICalendarEventDTO> events) {
+      return false;
+    }
   }
 
   @Test
@@ -177,7 +182,7 @@ public class EditEventCommandTest {
     );
   }
 
-  @Test(expected = IndexOutOfBoundsException.class)
+  @Test(expected = IllegalArgumentException.class)
   public void testTooFewArguments() {
     new EditEventCommand(
         Collections.singletonList("name"),

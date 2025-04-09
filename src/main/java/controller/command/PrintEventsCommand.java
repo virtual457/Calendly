@@ -3,6 +3,7 @@ package controller.command;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 import model.ICalendarEventDTO;
 import model.ICalendarModel;
@@ -19,59 +20,65 @@ public class PrintEventsCommand implements ICommand {
   /**
    * Constructs a {@code PrintEventsCommand}
    * with the given input parts, model, and selected calendar.
-   *
-   * @param parts           the command arguments parsed from user input
-   * @param model           the calendar model used to perform actions
-   * @param currentCalendar the name of the currently selected calendar
    */
-
   public PrintEventsCommand(List<String> parts, ICalendarModel model, String currentCalendar) {
-    this.model = model;
+    this.model = Objects.requireNonNull(model,"Model cannot be null");
     this.calendarName = currentCalendar;
 
-    if (parts.isEmpty()) {
-      throw new IllegalArgumentException("Print Command too short need more details");
-    }
+    CommandParser.requireMinArgs(parts, 1, "Print Command too short need more details");
+
+    // Handle different print formats
     if (parts.get(0).equals("on")) {
-      if (parts.size() != 2) {
-        throw new IllegalArgumentException("Invalid format. Expected: print events on <date>");
-      }
-      LocalDate date = LocalDate.parse(parts.get(1));
+      CommandParser.requireExactArgs(parts, 2, "Invalid format. Expected: print events on <date>");
+      LocalDate date = CommandParser.parseDate(parts, 1, "Invalid date format");
       this.fromDateTime = date.atStartOfDay();
       this.toDateTime = date.atTime(23, 59, 59);
+    }
+    else if (parts.get(0).equals("from")) {
+      CommandParser.requireExactArgs(parts, 4,
+            "Invalid format. Expected: print events from <datetime> to <datetime>");
+      CommandParser.requireKeyword(parts, 2, "to",
+            "Expected 'to' after start datetime in print events command");
+      this.fromDateTime = CommandParser.parseDateTime(parts, 1, "Invalid start datetime format");
+      this.toDateTime = CommandParser.parseDateTime(parts, 3, "Invalid end datetime format");
 
-    } else if (parts.get(0).equals("from")) {
-      if (parts.size() != 4 || !parts.get(2).equals("to")) {
-        throw new IllegalArgumentException("Invalid format. Expected: print events from " +
-            "<datetime> to <datetime>");
+      if (toDateTime.isBefore(fromDateTime)) {
+        throw new IllegalArgumentException("End datetime must be after start datetime");
       }
-      this.fromDateTime = LocalDateTime.parse(parts.get(1));
-      this.toDateTime = LocalDateTime.parse(parts.get(3));
-    } else {
-      throw new IllegalArgumentException("Expected 'on' or 'from' at start of print events " +
-          "command.");
+    }
+    else {
+      throw new IllegalArgumentException(
+            "Expected 'on' or 'from' at start of print events command.");
     }
   }
 
   @Override
   public String execute() {
-    List<ICalendarEventDTO> events = model.getEventsInRange(calendarName, fromDateTime, toDateTime);
-    if (events.isEmpty()) {
-      return "No events found.";
+    try {
+      List<ICalendarEventDTO> events = model.getEventsInRange(
+            calendarName, fromDateTime, toDateTime);
+
+      if (events.isEmpty()) {
+        return "No events found.";
+      }
+      return buildStringForPrintEvents(events);
+    } catch (IllegalArgumentException e) {
+      return "Error: " + e.getMessage();
+    } catch (Exception e) {
+      return "An unexpected error occurred: " + e.getMessage();
     }
-    return buildStringForPrintEvents(events);
   }
 
   private String buildStringForPrintEvents(List<ICalendarEventDTO> events) {
     StringBuilder sb = new StringBuilder();
     for (ICalendarEventDTO event : events) {
       sb.append("- ")
-          .append(event.getEventName())
-          .append(" [")
-          .append(event.getStartDateTime())
-          .append(" to ")
-          .append(event.getEndDateTime())
-          .append("]");
+            .append(event.getEventName())
+            .append(" [")
+            .append(event.getStartDateTime())
+            .append(" to ")
+            .append(event.getEndDateTime())
+            .append("]");
       if (event.getEventLocation() != null && !event.getEventLocation().isEmpty()) {
         sb.append(" at ").append(event.getEventLocation());
       }

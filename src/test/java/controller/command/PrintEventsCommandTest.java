@@ -171,6 +171,11 @@ public class PrintEventsCommandTest {
       return false;
     }
 
+    @Override
+    public boolean addEvents(String calendarName, List<ICalendarEventDTO> events) {
+      return false;
+    }
+
   }
 
   @Test

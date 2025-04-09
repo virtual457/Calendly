@@ -2,6 +2,7 @@ package controller.command;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 import model.ICalendarModel;
 
@@ -19,51 +20,34 @@ public class EditEventsCalendarCommand implements ICommand {
 
   /**
    * Constructs an {@code EditEventsCalendarCommand} to edit multiple events in a calendar.
-   *
-   * @param parts           the list of command arguments
-   * @param model           the calendar model to interact with
-   * @param currentCalendar the name of the currently selected calendar
    */
-
-  public EditEventsCalendarCommand(List<String> parts, ICalendarModel model,
-                                   String currentCalendar) {
-    this.model = model;
+  public EditEventsCalendarCommand(List<String> parts, ICalendarModel model, String currentCalendar) {
+    this.model = Objects.requireNonNull(model,"Model cannot be null");
     this.calendarName = currentCalendar;
 
+    // Validate minimum arguments
+    CommandParser.requireMinArgs(parts, 2, "Insufficient arguments for edit events command");
 
-    int index = 0;
-    if (index >= parts.size()) {
-      throw new IllegalArgumentException("Missing property name.");
-    }
-    this.property = parts.get(index++);
+    // Get property and event name
+    this.property = CommandParser.getRequiredArg(parts, 0, "Missing property name");
+    this.eventName = CommandParser.getRequiredArg(parts, 1, "Missing event name");
 
-    if (index >= parts.size()) {
-      throw new IllegalArgumentException("Missing event name.");
-    }
-    this.eventName = parts.get(index++);
-
+    int index = 2;
     if (index < parts.size() && parts.get(index).equals("from")) {
       index++;
-      if (index >= parts.size()) {
-        throw new IllegalArgumentException("Missing datetime after 'from'.");
-      }
-      this.fromDateTime = LocalDateTime.parse(parts.get(index++));
 
-      if (index >= parts.size() || !parts.get(index).equals("with")) {
-        throw new IllegalArgumentException("Missing 'with' keyword after datetime.");
-      }
-      index++;
+      this.fromDateTime = CommandParser.parseDateTime(parts, index++, "Invalid datetime format after 'from'");
 
-      if (index >= parts.size()) {
-        throw new IllegalArgumentException("Missing new property value after 'with'.");
-      }
-      this.newValue = parts.get(index);
+
+      CommandParser.requireKeyword(parts, index++, "with", "Missing 'with' keyword after datetime");
+
+      this.newValue = CommandParser.getRequiredArg(parts, index, "Missing new property value after 'with'");
+
       this.hasFromDateTime = true;
-    } else {
-      if (index >= parts.size()) {
-        throw new IllegalArgumentException("Missing new property value.");
-      }
-      this.newValue = parts.get(index);
+    }
+    else {
+      // Format without from clause: edit events property eventName newValue
+      this.newValue = CommandParser.getRequiredArg(parts, index, "Missing new property value");
       this.fromDateTime = null;
       this.hasFromDateTime = false;
     }
@@ -71,13 +55,18 @@ public class EditEventsCalendarCommand implements ICommand {
 
   @Override
   public String execute() {
-    boolean success;
-    if (hasFromDateTime) {
-      success = model.editEvents(calendarName, property, eventName, fromDateTime, newValue, true);
-    } else {
-      success = model.editEvents(calendarName, property, eventName,
-          LocalDateTime.MIN, newValue, true);
+    try {
+      boolean success;
+      if (hasFromDateTime) {
+        success = model.editEvents(calendarName, property, eventName, fromDateTime, newValue, true);
+      } else {
+        success = model.editEvents(calendarName, property, eventName, LocalDateTime.MIN, newValue, true);
+      }
+      return success ? "Events updated successfully." : "No matching events found to update.";
+    } catch (IllegalArgumentException e) {
+      return "Error: " + e.getMessage();
+    } catch (Exception e) {
+      return "An unexpected error occurred: " + e.getMessage();
     }
-    return success ? "Events updated successfully." : "No matching events found to update.";
   }
 }

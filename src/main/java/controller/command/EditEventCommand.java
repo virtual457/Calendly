@@ -2,6 +2,7 @@ package controller.command;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 import model.ICalendarModel;
 
@@ -24,43 +25,43 @@ public class EditEventCommand implements ICommand {
    * @param model           the calendar model to interact with
    * @param currentCalendar the name of the currently selected calendar
    */
-
   public EditEventCommand(List<String> parts, ICalendarModel model, String currentCalendar) {
-    this.model = model;
+    this.model = Objects.requireNonNull(model,"Model cannot be null");
     this.calendarName = currentCalendar;
 
+    // Validate we have enough arguments
+    CommandParser.requireMinArgs(parts, 8, "Insufficient arguments for edit event " +
+          "command. Expected:edit event property eventName from startDateTime to " +
+          "endDateTime " +
+          "with newValue");
 
-    this.property = parts.get(0);
-    this.eventName = parts.get(1);
+    // Parse property and event name
+    this.property = CommandParser.getRequiredArg(parts, 0, "Missing property name");
+    this.eventName = CommandParser.getRequiredArg(parts, 1, "Missing event name");
 
-    if (!parts.get(2).equalsIgnoreCase("from")) {
-      throw new IllegalArgumentException("Expected 'from' keyword at position 3.");
-    }
+    // Check keywords and parse date times
+    CommandParser.requireKeyword(parts, 2, "from", "Expected 'from' keyword at position 3");
+    this.fromDateTime = CommandParser.parseDateTime(parts, 3, "Invalid from date/time format");
 
-    String fromValue = parts.get(3);
+    CommandParser.requireKeyword(parts, 4, "to", "Expected 'to' keyword at position 5");
+    this.toDateTime = CommandParser.parseDateTime(parts, 5, "Invalid to date/time format");
 
-    if (!parts.get(4).equalsIgnoreCase("to")) {
-      throw new IllegalArgumentException("Expected 'to' keyword at position 5.");
-    }
-
-    String toValue = parts.get(5);
-
-    if (!parts.get(6).equalsIgnoreCase("with")) {
-      throw new IllegalArgumentException("Expected 'with' keyword at position 7.");
-    }
-
-    String withValue = parts.get(7);
-
-    this.fromDateTime = LocalDateTime.parse(fromValue);
-    this.toDateTime = LocalDateTime.parse(toValue);
-    this.newValue = withValue;
+    CommandParser.requireKeyword(parts, 6, "with", "Expected 'with' keyword at position 7");
+    this.newValue = CommandParser.getRequiredArg(parts, 7, "Missing new value");
   }
-
 
   @Override
   public String execute() {
-    boolean success = model.editEvent(calendarName, property, eventName,
-        fromDateTime, toDateTime, newValue);
-    return success ? "Event(s) edited successfully." : "Error editing event(s).";
+    try {
+      boolean success = model.editEvent(calendarName, property, eventName,
+            fromDateTime, toDateTime, newValue);
+      return success ? "Event(s) edited successfully." : "Error editing event(s).";
+    } catch (IllegalArgumentException e) {
+      // Specific handling for validation errors
+      return "Error: " + e.getMessage();
+    } catch (Exception e) {
+      // Generic error handling
+      return "An unexpected error occurred: " + e.getMessage();
+    }
   }
 }

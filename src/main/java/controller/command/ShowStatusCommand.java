@@ -2,6 +2,7 @@ package controller.command;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 import model.ICalendarEventDTO;
 import model.ICalendarModel;
@@ -17,35 +18,30 @@ public class ShowStatusCommand implements ICommand {
   /**
    * Constructs a {@code ShowStatusCommand}
    * with the specified arguments, model, and current calendar.
-   *
-   * @param parts            the list of command arguments
-   * @param model            the calendar model to interact with
-   * @param currentCalendar  the currently selected calendar name
    */
-
   public ShowStatusCommand(List<String> parts, ICalendarModel model, String currentCalendar) {
-    this.model = model;
+    this.model = Objects.requireNonNull(model,"Model cannot be null");
     this.calendarName = currentCalendar;
 
-    if (parts.size() != 2) {
-      throw new IllegalArgumentException("Invalid syntax. Expected: show status on <datetime>");
-    }
+    CommandParser.requireExactArgs(parts, 2, "Invalid syntax. Expected: show status on <datetime>");
 
-    if (!parts.get(0).equals("on")) {
-      throw new IllegalArgumentException("Missing 'on' keyword.");
-    }
+    CommandParser.requireKeyword(parts, 0, "on", "Missing 'on' keyword");
 
-    try {
-      this.dateTime = LocalDateTime.parse(parts.get(1));
-    } catch (Exception e) {
-      throw new IllegalArgumentException("Invalid date and time format. Expected: " +
-          "yyyy-MM-ddTHH:mm");
-    }
+    this.dateTime = CommandParser.parseDateTime(parts, 1, "Invalid date and time format. Expected: yyyy-MM-ddTHH:mm");
   }
+
 
   @Override
   public String execute() {
-    List<ICalendarEventDTO> events = model.getEventsInSpecificDateTime(calendarName, dateTime);
-    return events.isEmpty() ? "Available" : "Busy";
+    try {
+      List<ICalendarEventDTO> events = model.getEventsInSpecificDateTime(calendarName, dateTime);
+      return events.isEmpty() ? "Available" : "Busy";
+    } catch (IllegalArgumentException e) {
+      // Specific handling for validation errors
+      return "Error: " + e.getMessage();
+    } catch (Exception e) {
+      // Generic error handling
+      return "An unexpected error occurred: " + e.getMessage();
+    }
   }
 }

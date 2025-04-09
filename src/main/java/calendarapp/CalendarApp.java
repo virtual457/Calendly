@@ -31,7 +31,6 @@ public class CalendarApp {
     try {
       ICalendarModel model = createModel();
       IReadOnlyCalendarModel ROModel = new ReadOnlyCalendarModel(model);
-      Readable readable;
       String mode = parseViewType(args);
       IView view = createView(mode,args,ROModel);
       ICalendarController controller = createController(model, view);

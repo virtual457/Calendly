@@ -62,4 +62,16 @@ public interface ICalendarModel extends IReadOnlyCalendarModel {
 
   boolean editCalendar(String calendarName, String property, String newValue);
 
+  /**
+   * Adds a list of events to the calendar.
+   * All events must be valid and have no conflicts, or none will be added.
+   *
+   * @param calendarName The name of the calendar to add events to
+   * @param events The list of events to add
+   * @return true if all events were added successfully, false otherwise
+   * @throws IllegalArgumentException if an event is invalid
+   * @throws IllegalStateException if any event conflicts with existing events
+   */
+  boolean addEvents(String calendarName, List<ICalendarEventDTO> events);
+
 }

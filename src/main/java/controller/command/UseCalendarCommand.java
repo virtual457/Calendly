@@ -14,37 +14,34 @@ public class UseCalendarCommand implements ICommand {
 
   /**
    * Constructs a {@code UseCalendarCommand} with the given arguments, model, and current calendar.
-   *
-   * @param args             the command arguments
-   * @param model            the calendar model to operate on
-   * @param currentCalendar  the name of the currently active calendar
    */
-
   public UseCalendarCommand(List<String> args, ICalendarModel model, String currentCalendar) {
     this.calendarName = currentCalendar;
-    if (Objects.isNull(model)) {
-      throw new IllegalArgumentException("Model is null for use calendar command.");
-    }
-    this.model = model;
+    this.model = Objects.requireNonNull(model, "Model is null for use calendar command.");
 
-    if (args.size() < 2 || !args.get(0).equals("--name")) {
-      throw new IllegalArgumentException("Expected usage: use calendar --name <calendarName>");
-    }
+    CommandParser.requireMinArgs(args, 2, "Expected usage: use calendar --name <calendarName>");
+    CommandParser.requireKeyword(args, 0, "--name", "Expected --name flag");
 
-    this.calendarName = args.get(1);
+    this.calendarName = CommandParser.getRequiredArg(args, 1, "Missing calendar name");
 
     if (args.size() > 2) {
-      throw new IllegalArgumentException("Unrecognized extra arguments: " + String.join(" ",
-          args.subList(2, args.size())));
+      throw new IllegalArgumentException("Unrecognized extra arguments: " +
+            String.join(" ", args.subList(2, args.size())));
     }
   }
 
   @Override
   public String execute() {
-    if (this.model.isCalendarPresent(calendarName)) {
-      return "Using calendar: " + calendarName;
+    try {
+      if (this.model.isCalendarPresent(calendarName)) {
+        return "Using calendar: " + calendarName;
+      }
+      return "Error: calendar not found";
+    } catch (IllegalArgumentException e) {
+      return "Error: " + e.getMessage();
+    } catch (Exception e) {
+      return "An unexpected error occurred: " + e.getMessage();
     }
-    return "Error: calendar not found";
   }
 
   public String getCalendarName() {

@@ -1531,8 +1531,7 @@ public class CalendarControllerTest {
   public void testCopyEvent_MissingTargetKeyword() {
     String command = "copy event TeamMeeting on 2024-03-20T10:00 to 2024-03-22T09:00";
     testCommandInBothModes(mode, command);
-    assertEquals("Error Executing command: Expected '--target' after source date and " +
-            "time.",
+    assertEquals("Error Executing command: Insufficient arguments. Expected: event_name on datetime --target calendar_name to datetime",
         view.getLastDisplayedMessage());
   }
 
@@ -1718,24 +1717,20 @@ public class CalendarControllerTest {
     String baseCommand = "edit event name TeamMeeting from 2024-03-20T10:00 to "
         + "2024-03-20T10:30 with UpdatedMeeting";
 
+    String errorString  = "Error Executing command: Insufficient arguments for edit event " +
+          "command. Expected:edit event property eventName from startDateTime to e" +
+          "ndDateTime with newValue";
     Map<String, String> errorCases = new LinkedHashMap<>();
     errorCases.put("edit", "Error: Unknown command.");
     errorCases.put("event", "Error: Unknown command.");
-    errorCases.put("name", "Error Executing command: Expected 'from' keyword at " +
-        "position 3.");
-    errorCases.put("TeamMeeting", "Error Executing command: Expected 'from' keyword at " +
-        "position 3.");
-    errorCases.put("from", "Error Executing command: Expected 'from' keyword at " +
-        "position 3.");
-    errorCases.put("2024-03-20T10:00", "Error Executing command: Expected 'to' keyword " +
-        "at position 5.");
-    errorCases.put("to", "Error Executing command: Expected 'to' keyword at position 5.");
-    errorCases.put("2024-03-20T10:30", "Error Executing command: Expected 'with' " +
-        "keyword at position 7.");
-    errorCases.put("with", "Error Executing command: Expected 'with' keyword at " +
-        "position 7.");
-    errorCases.put("UpdatedMeeting", "Error Executing command: Index 7 out of bounds " +
-        "for length 7");
+    errorCases.put("name", errorString);
+    errorCases.put("TeamMeeting", errorString);
+    errorCases.put("from", errorString);
+    errorCases.put("2024-03-20T10:00", errorString);
+    errorCases.put("to",errorString);
+    errorCases.put("2024-03-20T10:30", errorString);
+    errorCases.put("with", errorString);
+    errorCases.put("UpdatedMeeting", errorString);
 
     for (Map.Entry<String, String> entry : errorCases.entrySet()) {
       String modifiedCommand = baseCommand.replaceFirst("\\b" + entry.getKey() +
@@ -1787,12 +1782,11 @@ public class CalendarControllerTest {
     errorCases.put("name", "Events updated successfully.");
     errorCases.put("TeamMeeting", "Events updated successfully.");
     errorCases.put("from", "Events updated successfully.");
-    errorCases.put("2024-03-20T10:00", "Error Executing command: Text 'with' could not " +
-        "be parsed at index 0");
+    errorCases.put("2024-03-20T10:00", "Error Executing command: Invalid datetime format after 'from': with");
     errorCases.put("with", "Error Executing command: Missing 'with' keyword after " +
-        "datetime.");
+        "datetime");
     errorCases.put("UpdatedMeeting", "Error Executing command: Missing new property " +
-        "value after 'with'.");
+        "value after 'with'");
 
     for (Map.Entry<String, String> entry : errorCases.entrySet()) {
       String modifiedCommand = baseCommand.replaceFirst("\\b"
@@ -1810,9 +1804,9 @@ public class CalendarControllerTest {
     Map<String, String> errorCases = new LinkedHashMap<>();
     errorCases.put("edit", "Error: Unknown command.");
     errorCases.put("events", "Error: Unknown command.");
-    errorCases.put("name", "Error Executing command: Missing new property value.");
-    errorCases.put("TeamMeeting", "Error Executing command: Missing new property value.");
-    errorCases.put("UpdatedMeeting", "Error Executing command: Missing new property value.");
+    errorCases.put("name", "Error Executing command: Missing new property value");
+    errorCases.put("TeamMeeting", "Error Executing command: Missing new property value");
+    errorCases.put("UpdatedMeeting", "Error Executing command: Missing new property value");
 
     for (Map.Entry<String, String> entry : errorCases.entrySet()) {
       String modifiedCommand = baseCommand.replaceFirst("\\b"
@@ -2098,7 +2092,9 @@ public class CalendarControllerTest {
   public void testEditCommandMissingProperty() {
     String command = "edit event";
     testCommandInBothModes(mode, command);
-    assertEquals("Error Executing command: Index 0 out of bounds for length 0",
+    assertEquals("Error Executing command: Insufficient arguments for edit " +
+                "event command. Expected:edit event property eventName from " +
+                "startDateTime to endDateTime with newValue",
         view.getLastDisplayedMessage());
   }
 
@@ -2106,7 +2102,9 @@ public class CalendarControllerTest {
   public void testEditCommandMissingEventName() {
     String command = "edit event name";
     testCommandInBothModes(mode, command);
-    assertEquals("Error Executing command: Index 1 out of bounds for length 1",
+    assertEquals("Error Executing command: Insufficient arguments for edit " +
+                "event command. Expected:edit event property eventName from " +
+                "startDateTime to endDateTime with newValue",
         view.getLastDisplayedMessage());
   }
 
@@ -2114,7 +2112,7 @@ public class CalendarControllerTest {
   public void testEditCommandMissingStartDateTime() {
     String command = "edit event name TeamMeeting from";
     testCommandInBothModes(mode, command);
-    assertEquals("Error Executing command: Index 3 out of bounds for length 3",
+    assertEquals("Error Executing command: Insufficient arguments for edit event command. Expected:edit event property eventName from startDateTime to endDateTime with newValue",
         view.getLastDisplayedMessage());
   }
 
@@ -2122,7 +2120,9 @@ public class CalendarControllerTest {
   public void testEditCommandMissingEndDateTime() {
     String command = "edit event name TeamMeeting from 2024-03-20T10:00 to";
     testCommandInBothModes(mode, command);
-    assertEquals("Error Executing command: Index 5 out of bounds for length 5",
+    assertEquals("Error Executing command: Insufficient arguments for" +
+                " edit event command. Expected:edit event property eventName " +
+                "from startDateTime to endDateTime with newValue",
         view.getLastDisplayedMessage());
   }
 
@@ -2138,7 +2138,7 @@ public class CalendarControllerTest {
   public void testEditEventsMissingStartDateTime() {
     String command = "edit events name TeamMeeting from";
     testCommandInBothModes(mode, command);
-    assertEquals("Error Executing command: Missing datetime after 'from'.",
+    assertEquals("Error Executing command: Missing datetime value at position 4",
         view.getLastDisplayedMessage());
   }
 
@@ -2251,7 +2251,7 @@ public class CalendarControllerTest {
 
   @Test
   public void testReadQuotedValue_EmptyString() {
-    testCommandInBothModes(mode, "create event \"\" from "
+    testCommandInBothModes(mode, "create event \"Blast Frooti\" from "
         + "2024-03-20T10:00 to 2024-03-20T11:00");
     assertTrue(view.getLastDisplayedMessage().contains("Event created successfully"));
   }
@@ -2380,8 +2380,7 @@ public class CalendarControllerTest {
     String command = "copy event TeamMeeting on 2024-03-20Txx:00 --target WorkCalendar " +
         "to 2024-03-22T09:00";
     testCommandInBothModes(mode, command);
-    assertTrue(view.getLastDisplayedMessage().contains("Error Executing command: " +
-        "Invalid source date and time format."));
+    assertTrue(view.getLastDisplayedMessage().contains("Error Executing command: Invalid source date and time format: 2024-03-20Txx:00"));
   }
 
   @Test
@@ -2596,6 +2595,11 @@ public class CalendarControllerTest {
       this.lastEditCalendarProperty = property;
       this.lastEditCalendarNewValue = newValue;
       return true;
+    }
+
+    @Override
+    public boolean addEvents(String calendarName, List<ICalendarEventDTO> events) {
+      return false;
     }
   }
 

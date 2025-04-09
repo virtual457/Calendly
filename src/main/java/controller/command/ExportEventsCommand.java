@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Command to export events from a calendar to a CSV file in Google Calendar format.
@@ -23,20 +24,16 @@ public class ExportEventsCommand implements ICommand {
   /**
    * Constructs an {@code ExportEventsCommand}
    * using the provided arguments, model, and active calendar.
-   *
-   * @param args            the list of command-line arguments
-   * @param model           the calendar model to interact with
-   * @param currentCalendar the name of the currently selected calendar
    */
-
   public ExportEventsCommand(List<String> args, ICalendarModel model, String currentCalendar) {
-    this.model = model;
+    this.model = Objects.requireNonNull(model,"Model cannot be null");
     this.calendarName = currentCalendar;
 
-    if (args.isEmpty()) {
-      throw new IllegalArgumentException("Missing filename for export.");
-    }
-    this.fileName = args.get(0);
+
+    CommandParser.requireMinArgs(args, 1, "Missing filename for export.");
+    this.fileName = CommandParser.getRequiredArg(args, 0, "Missing export filename");
+
+    // Ensure no extra arguments
     if (args.size() > 1) {
       throw new IllegalArgumentException("Too many arguments for export command.");
     }
@@ -44,10 +41,16 @@ public class ExportEventsCommand implements ICommand {
 
   @Override
   public String execute() {
-    LocalDateTime start = LocalDateTime.MIN;
-    LocalDateTime end = LocalDateTime.MAX;
-    List<ICalendarEventDTO> events = model.getEventsInRange(calendarName, start, end);
-    return exportToCSV(events);
+    try {
+      LocalDateTime start = LocalDateTime.MIN;
+      LocalDateTime end = LocalDateTime.MAX;
+      List<ICalendarEventDTO> events = model.getEventsInRange(calendarName, start, end);
+      return exportToCSV(events);
+    } catch (IllegalArgumentException e) {
+      return "Error: " + e.getMessage();
+    } catch (Exception e) {
+      return "An unexpected error occurred: " + e.getMessage();
+    }
   }
 
   private String escapeCSV(String value) {

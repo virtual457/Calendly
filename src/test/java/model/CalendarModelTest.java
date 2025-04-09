@@ -185,7 +185,7 @@ public class CalendarModelTest {
     }
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test(expected = IllegalStateException.class)
   public void testAddNonRecurringEventWithRecurrenceInfo() {
     model.createCalendar("Work", "America/New_York");
     LocalDateTime start = LocalDateTime.of(2025, 3, 18, 10, 0);
@@ -484,7 +484,7 @@ public class CalendarModelTest {
 
   // ---------- Invalid Parameter Handling ----------
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test(expected = IllegalStateException.class)
   public void testAddEvent_MissingEventName() {
     model.createCalendar("TestCal", "America/New_York");
     LocalDateTime start = LocalDateTime.of(2025, 9, 1, 10, 0);
@@ -502,7 +502,7 @@ public class CalendarModelTest {
     model.addEvent("TestCal", eventDTO);
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test(expected = IllegalStateException.class)
   public void testAddEvent_MissingStartTime() {
     model.createCalendar("TestCal", "America/New_York");
     LocalDateTime end = LocalDateTime.of(2025, 9, 1, 11, 0);
@@ -620,7 +620,7 @@ public class CalendarModelTest {
     assertEquals(3, events.size());
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test(expected = IllegalStateException.class)
   public void testRecurringEventInvalidCount() {
     model.createCalendar("RecurrCal", "America/New_York");
     LocalDateTime start = LocalDateTime.of(2025, 5, 1, 9, 0);
@@ -810,7 +810,7 @@ public class CalendarModelTest {
   }
 
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test(expected = IllegalStateException.class)
   public void testRecurringEventMissingCountAndEndDate() {
     model.createCalendar("RecurrCal", "America/New_York");
     LocalDateTime start = LocalDateTime.of(2025, 5, 1, 9, 0);
@@ -1677,20 +1677,19 @@ public class CalendarModelTest {
     assertEquals("WeeklyCall", targetEvents.get(0).getEventName());
   }
 
-  @Test
+  @Test(expected = IllegalStateException.class)
   public void testCalendarEventDTOBuilderMissingEventName() {
-    ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
-        .setEventName(null)  // explicitly setting eventName to null
-        .setStartDateTime(LocalDateTime.of(2025, 10, 1, 9, 0))
-        .setEndDateTime(LocalDateTime.of(2025, 10, 1, 10, 0))
-        .setAutoDecline(true)
-        .setRecurring(false)
-        .setEventDescription("Missing event name")
-        .setEventLocation("Room X")
-        .setPrivate(false)
-        .build();
-
-    assertNull("Expected event name to be null", eventDTO.getEventName());
+    // This should throw an IllegalStateException because null names are not allowed
+    CalendarEventDTO.builder()
+          .setEventName(null)  // explicitly setting eventName to null
+          .setStartDateTime(LocalDateTime.of(2025, 10, 1, 9, 0))
+          .setEndDateTime(LocalDateTime.of(2025, 10, 1, 10, 0))
+          .setAutoDecline(true)
+          .setRecurring(false)
+          .setEventDescription("Missing event name")
+          .setEventLocation("Room X")
+          .setPrivate(false)
+          .build();
   }
 
   @Test
@@ -2151,30 +2150,35 @@ public class CalendarModelTest {
   }
 
   @Test
-  public void testEditEvents_UpdateNameToEmpty_ShouldUpdate() {
+  public void testEditEvents_UpdateNameToEmpty_ShouldNotUpdate() {
     model = new CalendarModel();
     model.createCalendar("TestCal", "America/New_York");
     LocalDateTime start = LocalDateTime.of(2025, 6, 11, 10, 0);
     LocalDateTime end = LocalDateTime.of(2025, 6, 11, 11, 0);
     ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
-        .setEventName("Meeting")
-        .setStartDateTime(start)
-        .setEndDateTime(end)
-        .setAutoDecline(true)
-        .setRecurring(false)
-        .setEventDescription("Team meeting")
-        .setEventLocation("Room A")
-        .setPrivate(false)
-        .build();
+          .setEventName("Meeting")
+          .setStartDateTime(start)
+          .setEndDateTime(end)
+          .setAutoDecline(true)
+          .setRecurring(false)
+          .setEventDescription("Team meeting")
+          .setEventLocation("Room A")
+          .setPrivate(false)
+          .build();
     assertTrue(model.addEvent("TestCal", eventDTO));
 
-    // For name property, empty string is allowed.
-    boolean edited = model.editEvents("TestCal", "name", "Meeting", start, "", false);
-    assertTrue(edited);
+    // Empty event names are no longer allowed
+    try {
+      model.editEvents("TestCal", "name", "Meeting", start, "", false);
+      fail("Expected IllegalArgumentException for empty event name");
+    } catch (IllegalArgumentException e) {
+      assertEquals("Missing value for property update.", e.getMessage());
+    }
 
+    // Verify the event name was not changed
     List<ICalendarEventDTO> events = model.getEventsInRange("TestCal", start.minusMinutes(1),
-        end.plusMinutes(1));
-    assertEquals("", events.get(0).getEventName());
+          end.plusMinutes(1));
+    assertEquals("Meeting", events.get(0).getEventName());
   }
 
 
@@ -3177,22 +3181,23 @@ public class CalendarModelTest {
 
     LocalDateTime start = LocalDateTime.of(2025, 10, 1, 9, 0);
 
-    ICalendarEventDTO eventDTO = CalendarEventDTO.builder()
-        .setEventName("MissingEnd")
-        .setStartDateTime(start)
-        .setEndDateTime(null) // Missing end time
-        .setAutoDecline(true)
-        .setRecurring(false)
-        .setEventDescription("Invalid event")
-        .setEventLocation("Room 404")
-        .setPrivate(false)
-        .build();
 
-    IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () ->
-        model.addEvent("TestCal", eventDTO)
+
+    IllegalStateException ex = assertThrows(IllegalStateException.class, () ->
+
+        model.addEvent("TestCal", CalendarEventDTO.builder()
+              .setEventName("MissingEnd")
+              .setStartDateTime(start)
+              .setEndDateTime(null) // Missing end time
+              .setAutoDecline(true)
+              .setRecurring(false)
+              .setEventDescription("Invalid event")
+              .setEventLocation("Room 404")
+              .setPrivate(false)
+              .build())
     );
 
-    assertEquals("End date and time are required.", ex.getMessage());
+    assertEquals("End date/time cannot be null", ex.getMessage());
   }
 
   @Test

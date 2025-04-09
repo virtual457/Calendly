@@ -5,7 +5,6 @@ import java.io.StringReader;
 import java.util.Scanner;
 
 
-import controller.command.BasicCreateEventCommand;
 import controller.command.CommandInvoker;
 
 import controller.command.CreateCalendarCommand;

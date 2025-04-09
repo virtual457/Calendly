@@ -11,7 +11,6 @@ import model.ICalendarEventDTO;
  */
 public class EventDetailsView extends JDialog {
   private final ICalendarEventDTO event;
-  private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
   private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("EEEE, MMMM d, yyyy");
   private final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("hh:mm a");
 

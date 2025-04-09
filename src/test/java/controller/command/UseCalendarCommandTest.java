@@ -101,6 +101,11 @@ public class UseCalendarCommandTest {
       return false;
     }
 
+    @Override
+    public boolean addEvents(String calendarName, List<ICalendarEventDTO> events) {
+      return false;
+    }
+
   }
 
   @Test
@@ -134,7 +139,7 @@ public class UseCalendarCommandTest {
   }
 
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test(expected = NullPointerException.class)
   public void testNullModelThrowsError() {
     new UseCalendarCommand(Arrays.asList("--name", "Work"), null, "Default");
   }

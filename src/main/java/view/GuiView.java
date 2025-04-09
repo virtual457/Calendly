@@ -12,18 +12,16 @@ import java.util.*;
 import java.io.*;
 import java.util.List;
 
+import controller.ICalendarCommandAdapter;
 import controller.ICommandExecutor;
-import controller.ICalendarController;
 import model.ICalendarEventDTO;
 import model.ICalendarEventDTOBuilder;
 import model.IReadOnlyCalendarModel;
-import model.ICalendarModel;
-import view.IView;
 
 public class GuiView extends JFrame implements IView {
   // Model references
   private IReadOnlyCalendarModel model;
-  private ICommandExecutor controller;
+  private ICalendarCommandAdapter commandAdapter;
   private boolean displayEnabled;
 
   // GUI components
@@ -56,8 +54,8 @@ public class GuiView extends JFrame implements IView {
     setSize(800, 600);
     setLayout(new BorderLayout());
 
-    controller.executeCommand("create calendar --name Default --timezone UTC");
-    controller.executeCommand("use calendar --name Default");
+    commandAdapter.createCalendar("Default","UTC");
+    commandAdapter.useCalendar("Default");
 
     // Initialize control panel (top)
     initializeControlPanel();
@@ -597,7 +595,7 @@ public class GuiView extends JFrame implements IView {
 
         // Build the event and create it
         ICalendarEventDTO event = builder.build();
-        boolean created = createEvent(event);
+        boolean created = commandAdapter.createEvent(event);
 
         if (created) {
           refreshCalendarView();
@@ -939,25 +937,18 @@ public class GuiView extends JFrame implements IView {
 
 // Create the edit events command using the correct format
         String command;
-
+        try {
         if (userStartDateStr.isEmpty()) {
           // If no from date is provided, use the simpler command format
-          command = "edit events " + propertyName + " \"" + nameField.getText().trim() + "\" " + valueParam;
+          commandAdapter.editEventsNoStartDate(propertyName,nameField.getText().trim(),valueParam);
+
         } else {
           // If from date is provided, use the full command format
           LocalDate startDate = LocalDate.parse(userStartDateStr);
           LocalDateTime startDateTime = startDate.atStartOfDay();
-          DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
-          String fromDateTimeStr = startDateTime.format(formatter);
-
-          command = "edit events " + propertyName + " \"" + nameField.getText().trim() + "\"" +
-              " from " + fromDateTimeStr +
-              " with " + valueParam;
+          commandAdapter.editEvents(propertyName,nameField.getText().trim(),startDateTime,
+                valueParam);
         }
-
-        try {
-          // Execute the single command for all matching events
-          controller.executeCommand(command);
 
           // Refresh view
           refreshCalendarView();
@@ -1158,18 +1149,11 @@ public class GuiView extends JFrame implements IView {
 
         // Build command: edit event property eventName from startDateTime to endDateTime with newValue
         DateTimeFormatter cmdFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
-        String command = "edit event " + propertyName + " " + event.getEventName() +
-            " from " + event.getStartDateTime().format(cmdFormatter) +
-            " to " + event.getEndDateTime().format(cmdFormatter) +
-            " with " + newValue;
+        commandAdapter.editEvent(propertyName,event.getEventName(),
+              event.getStartDateTime(),event.getEndDateTime(),newValue);
 
-        // Add flag for all instances if applicable
-        if (editAll) {
-          command += " --all";
-        }
 
-        // Execute the command
-        controller.executeCommand(command);
+        // Refresh view after uopdate
         refreshCalendarView();
 
       } catch (Exception ex) {
@@ -1218,7 +1202,7 @@ public class GuiView extends JFrame implements IView {
 
     try {
       // Export directly with the provided filename
-      controller.executeCommand("export cal " + outputFile);
+      commandAdapter.exportCalendar(outputFile);
     } catch (Exception ex) {
       JOptionPane.showMessageDialog(
             this,
@@ -1240,15 +1224,7 @@ public class GuiView extends JFrame implements IView {
 
       try {
         // Execute import command with the selected calendar and file path
-        String command = "import cal --calendar \"" + selectedCalendar + "\" --file \"" +
-            file.getAbsolutePath().replace("\\", "\\\\") + "\"";
-
-        controller.executeCommand(command);
-
-        JOptionPane.showMessageDialog(this,
-            "Calendar imported successfully",
-            "Import Success",
-            JOptionPane.INFORMATION_MESSAGE);
+        commandAdapter.importCalendar(file.getAbsolutePath().replace("\\", "\\\\"));
         refreshCalendarView();
       } catch (Exception ex) {
         JOptionPane.showMessageDialog(this,
@@ -1282,13 +1258,7 @@ public class GuiView extends JFrame implements IView {
   }
 
   private boolean createCalendar(String name, String timezone) {
-    try {
-      controller.executeCommand("create calendar --name " + name + " --timezone " + timezone);
-    }
-    catch (Exception ex) {
-      System.err.println("Error creating calendar: " + ex.getMessage());
-      return false;
-    }
+    commandAdapter.createCalendar(name, timezone);
     return true;
   }
 
@@ -1301,124 +1271,9 @@ public class GuiView extends JFrame implements IView {
     );
   }
 
-  // Helper method to determine if an event is an all-day event
-  private boolean isAllDayEvent(LocalDateTime start, LocalDateTime end) {
-    return start.toLocalTime().equals(LocalTime.MIDNIGHT) &&
-          end.toLocalTime().equals(LocalTime.of(23, 59, 59)) &&
-          start.toLocalDate().equals(end.toLocalDate());
-  }
-
-  private boolean createEvent(ICalendarEventDTO event) {
-    try {
-      StringBuilder command = new StringBuilder();
-      command.append("create event ")
-            .append(event.getEventName());
-
-      DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
-
-      // Check if the event is a full-day event or a timed event
-      boolean isAllDayEvent = isAllDayEvent(event.getStartDateTime(), event.getEndDateTime());
-
-      if (isAllDayEvent) {
-        // Format for all-day events
-        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        command.append(" on ")
-              .append(event.getStartDateTime().toLocalDate().format(dateFormatter));
-      } else {
-        // Format for timed events
-        command.append(" from ")
-              .append(event.getStartDateTime().format(formatter))
-              .append(" to ")
-              .append(event.getEndDateTime().format(formatter));
-      }
-
-      // For recurring events
-      if (Boolean.TRUE.equals(event.isRecurring()) && event.getRecurrenceDays() != null) {
-        // Create recurrence pattern
-        StringBuilder pattern = new StringBuilder();
-        for (DayOfWeek day : event.getRecurrenceDays()) {
-          pattern.append(getDayCode(day));
-        }
-        command.append(" repeats ").append(pattern);
-
-        // Add recurrence termination (count or end date)
-        if (event.getRecurrenceCount() != null) {
-          command.append(" for ").append(event.getRecurrenceCount()).append(" times");
-        } else if (event.getRecurrenceEndDate() != null) {
-          DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-          command.append(" until ").append(event.getRecurrenceEndDate().format(formatter));
-        }
-      }
-
-      // Add description if provided
-      if (event.getEventDescription() != null && !event.getEventDescription().isEmpty()) {
-        command.append(" --description \"")
-              .append(event.getEventDescription())
-              .append("\"");
-      }
-
-      // Add location if provided
-      if (event.getEventLocation() != null && !event.getEventLocation().isEmpty()) {
-        command.append(" --location \"")
-              .append(event.getEventLocation())
-              .append("\"");
-      }
-
-      // Add privacy flag if needed
-      if (Boolean.TRUE.equals(event.isPrivate())) {
-        command.append(" --private");
-      }
-
-      System.out.println("Executing command: " + command.toString());
-      controller.executeCommand(command.toString());
-      return true;
-    }
-    catch (Exception ex) {
-      System.err.println("Error creating event: " + ex.getMessage());
-      return false;
-    }
-  }
-
-  // Helper method to determine if an event is an all-day event
-
-
-  // Helper to convert DayOfWeek to your specific code format
-  private char getDayCode(DayOfWeek day) {
-    switch (day) {
-      case MONDAY: return 'M';
-      case TUESDAY: return 'T';
-      case WEDNESDAY: return 'W';
-      case THURSDAY: return 'R';
-      case FRIDAY: return 'F';
-      case SATURDAY: return 'S';
-      case SUNDAY: return 'U';
-      default: throw new IllegalArgumentException("Unknown day: " + day);
-    }
-  }
-
-  private boolean exportCalendar(String calendarName, String path) {
-    try {
-      controller.executeCommand("export cal --calendar \"" + calendarName + "\" --file \"" + path + "\"");
-    }
-    catch (Exception ex) {
-      return false;
-    }
-    return true;
-  }
-
-  private boolean importCalendar(String calendarName, String path) {
-    try {
-      controller.executeCommand("import cal --calendar \"" + calendarName + "\" --file \"" + path + "\"");
-    }
-    catch (Exception ex) {
-      return false;
-    }
-    return true;
-  }
-
   private boolean useCalendar(String calendarName) {
     try {
-      controller.executeCommand("use calendar --name \"" + calendarName + "\"");
+      commandAdapter.useCalendar(calendarName);
     }
     catch (Exception ex) {
       return false;
@@ -1453,7 +1308,7 @@ public class GuiView extends JFrame implements IView {
 
   @Override
   public void start(ICommandExecutor commandExecutor) {
-    this.controller = commandExecutor;
+    this.commandAdapter = commandExecutor.getCommandAdapter();
     initializeUI();
   }
 

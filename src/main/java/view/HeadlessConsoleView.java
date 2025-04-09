@@ -1,19 +1,16 @@
 package view;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.Objects;
+
 
 import controller.ICommandExecutor;
 
 public class HeadlessConsoleView implements IView {
   private final String filePath;
 
-  public HeadlessConsoleView(String filePath) throws FileNotFoundException {
+  public HeadlessConsoleView(String filePath) {
     this.filePath = filePath;
     validateFile(filePath);
   }
@@ -25,7 +22,7 @@ public class HeadlessConsoleView implements IView {
       String line;
 
       while ((line = reader.readLine()) != null) {
-        if (line.trim().length() > 0) {
+        if (!line.trim().isEmpty()) {
           lastLine = line.trim();
         }
       }

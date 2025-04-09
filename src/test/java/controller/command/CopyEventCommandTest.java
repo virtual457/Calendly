@@ -104,6 +104,11 @@ public class CopyEventCommandTest {
     public boolean editCalendar(String calendarName, String property, String newValue) {
       return false;
     }
+
+    @Override
+    public boolean addEvents(String calendarName, List<ICalendarEventDTO> events) {
+      return false;
+    }
   }
 
   @Test

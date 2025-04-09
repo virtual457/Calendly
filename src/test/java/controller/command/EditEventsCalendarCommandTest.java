@@ -112,6 +112,11 @@ public class EditEventsCalendarCommandTest {
     public boolean editCalendar(String calendarName, String property, String newValue) {
       return false;
     }
+
+    @Override
+    public boolean addEvents(String calendarName, List<ICalendarEventDTO> events) {
+      return false;
+    }
   }
 
   @Test
@@ -221,6 +226,11 @@ public class EditEventsCalendarCommandTest {
 
       @Override
       public boolean editCalendar(String calendarName, String property, String newValue) {
+        return false;
+      }
+
+      @Override
+      public boolean addEvents(String calendarName, List<ICalendarEventDTO> events) {
         return false;
       }
     };
