@@ -6,8 +6,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -57,7 +57,7 @@ public class ImportCalendarCommand implements ICommand {
       }
 
       // Use the addEvents method that handles validation internally
-      model.addEvents(calendarName, eventsToImport,timezone);
+      model.addEvents(calendarName, eventsToImport, timezone);
 
       return "Successfully imported " + eventsToImport.size() +
             " events to calendar '" + calendarName + "' with timezone '" + timezone + "'";
@@ -71,6 +71,8 @@ public class ImportCalendarCommand implements ICommand {
 
   private List<ICalendarEventDTO> importFromCSV() throws Exception {
     List<ICalendarEventDTO> events = new ArrayList<>();
+    List<String> validationErrors = new ArrayList<>();
+    int lineNumber = 1; // Start counting from header line
 
     try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
       String line;
@@ -81,6 +83,7 @@ public class ImportCalendarCommand implements ICommand {
       while ((line = reader.readLine()) != null) {
         if (isHeader) {
           isHeader = false;
+          lineNumber++;
           if(!line.trim().equals("Subject,Start Date,Start Time,End Date,End Time,All Day " +
                 "Event,Description,Location,Private")){
             throw new Exception("Invalid Header line: " + line);
@@ -88,60 +91,155 @@ public class ImportCalendarCommand implements ICommand {
           continue; // Skip header row
         }
 
-        String[] fields = parseCSVLine(line);
-        if (fields.length < 9) {
-          throw new IllegalArgumentException("Invalid CSV line: " + line);
+        try {
+          String[] fields = parseCSVLine(line);
+          if (fields.length != 9) {
+            validationErrors.add("Line " + lineNumber + ": Expected 9 fields, but found " + fields.length);
+            lineNumber++;
+            continue;
+          }
+
+          // Parse event fields
+          String eventName = removeOuterQuotes(fields[0]); // Subject
+          String startDateStr = fields[1].trim(); // Start Date
+          String startTimeStr = fields[2].trim(); // Start Time
+          String endDateStr = fields[3].trim(); // End Date
+          String endTimeStr = fields[4].trim(); // End Time
+          String allDayStr = fields[5].trim(); // All Day Event
+          String description = removeOuterQuotes(fields[6]);
+          String location = removeOuterQuotes(fields[7]);
+          String isPrivateStr = fields[8].trim();
+
+          // Validate required fields
+          if (eventName == null || eventName.trim().isEmpty()) {
+            validationErrors.add("Line " + lineNumber + ": Event name is mandatory");
+            lineNumber++;
+            continue;
+          }
+
+          if (startDateStr.isEmpty()) {
+            validationErrors.add("Line " + lineNumber + ": Start date is mandatory");
+            lineNumber++;
+            continue;
+          }
+
+          if (endDateStr.isEmpty()) {
+            validationErrors.add("Line " + lineNumber + ": End date is mandatory");
+            lineNumber++;
+            continue;
+          }
+
+          // Check for valid boolean fields
+          boolean isAllDay = false;
+          if (!allDayStr.isEmpty()) {
+            if (!isValidBoolean(allDayStr)) {
+              validationErrors.add("Line " + lineNumber + ": All Day Event must be TRUE or FALSE");
+              lineNumber++;
+              continue;
+            }
+            isAllDay = Boolean.parseBoolean(allDayStr.toLowerCase());
+          }
+
+          boolean isPrivate = false;
+          if (!isPrivateStr.isEmpty()) {
+            if (!isValidBoolean(isPrivateStr)) {
+              validationErrors.add("Line " + lineNumber + ": Private must be TRUE or FALSE");
+              lineNumber++;
+              continue;
+            }
+            isPrivate = Boolean.parseBoolean(isPrivateStr.toLowerCase());
+          }
+
+          // Parse dates and times
+          LocalDateTime startDateTime;
+          LocalDateTime endDateTime;
+
+          try {
+            if (isAllDay) {
+              // For all-day events, set to start of day and end of day
+              if (startDateStr.isEmpty()) {
+                validationErrors.add("Line " + lineNumber + ": Start date is required for all-day events");
+                lineNumber++;
+                continue;
+              }
+
+              LocalDate startDate = LocalDate.parse(startDateStr, dateFormatter);
+              LocalDate endDate = LocalDate.parse(endDateStr, dateFormatter);
+              startDateTime = startDate.atStartOfDay();
+              endDateTime = endDate.atTime(23, 59, 59);
+            } else {
+              // For regular events, parse both date and time
+              if (startTimeStr.isEmpty()) {
+                validationErrors.add("Line " + lineNumber + ": Start time is mandatory for non-all-day events");
+                lineNumber++;
+                continue;
+              }
+
+              if (endTimeStr.isEmpty()) {
+                validationErrors.add("Line " + lineNumber + ": End time is mandatory for non-all-day events");
+                lineNumber++;
+                continue;
+              }
+
+              LocalDate startDate = LocalDate.parse(startDateStr, dateFormatter);
+              LocalTime startTime = LocalTime.parse(startTimeStr, timeFormatter);
+              LocalDate endDate = LocalDate.parse(endDateStr, dateFormatter);
+              LocalTime endTime = LocalTime.parse(endTimeStr, timeFormatter);
+
+              startDateTime = LocalDateTime.of(startDate, startTime);
+              endDateTime = LocalDateTime.of(endDate, endTime);
+            }
+
+            // Validate end time is after start time
+            if (endDateTime.isBefore(startDateTime) || endDateTime.equals(startDateTime)) {
+              validationErrors.add("Line " + lineNumber + ": End date/time must be after start date/time");
+              lineNumber++;
+              continue;
+            }
+          } catch (DateTimeParseException e) {
+            validationErrors.add("Line " + lineNumber + ": Invalid date/time format - " + e.getMessage());
+            lineNumber++;
+            continue;
+          }
+
+          // Create event DTO
+          ICalendarEventDTO eventDTO = ICalendarEventDTO.builder()
+                .setEventName(eventName)
+                .setStartDateTime(startDateTime)
+                .setEndDateTime(endDateTime)
+                .setEventDescription(description)
+                .setEventLocation(location)
+                .setPrivate(isPrivate)
+                .setAutoDecline(true)
+                .build();
+
+          events.add(eventDTO);
+        } catch (Exception e) {
+          validationErrors.add("Line " + lineNumber + ": " + e.getMessage());
         }
 
-        // Parse event fields
-        String eventName = removeOuterQuotes(fields[0]); // Subject
-        String startDateStr = fields[1]; // Start Date
-        String startTimeStr = fields[2]; // Start Time
-        String endDateStr = fields[3]; // End Date
-        String endTimeStr = fields[4]; // End Time
-        boolean isAllDay = fields.length > 5 && "TRUE".equalsIgnoreCase(fields[5].trim());
-        String description = fields.length > 6 ? removeOuterQuotes(fields[6]) : "";
-        String location = fields.length > 7 ? removeOuterQuotes(fields[7]) : ""; //
-        // Location
-        boolean isPrivate = fields.length > 8 && "TRUE".equalsIgnoreCase(fields[8].trim());
-
-        // Parse dates and times
-        LocalDateTime startDateTime;
-        LocalDateTime endDateTime;
-
-        if (isAllDay) {
-          // For all-day events, set to start of day and end of day
-          LocalDate startDate = LocalDate.parse(startDateStr, dateFormatter);
-          LocalDate endDate = LocalDate.parse(endDateStr, dateFormatter);
-          startDateTime = startDate.atStartOfDay();
-          endDateTime = endDate.atTime(23, 59, 59);
-        } else {
-          // For regular events, parse both date and time
-          LocalDate startDate = LocalDate.parse(startDateStr, dateFormatter);
-          LocalTime startTime = LocalTime.parse(startTimeStr, timeFormatter);
-          LocalDate endDate = LocalDate.parse(endDateStr, dateFormatter);
-          LocalTime endTime = LocalTime.parse(endTimeStr, timeFormatter);
-
-          startDateTime = LocalDateTime.of(startDate, startTime);
-          endDateTime = LocalDateTime.of(endDate, endTime);
-        }
-
-        // Create event DTO
-        ICalendarEventDTO eventDTO = ICalendarEventDTO.builder()
-              .setEventName(eventName)
-              .setStartDateTime(startDateTime)
-              .setEndDateTime(endDateTime)
-              .setEventDescription(description)
-              .setEventLocation(location)
-              .setPrivate(isPrivate)
-              .setAutoDecline(true)
-              .build();
-
-        events.add(eventDTO);
+        lineNumber++;
       }
     }
 
+    // If there are validation errors, throw an exception with all errors
+    if (!validationErrors.isEmpty()) {
+      throw new IllegalStateException("CSV validation errors:\n" + String.join("\n", validationErrors));
+    }
+
     return events;
+  }
+
+  /**
+   * Checks if a string represents a valid boolean value (true/false).
+   * Case-insensitive.
+   *
+   * @param value The string to check
+   * @return true if the string is a valid boolean representation
+   */
+  private boolean isValidBoolean(String value) {
+    return value.equalsIgnoreCase("true") ||
+          value.equalsIgnoreCase("false");
   }
 
   private String[] parseCSVLine(String line) {

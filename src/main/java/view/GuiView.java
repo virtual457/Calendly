@@ -299,8 +299,8 @@ public class GuiView extends JFrame implements IView {
       if (selectedZone != null) {
         boolean created = commandAdapter.createCalendar(name, selectedZone);
         if (created) {
-          updateCalendarSelector();
           selectedCalendar = name;
+          updateCalendarSelector();
           commandAdapter.useCalendar(name);
           refreshCalendarView();
         } else {
