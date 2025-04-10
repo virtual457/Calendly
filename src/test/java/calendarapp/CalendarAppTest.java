@@ -7372,6 +7372,318 @@ public class CalendarAppTest {
     tempFile.delete();
   }
 
+  @Test
+  public void testImportWithMissingHeader() throws IOException {
+    // Create a temporary CSV file without a header
+    File tempFile = File.createTempFile("import_no_header", ".csv");
+
+    try (FileWriter writer = new FileWriter(tempFile)) {
+      writer.write(
+          // No header line, just data row with complete information
+          "\"Complete Event\",10/01/2025,09:00 AM,10/01/2025,10:00 AM,False,\"Complete data\",\"Office\",False\n"
+      );
+    }
+
+    String[] commands = {
+        "create calendar --name HeaderCal --timezone America/New_York",
+        "use calendar --name HeaderCal",
+        "import cal " + tempFile.getAbsolutePath().replace("\\", "\\\\") +
+            " --timezone America/New_York",
+        "export cal " + OUTPUT_FILE,
+        "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    // Check the output for error messages
+    String outputContent = outContent.toString();
+    assertTrue("Output should indicate missing header problem",
+        outputContent.contains("Error") ||
+            outputContent.contains("error") ||
+            outputContent.contains("header") ||
+            outputContent.contains("format"));
+
+    tempFile.delete();
+  }
+
+  @Test
+  public void testImportWithNoTimezoneSpecified() throws IOException {
+    // Create a temporary CSV file with a complete event
+    File tempFile = File.createTempFile("import_no_timezone", ".csv");
+
+    try (FileWriter writer = new FileWriter(tempFile)) {
+      writer.write(
+          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private\n" +
+              "\"Regular Event\",10/01/2025,09:00 AM,10/01/2025,10:00 AM,False,\"Normal meeting\",\"Office\",False\n"
+      );
+    }
+
+    String[] commands = {
+        "create calendar --name TimezoneCal --timezone America/New_York",
+        "use calendar --name TimezoneCal",
+        // No timezone parameter in import command
+        "import cal " + tempFile.getAbsolutePath().replace("\\", "\\\\"),
+        "export cal " + OUTPUT_FILE,
+        "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    String exportedContent = readExportedFile();
+    String[] exportLines = exportedContent.split("\n");
+
+    // If import succeeded with default timezone, we should have header + 1 event
+    if (exportLines.length > 1) {
+      // Event should be imported using calendar's timezone
+      String expected = String.join("\n",
+          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private",
+          "\"Regular Event\",10/01/2025,09:00 AM,10/01/2025,10:00 AM,False,\"Normal meeting\",\"Office\",False"
+      );
+      assertEquals(expected, exportedContent);
+    }
+
+    tempFile.delete();
+  }
+
+  @Test
+  public void testImportWithMissingEventName() throws IOException {
+    // Create a temporary CSV file with an event missing a name
+    File tempFile = File.createTempFile("import_no_name", ".csv");
+
+    try (FileWriter writer = new FileWriter(tempFile)) {
+      writer.write(
+          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private\n" +
+              "\"\",10/01/2025,09:00 AM,10/01/2025,10:00 AM,False,\"Meeting with empty name\",\"Room A\",False\n"
+      );
+    }
+
+    String[] commands = {
+        "create calendar --name NameCal --timezone America/New_York",
+        "use calendar --name NameCal",
+        "import cal " + tempFile.getAbsolutePath().replace("\\", "\\\\") +
+            " --timezone America/New_York",
+        "export cal " + OUTPUT_FILE,
+        "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    // Check for error message
+    String outputContent = outContent.toString();
+    assertTrue("Output should indicate empty name problem",
+        outputContent.contains("Error") ||
+            outputContent.contains("error") ||
+            outputContent.contains("name") ||
+            outputContent.contains("empty"));
+
+    // Empty export file or just header (no events imported)
+    String exportedContent = readExportedFile();
+    String[] exportLines = exportedContent.split("\n");
+    assertTrue("No events should be imported", exportLines.length <= 1);
+
+    tempFile.delete();
+  }
+
+  @Test
+  public void testImportWithMissingStartDate() throws IOException {
+    // Create a temporary CSV file with an event missing start date
+    File tempFile = File.createTempFile("import_no_start_date", ".csv");
+
+    try (FileWriter writer = new FileWriter(tempFile)) {
+      writer.write(
+          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private\n" +
+              "\"Missing Start Date\",,09:00 AM,10/01/2025,10:00 AM,False,\"Meeting with missing start date\",\"Room A\",False\n"
+      );
+    }
+
+    String[] commands = {
+        "create calendar --name StartDateCal --timezone America/New_York",
+        "use calendar --name StartDateCal",
+        "import cal " + tempFile.getAbsolutePath().replace("\\", "\\\\") +
+            " --timezone America/New_York",
+        "export cal " + OUTPUT_FILE,
+        "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    // Check for error message
+    String outputContent = outContent.toString();
+    assertTrue("Output should indicate missing start date problem",
+        outputContent.contains("Error") ||
+            outputContent.contains("error") ||
+            outputContent.contains("start date") ||
+            outputContent.contains("missing"));
+
+    // Empty export file or just header (no events imported)
+    String exportedContent = readExportedFile();
+    String[] exportLines = exportedContent.split("\n");
+    assertTrue("No events should be imported", exportLines.length <= 1);
+
+    tempFile.delete();
+  }
+
+  @Test
+  public void testImportWithMissingStartTime() throws IOException {
+    // Create a temporary CSV file with an event missing start time
+    File tempFile = File.createTempFile("import_no_start_time", ".csv");
+
+    try (FileWriter writer = new FileWriter(tempFile)) {
+      writer.write(
+          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private\n" +
+              "\"Missing Start Time\",10/01/2025,,10/01/2025,10:00 AM,False,\"Meeting with missing start time\",\"Room A\",False\n"
+      );
+    }
+
+    String[] commands = {
+        "create calendar --name StartTimeCal --timezone America/New_York",
+        "use calendar --name StartTimeCal",
+        "import cal " + tempFile.getAbsolutePath().replace("\\", "\\\\") +
+            " --timezone America/New_York",
+        "export cal " + OUTPUT_FILE,
+        "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    // Check for error message
+    String outputContent = outContent.toString();
+    assertTrue("Output should indicate missing start time problem",
+        outputContent.contains("Error") ||
+            outputContent.contains("error") ||
+            outputContent.contains("start time") ||
+            outputContent.contains("missing"));
+
+    // Empty export file or just header (no events imported)
+    String exportedContent = readExportedFile();
+    String[] exportLines = exportedContent.split("\n");
+    assertTrue("No events should be imported", exportLines.length <= 1);
+
+    tempFile.delete();
+  }
+
+  @Test
+  public void testImportWithMissingEndDate() throws IOException {
+    // Create a temporary CSV file with an event missing end date
+    File tempFile = File.createTempFile("import_no_end_date", ".csv");
+
+    try (FileWriter writer = new FileWriter(tempFile)) {
+      writer.write(
+          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private\n" +
+              "\"Missing End Date\",10/01/2025,09:00 AM,,10:00 AM,False,\"Meeting with missing end date\",\"Room A\",False\n"
+      );
+    }
+
+    String[] commands = {
+        "create calendar --name EndDateCal --timezone America/New_York",
+        "use calendar --name EndDateCal",
+        "import cal " + tempFile.getAbsolutePath().replace("\\", "\\\\") +
+            " --timezone America/New_York",
+        "export cal " + OUTPUT_FILE,
+        "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    // Check for error message
+    String outputContent = outContent.toString();
+    assertTrue("Output should indicate missing end date problem",
+        outputContent.contains("Error") ||
+            outputContent.contains("error") ||
+            outputContent.contains("end date") ||
+            outputContent.contains("missing"));
+
+    // Empty export file or just header (no events imported)
+    String exportedContent = readExportedFile();
+    String[] exportLines = exportedContent.split("\n");
+    assertTrue("No events should be imported", exportLines.length <= 1);
+
+    tempFile.delete();
+  }
+
+  @Test
+  public void testImportWithMissingEndTime() throws IOException {
+    // Create a temporary CSV file with an event missing end time
+    File tempFile = File.createTempFile("import_no_end_time", ".csv");
+
+    try (FileWriter writer = new FileWriter(tempFile)) {
+      writer.write(
+          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private\n" +
+              "\"Missing End Time\",10/01/2025,09:00 AM,10/01/2025,,False,\"Meeting with missing end time\",\"Room A\",False\n"
+      );
+    }
+
+    String[] commands = {
+        "create calendar --name EndTimeCal --timezone America/New_York",
+        "use calendar --name EndTimeCal",
+        "import cal " + tempFile.getAbsolutePath().replace("\\", "\\\\") +
+            " --timezone America/New_York",
+        "export cal " + OUTPUT_FILE,
+        "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    // Check for error message
+    String outputContent = outContent.toString();
+    assertTrue("Output should indicate missing end time problem",
+        outputContent.contains("Error") ||
+            outputContent.contains("error") ||
+            outputContent.contains("end time") ||
+            outputContent.contains("missing"));
+
+    // Empty export file or just header (no events imported)
+    String exportedContent = readExportedFile();
+    String[] exportLines = exportedContent.split("\n");
+    assertTrue("No events should be imported", exportLines.length <= 1);
+
+    tempFile.delete();
+  }
+
+  @Test
+  public void testImportFileWithMultipleIssues() throws IOException {
+    // Create a temporary CSV file with multiple issues
+    File tempFile = File.createTempFile("import_multiple_issues", ".csv");
+
+    try (FileWriter writer = new FileWriter(tempFile)) {
+      writer.write(
+          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private\n" +
+              "\"Complete Event\",10/01/2025,09:00 AM,10/01/2025,10:00 AM,False,\"Complete data\",\"Office\",False\n" +
+              "\"Missing Times\",,,,,,\"Missing times\",\"Room A\",True\n" +
+              ",,,,,,,,"
+      );
+    }
+
+    String[] commands = {
+        "create calendar --name MultiIssuesCal --timezone America/New_York",
+        "use calendar --name MultiIssuesCal",
+        "import cal " + tempFile.getAbsolutePath().replace("\\", "\\\\") +
+            " --timezone America/New_York",
+        "export cal " + OUTPUT_FILE,
+        "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    // Check for error message
+    String outputContent = outContent.toString();
+    assertTrue("Output should indicate import problems",
+        outputContent.contains("Error") ||
+            outputContent.contains("error") ||
+            outputContent.contains("Cannot add") ||
+            outputContent.contains("failed"));
+
+    // Empty export file or just header (no events imported)
+    String exportedContent = readExportedFile();
+    String[] exportLines = exportedContent.split("\n");
+
+    // If all-or-nothing approach is used, there should be no events imported
+    assertTrue("No events should be imported due to invalid entries",
+        exportLines.length <= 1 || !exportedContent.contains("Complete Event"));
+
+    tempFile.delete();
+  }
+
 
 
 
