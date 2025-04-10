@@ -100,6 +100,11 @@ public class CommandExecutorAdaptorTest2 {
       return true;
     }
 
+    @Override
+    public void exit() {
+
+    }
+
     public boolean isMethodCalled() {
       return methodCalled;
     }

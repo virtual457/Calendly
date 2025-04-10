@@ -166,6 +166,11 @@ public class CalendarControllerIntegrationTest {
       }
     }
 
+    @Override
+    public void stop() {
+
+    }
+
     public List<String> getDisplayedMessages() {
       return displayedMessages;
     }

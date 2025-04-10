@@ -45,6 +45,12 @@ public class CalendarApp {
   }
 
   private static IView createView(String mode,String[] args, IReadOnlyCalendarModel model) throws FileNotFoundException {
+
+    if(mode.equalsIgnoreCase("headless") && args.length > 3) {
+      System.setProperty("run_mode", args[3]);
+    } else {
+      System.setProperty("run_mode", "false");
+    }
     return IView.createInstance(mode, args, model);
   }
 

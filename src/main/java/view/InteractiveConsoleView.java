@@ -28,13 +28,15 @@ public class InteractiveConsoleView implements IView {
     try (Scanner scanner = new Scanner(readable)) {
       while (scanner.hasNextLine()) {
         String line = scanner.nextLine().trim();
-        if (line.equalsIgnoreCase("exit")) {
-          break;
-        }
         commandExecutor.executeCommand(line);
 
       }
     }
+  }
+
+  @Override
+  public void stop() {
+    System.out.println("Good Night..Sayonara");
   }
 }
 

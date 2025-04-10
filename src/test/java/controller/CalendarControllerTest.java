@@ -2621,6 +2621,11 @@ public class CalendarControllerTest {
 
     }
 
+    @Override
+    public void stop() {
+
+    }
+
 
     public String getLastDisplayedMessage() {
       return displayedMessages.get(displayedMessages.size() - 1);

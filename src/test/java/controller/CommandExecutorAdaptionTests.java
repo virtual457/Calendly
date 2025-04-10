@@ -79,6 +79,11 @@ public class CommandExecutorAdaptionTests {
     public boolean importCalendar(String filePath,String timezone) {
       return true;
     }
+
+    @Override
+    public void exit() {
+
+    }
   }
 
   @Before

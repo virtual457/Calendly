@@ -157,7 +157,7 @@ public class CalendarAppTest {
             writer.write(command + "\n");
           }
         }
-        String[] args = {"--mode", mode, tempFile.getAbsolutePath()};
+        String[] args = {"--mode", mode, tempFile.getAbsolutePath(), "true"};
         CalendarApp.main(args);
         tempFile.delete();
       } else {
@@ -345,6 +345,8 @@ public class CalendarAppTest {
         "Using calendar: ExactOn",
         "Event created successfully.",
         "- Seminar [2024-06-20T13:00 to 2024-06-20T14:30] at HallB"
+          ,
+          "Good Night..Sayonara"
     ));
 
     assertEquals(expected, outContent.toString().trim());
@@ -374,7 +376,8 @@ public class CalendarAppTest {
         "Event created successfully.",
         "Event created successfully.",
         "- Meeting [2024-06-22T09:00 to 2024-06-22T10:00] at ConfRoom",
-        "- Review [2024-06-22T10:30 to 2024-06-22T11:30] at BoardRoom"
+        "- Review [2024-06-22T10:30 to 2024-06-22T11:30] at BoardRoom",
+          "Good Night..Sayonara"
     ));
 
     assertEquals(expected, outContent.toString().trim());
@@ -404,7 +407,8 @@ public class CalendarAppTest {
         "Event created successfully.",
         "Event created successfully.",
         "- Planning [2024-07-01T08:00 to 2024-07-01T09:00] at RoomA",
-        "- WrapUp [2024-07-01T16:00 to 2024-07-01T17:00] at RoomB"
+        "- WrapUp [2024-07-01T16:00 to 2024-07-01T17:00] at RoomB",
+          "Good Night..Sayonara"
     ));
 
     assertEquals(expected, outContent.toString().trim());
@@ -428,7 +432,8 @@ public class CalendarAppTest {
         "Calendar created successfully.",
         "Using calendar: AllDayExact",
         "Event created successfully.",
-        "- Holiday [2024-06-23T00:00 to 2024-06-23T23:59:59] at Home"
+        "- Holiday [2024-06-23T00:00 to 2024-06-23T23:59:59] at Home",
+          "Good Night..Sayonara"
     ));
 
     assertEquals(expected, outContent.toString().trim());
@@ -453,7 +458,8 @@ public class CalendarAppTest {
         "Calendar created successfully.",
         "Using calendar: RecurringPrint",
         "Event created successfully.",
-        "- Standup [2024-06-24T09:00 to 2024-06-24T09:30] at Zoom"
+        "- Standup [2024-06-24T09:00 to 2024-06-24T09:30] at Zoom",
+          "Good Night..Sayonara"
     ));
 
     assertEquals(expected, outContent.toString().trim());
@@ -474,7 +480,8 @@ public class CalendarAppTest {
         "Welcome to the Calendar App!",
         "Calendar created successfully.",
         "Using calendar: NoEventDay",
-        "No events found."
+        "No events found.",
+          "Good Night..Sayonara"
     ));
 
     assertEquals(expected, outContent.toString().trim());
@@ -499,7 +506,8 @@ public class CalendarAppTest {
         "Calendar created successfully.",
         "Using calendar: NoLocation",
         "Event created successfully.",
-        "- SoloWork [2024-07-02T10:00 to 2024-07-02T12:00]"
+        "- SoloWork [2024-07-02T10:00 to 2024-07-02T12:00]",
+          "Good Night..Sayonara"
     ));
 
     assertEquals(expected, outContent.toString().trim());
@@ -524,7 +532,8 @@ public class CalendarAppTest {
         "Calendar created successfully.",
         "Using calendar: OverlapRange",
         "Event created successfully.",
-        "- Overnight [2024-07-03T23:00 to 2024-07-04T01:00] at Lounge"
+        "- Overnight [2024-07-03T23:00 to 2024-07-04T01:00] at Lounge",
+          "Good Night..Sayonara"
     ));
 
     assertEquals(expected, outContent.toString().trim());
@@ -552,7 +561,8 @@ public class CalendarAppTest {
         "Event created successfully.",
         "Event created successfully.",
         "- Holiday [2024-07-05T00:00 to 2024-07-05T23:59:59]",
-        "- Sync [2024-07-06T09:00 to 2024-07-06T10:00] at Online"
+        "- Sync [2024-07-06T09:00 to 2024-07-06T10:00] at Online",
+          "Good Night..Sayonara"
     ));
 
     assertEquals(expected, outContent.toString().trim());
@@ -577,7 +587,8 @@ public class CalendarAppTest {
         "Calendar created successfully.",
         "Using calendar: ExactRangeMatch",
         "Event created successfully.",
-        "- Interview [2024-07-07T14:00 to 2024-07-07T15:00] at HQ"
+        "- Interview [2024-07-07T14:00 to 2024-07-07T15:00] at HQ",
+          "Good Night..Sayonara"
     ));
 
     assertEquals(expected, outContent.toString().trim());
@@ -601,7 +612,8 @@ public class CalendarAppTest {
         "Calendar created successfully.",
         "Using calendar: RangeStartOnly",
         "Event created successfully.",
-        "- Focus [2024-07-08T09:00 to 2024-07-08T10:00] at Lab"
+        "- Focus [2024-07-08T09:00 to 2024-07-08T10:00] at Lab",
+          "Good Night..Sayonara"
     ));
 
     assertEquals(expected, outContent.toString().trim());
@@ -627,7 +639,8 @@ public class CalendarAppTest {
         "Calendar created successfully.",
         "Using calendar: AfterEvent",
         "Event created successfully.",
-        "No events found."
+        "No events found.",
+          "Good Night..Sayonara"
     ));
 
     assertEquals(expected, outContent.toString().trim());
@@ -652,7 +665,8 @@ public class CalendarAppTest {
         "Calendar created successfully.",
         "Using calendar: BeforeEvent",
         "Event created successfully.",
-        "No events found."
+        "No events found.",
+          "Good Night..Sayonara"
     ));
 
     assertEquals(expected, outContent.toString().trim());
@@ -682,7 +696,8 @@ public class CalendarAppTest {
         "Event created successfully.",
         "Event created successfully.",
         "- Discussion [2024-07-12T10:00 to 2024-07-12T10:30] at RoomA",
-        "- Planning [2024-07-12T10:30 to 2024-07-12T11:30] at RoomB"
+        "- Planning [2024-07-12T10:30 to 2024-07-12T11:30] at RoomB",
+          "Good Night..Sayonara"
     ));
 
     assertEquals(expected, outContent.toString().trim());
@@ -707,7 +722,8 @@ public class CalendarAppTest {
         "Calendar created successfully.",
         "Using calendar: SpecialChars",
         "Event created successfully.",
-        "- Bug Bash!@#$%^^ [2024-07-13T14:00 to 2024-07-13T16:00] at Main-Hall #2"
+        "- Bug Bash!@#$%^^ [2024-07-13T14:00 to 2024-07-13T16:00] at Main-Hall #2",
+          "Good Night..Sayonara"
     ));
 
     assertEquals(expected, outContent.toString().trim());
@@ -6555,7 +6571,7 @@ public class CalendarAppTest {
     String[] outputLines = output.split(System.lineSeparator());
 
     // Check last three lines in reverse order
-    int lastIndex = outputLines.length - 1;
+    int lastIndex = outputLines.length - 2;
     assertTrue("Last line should be export confirmation",
           outputLines[lastIndex].contains("Events exported successfully"));
     assertEquals("Second-to-last line should be Available",

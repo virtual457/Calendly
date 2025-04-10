@@ -1,11 +1,3 @@
 Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private
-"dasda dasd",04/09/2025,09:00 AM,04/09/2025,10:00 AM,False,"dasd dasda","dasda asdas",True
-"dasda dasd",04/10/2025,09:00 AM,04/10/2025,10:00 AM,False,"dasd dasda","dasda asdas",True
-"dasda dasd",04/11/2025,09:00 AM,04/11/2025,10:00 AM,False,"dasd dasda","dasda asdas",True
-"dasda dasd",04/14/2025,09:00 AM,04/14/2025,10:00 AM,False,"dasd dasda","dasda asdas",True
-"dasda dasd",04/15/2025,09:00 AM,04/15/2025,10:00 AM,False,"dasd dasda","dasda asdas",True
-"dasda dasd",04/16/2025,09:00 AM,04/16/2025,10:00 AM,False,"dasd dasda","dasda asdas",True
-"dasda dasd",04/17/2025,09:00 AM,04/17/2025,10:00 AM,False,"dasd dasda","dasda asdas",True
-"dasda dasd",04/18/2025,09:00 AM,04/18/2025,10:00 AM,False,"dasd dasda","dasda asdas",True
-"dasda dasd",04/21/2025,09:00 AM,04/21/2025,10:00 AM,False,"dasd dasda","dasda asdas",True
-"dasda dasd",04/22/2025,09:00 AM,04/22/2025,10:00 AM,False,"dasd dasda","dasda asdas",True
+"dasda dasd",04/09/2025,09:00 AM,04/09/2025,10:00 AM,,"dasd dasda","dasda asdas",True
+

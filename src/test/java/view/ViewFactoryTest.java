@@ -1,10 +1,15 @@
 package view;
 
 import model.IReadOnlyCalendarModel;
+
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 
 import static org.junit.Assert.*;
 
@@ -15,12 +20,33 @@ public class ViewFactoryTest {
   private String[] insufficientHeadlessArgs;
 
   @Before
-  public void setUp() {
+  public void setUp() throws IOException {
     // Create a simple manual mock of IReadOnlyCalendarModel
     mockModel = new TestReadOnlyCalendarModel();
 
-    validHeadlessArgs = new String[]{"--mode", "headless", "commands.txt"};
+    // Create commands.txt file in the current directory
+    File commandsFile = new File("commands2.txt");
+    try (FileWriter writer = new FileWriter(commandsFile)) {
+      // Add any test commands you want to execute
+      writer.write("show status on 2023-01-01T10:00\n");
+      writer.write("print events on 2023-01-01\n");
+      // Make sure to end with exit command
+      writer.write("exit");
+    }
+
+    // Make sure the file is deleted when the JVM exits
+    commandsFile.deleteOnExit();
+
+    validHeadlessArgs = new String[]{"--mode", "headless", "commands2.txt"};
     insufficientHeadlessArgs = new String[]{"--mode", "headless"};
+  }
+
+  @After
+  public void tearDown() {
+    File commandsFile = new File("commands.txt");
+    if (commandsFile.exists()) {
+      commandsFile.delete();
+    }
   }
 
   @Test

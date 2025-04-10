@@ -173,6 +173,11 @@ public class AbstractControllerTest {
       startCalled = true;
     }
 
+    @Override
+    public void stop() {
+
+    }
+
     public List<String> getDisplayedMessages() {
       return displayedMessages;
     }

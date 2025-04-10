@@ -219,6 +219,10 @@ public class ObjectToCommandAdapter implements ICalendarCommandAdapter {
     }
   }
 
+  public void exit(){
+    executor.executeCommand("exit");
+  }
+
   // Helper methods
   private boolean isAllDayEvent(LocalDateTime start, LocalDateTime end) {
     return start.toLocalTime().equals(LocalTime.MIDNIGHT) &&

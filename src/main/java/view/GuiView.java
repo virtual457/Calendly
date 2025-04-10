@@ -1,6 +1,8 @@
 package view;
 
 import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -66,7 +68,17 @@ public class GuiView extends JFrame implements IView {
    */
   private void initializeUI() {
     setTitle("Calendar Application");
-    setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // Changed from EXIT_ON_CLOSE
+
+
+    addWindowListener(new WindowAdapter() {
+      @Override
+      public void windowClosing(WindowEvent e) {
+        // Notify the controller that the user is trying to exit
+        commandAdapter.exit();
+      }
+    });
+
     setSize(800, 600);
     setLayout(new BorderLayout());
 
@@ -547,5 +559,10 @@ public class GuiView extends JFrame implements IView {
     this.commandAdapter = commandExecutor.getCommandAdapter();
     initializeUI();
     display("Welcome to the Calendar App!");
+  }
+
+  @Override
+  public void stop() {
+    super.dispose();
   }
 }

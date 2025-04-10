@@ -1227,6 +1227,11 @@ public class CalendarModelTest {
       // Not needed for testing
     }
 
+    @Override
+    public void stop() {
+
+    }
+
     public List<String> getDisplayedMessages() {
       return displayedMessages;
     }

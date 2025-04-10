@@ -48,4 +48,6 @@ public interface IView {
    * @param commandExecutor the executor to process commands
    */
   void start(ICommandExecutor commandExecutor);
+
+  void stop();
 }

@@ -64,4 +64,9 @@ public interface ICalendarCommandAdapter {
    */
   boolean importCalendar(String filePath,String timezone);
 
+  /**
+  exits the program
+   **/
+  void exit();
+
 }

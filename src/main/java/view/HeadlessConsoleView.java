@@ -9,6 +9,7 @@ import controller.ICommandExecutor;
 
 public class HeadlessConsoleView implements IView {
   private final String filePath;
+  private ICommandExecutor commandExecutor =null;
 
   public HeadlessConsoleView(String filePath) {
     this.filePath = filePath;
@@ -38,23 +39,22 @@ public class HeadlessConsoleView implements IView {
   @Override
   public void display(String message) {
     System.out.println(message);
-    if(message.toLowerCase().contains("error")) {
-      //System.exit(1);
+    if(message.toLowerCase().contains("error") && System.getProperty("run_mode").equalsIgnoreCase(
+          "false")) {
+      commandExecutor.executeCommand("exit");
+      System.exit(0);
     }
   }
 
   @Override
   public void start(ICommandExecutor commandExecutor) {
     try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+      this.commandExecutor =commandExecutor;
       String line;
       while ((line = reader.readLine()) != null) {
         line = line.trim();
         if (line.isEmpty()) {
           continue;
-        }
-
-        if (line.equalsIgnoreCase("exit")) {
-          break;
         }
 
         // Parse the command
@@ -63,5 +63,10 @@ public class HeadlessConsoleView implements IView {
     } catch (IOException e) {
       display("Error: " + e.getMessage());
     }
+  }
+
+  @Override
+  public void stop() {
+    System.out.println("Good Night..Sayonara");
   }
 }
