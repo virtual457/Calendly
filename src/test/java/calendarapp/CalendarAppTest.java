@@ -6935,8 +6935,11 @@ public class CalendarAppTest {
     try (FileWriter writer = new FileWriter(tempFile)) {
       writer.write(
           "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private\n" +
-              "\"ET Meeting\",10/01/2025,10:00,10/01/2025,11:00,False,\"Morning meeting in ET\",\"Office 101\",False\n" +
-              "\"ET Lunch\",10/01/2025,12:30,10/01/2025,13:30,False,\"Lunch in ET\",\"Cafeteria\",False"
+              "\"ET Meeting\",10/01/2025,10:00 AM,10/01/2025,11:00 AM,False,\"Morning " +
+                "meeting in ET\",\"Office 101\",False\n" +
+              "\"ET Lunch\",10/01/2025,12:30 PM,10/01/2025,01:30 PM,False,\"Lunch in " +
+                "ET\"," +
+                "\"Cafeteria\",False"
       );
     }
 
@@ -7062,6 +7065,7 @@ public class CalendarAppTest {
     tempFile.delete();
   }
 
+  //TODO:Correct teh expectation
   @Test
   public void testImportMixedEventTypes_DifferentTimezone() throws IOException {
     // Create a temporary CSV file with various event types in Sydney time
@@ -7070,9 +7074,17 @@ public class CalendarAppTest {
     try (FileWriter writer = new FileWriter(tempFile)) {
       writer.write(
           "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private\n" +
-              "\"Sydney Meeting\",10/01/2025,10:00,10/01/2025,11:00,False,\"Regular meeting\",\"Sydney Office\",False\n" +
-              "\"Sydney Conference\",10/02/2025,00:00,10/02/2025,23:59,True,\"All-day conference\",\"Convention Center\",False\n" +
-              "\"Sydney Private Session\",10/03/2025,14:00,10/03/2025,15:00,False,\"Confidential\",\"Room A\",True"
+              "\"Sydney Meeting\",10/01/2025,10:00 AM,10/01/2025,11:00 AM,False," +
+                "\"Regular" +
+                " " +
+                "meeting\",\"Sydney Office\",False\n" +
+              "\"Sydney Conference\",10/02/2025,00:00,10/02/2025,23:59,True," +
+                "\"All-day" +
+                " " +
+                "conference\",\"Convention Center\",False\n" +
+              "\"Sydney Private Session\",10/03/2025,02:00 AM,10/03/2025,03:00 PM," +
+                "False," +
+                "\"Confidential\",\"Room A\",True"
       );
     }
 
@@ -7118,8 +7130,12 @@ public class CalendarAppTest {
     try (FileWriter writer = new FileWriter(tempFile)) {
       writer.write(
           "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private\n" +
-              "\"Before DST\",10/01/2025,10:00,10/01/2025,11:00,False,\"Before DST change\",\"Room X\",False\n" +
-              "\"After DST\",11/05/2025,10:00,11/05/2025,11:00,False,\"After DST change\",\"Room Y\",False"
+              "\"Before DST\",10/01/2025,10:00 AM,10/01/2025,11:00 AM,False,\"Before " +
+                "DST" +
+                " " +
+                "change\",\"Room X\",False\n" +
+              "\"After DST\",11/05/2025,10:00 AM,11/05/2025,11:00 AM,False,\"After DST " +
+                "change\",\"Room Y\",False"
       );
     }
 
