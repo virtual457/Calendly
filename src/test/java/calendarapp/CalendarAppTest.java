@@ -6927,6 +6927,234 @@ public class CalendarAppTest {
     tempFile2.delete();
   }
 
+  @Test
+  public void testImportFromDifferentTimezone_NoConflicts() throws IOException {
+    // Create a temporary CSV file with events in Eastern Time (ET)
+    File tempFile = File.createTempFile("import_et_events", ".csv");
+
+    try (FileWriter writer = new FileWriter(tempFile)) {
+      writer.write(
+          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private\n" +
+              "\"ET Meeting\",10/01/2025,10:00,10/01/2025,11:00,False,\"Morning meeting in ET\",\"Office 101\",False\n" +
+              "\"ET Lunch\",10/01/2025,12:30,10/01/2025,13:30,False,\"Lunch in ET\",\"Cafeteria\",False"
+      );
+    }
+
+    String[] commands = {
+        "create calendar --name PTCal --timezone America/Los_Angeles",
+        "use calendar --name PTCal",
+        "import cal " + tempFile.getAbsolutePath().replace("\\", "\\\\") +
+            " --timezone America/New_York",
+        "export cal " + OUTPUT_FILE,
+        "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    String exportedContent = readExportedFile();
+
+    // Count lines to verify exactly how many events were imported
+    String[] exportLines = exportedContent.split("\n");
+
+    // Should have header + 2 imported events = 3 lines
+    assertEquals("Both events should be imported with timezone conversion", 3, exportLines.length);
+
+    // 10:00 ET = 07:00 PT, 12:30 ET = 09:30 PT
+    assertTrue("Export should contain converted morning time",
+        exportedContent.contains("ET Meeting") && exportedContent.contains("07:00"));
+    assertTrue("Export should contain converted lunch time",
+        exportedContent.contains("ET Lunch") && exportedContent.contains("09:30"));
+
+    tempFile.delete();
+  }
+
+  @Test
+  public void testImportWithExistingEvents_NoConflicts() throws IOException {
+    // Create a temporary CSV file with events in London time
+    File tempFile = File.createTempFile("import_london_events", ".csv");
+
+    try (FileWriter writer = new FileWriter(tempFile)) {
+      writer.write(
+          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private\n" +
+              "\"London Meeting 1\",10/01/2025,14:00,10/01/2025,15:00,False,\"Afternoon meeting in London\",\"UK Office\",False\n" +
+              "\"London Meeting 2\",10/02/2025,10:00,10/02/2025,11:00,False,\"Morning meeting in London\",\"UK Office\",False"
+      );
+    }
+
+    String[] commands = {
+        "create calendar --name NYCal --timezone America/New_York",
+        "use calendar --name NYCal",
+        "create event NY Meeting 1 from 2025-10-03T10:00 to 2025-10-03T11:00 --location \"NY Office\"",
+        "create event NY Meeting 2 from 2025-10-03T14:00 to 2025-10-03T15:00 --location \"NY Office\"",
+        "import cal " + tempFile.getAbsolutePath().replace("\\", "\\\\") +
+            " --timezone Europe/London",
+        "export cal " + OUTPUT_FILE,
+        "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    String exportedContent = readExportedFile();
+    String[] exportLines = exportedContent.split("\n");
+
+    // Header + 2 existing + 2 imported events = 5 lines
+    assertEquals("All 4 events should be present in the export", 5, exportLines.length);
+
+    // London time 14:00 = NY time 09:00, London time 10:00 = NY time 05:00
+    assertTrue("Export should contain existing NY events",
+        exportedContent.contains("NY Meeting 1") && exportedContent.contains("NY Meeting 2"));
+    assertTrue("Export should contain imported London events with converted times",
+        exportedContent.contains("London Meeting 1") && exportedContent.contains("09:00") &&
+            exportedContent.contains("London Meeting 2") && exportedContent.contains("05:00"));
+
+    tempFile.delete();
+  }
+
+  @Test
+  public void testImportWithExistingEvents_WithConflicts() throws IOException {
+    // Create a temporary CSV file with events in Tokyo time
+    File tempFile = File.createTempFile("import_tokyo_events", ".csv");
+
+    try (FileWriter writer = new FileWriter(tempFile)) {
+      writer.write(
+          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private\n" +
+              "\"Tokyo Meeting 1\",10/01/2025,10:00,10/01/2025,11:00,False,\"Morning meeting in Tokyo\",\"Tokyo Office\",False\n" +
+              "\"Tokyo Meeting 2\",10/01/2025,14:00,10/01/2025,15:00,False,\"Afternoon meeting in Tokyo\",\"Tokyo Office\",False\n" +
+              "\"Tokyo Meeting 3\",10/02/2025,10:00,10/02/2025,11:00,False,\"Next day meeting\",\"Tokyo Office\",False"
+      );
+    }
+
+    String[] commands = {
+        "create calendar --name ConflictCal --timezone America/New_York",
+        "use calendar --name ConflictCal",
+        // Tokyo 10:00 on 10/01 = NY 21:00 on 09/30
+        "create event NY Evening Meeting from 2025-09-30T21:00 to 2025-09-30T22:00 --location \"NY Office\" --autoDecline",
+        "create event NY Morning Meeting from 2025-10-01T10:00 to 2025-10-01T11:00 --location \"NY Office\" --autoDecline",
+        "import cal " + tempFile.getAbsolutePath().replace("\\", "\\\\") +
+            " --timezone Asia/Tokyo",
+        "export cal " + OUTPUT_FILE,
+        "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    String exportedContent = readExportedFile();
+    String[] exportLines = exportedContent.split("\n");
+
+    // Should have header + 2 existing NY events + 2 non-conflicting Tokyo events = 5 lines
+    assertEquals("Only non-conflicting events should be imported", 5, exportLines.length);
+
+    // Verify existing NY events are present
+    assertTrue("Export should contain existing NY events",
+        exportedContent.contains("NY Evening Meeting") &&
+            exportedContent.contains("NY Morning Meeting"));
+
+    // Verify non-conflicting Tokyo events were imported
+    // Tokyo 14:00 = NY 01:00, Tokyo 10:00 on 10/02 = NY 21:00 on 10/01
+    assertTrue("Export should contain non-conflicting Tokyo events",
+        exportedContent.contains("Tokyo Meeting 2") &&
+            exportedContent.contains("Tokyo Meeting 3"));
+
+    // Verify conflicting Tokyo event was NOT imported
+    assertFalse("Export should not contain conflicting Tokyo event",
+        exportedContent.contains("Tokyo Meeting 1"));
+
+    tempFile.delete();
+  }
+
+  @Test
+  public void testImportMixedEventTypes_DifferentTimezone() throws IOException {
+    // Create a temporary CSV file with various event types in Sydney time
+    File tempFile = File.createTempFile("import_mixed_types", ".csv");
+
+    try (FileWriter writer = new FileWriter(tempFile)) {
+      writer.write(
+          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private\n" +
+              "\"Sydney Meeting\",10/01/2025,10:00,10/01/2025,11:00,False,\"Regular meeting\",\"Sydney Office\",False\n" +
+              "\"Sydney Conference\",10/02/2025,00:00,10/02/2025,23:59,True,\"All-day conference\",\"Convention Center\",False\n" +
+              "\"Sydney Private Session\",10/03/2025,14:00,10/03/2025,15:00,False,\"Confidential\",\"Room A\",True"
+      );
+    }
+
+    String[] commands = {
+        "create calendar --name MixedTypesCal --timezone UTC",
+        "use calendar --name MixedTypesCal",
+        "import cal " + tempFile.getAbsolutePath().replace("\\", "\\\\") +
+            " --timezone Australia/Sydney",
+        "export cal " + OUTPUT_FILE,
+        "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    String exportedContent = readExportedFile();
+    String[] exportLines = exportedContent.split("\n");
+
+    // Header + 3 events = 4 lines
+    assertEquals("All 3 events should be imported", 4, exportLines.length);
+
+    // Sydney 10:00 = 00:00 UTC
+    assertTrue("Export should contain converted regular event time",
+        exportedContent.contains("Sydney Meeting") && exportedContent.contains("00:00"));
+
+    // Verify all-day event was imported properly
+    assertTrue("Export should contain all-day event with All Day Event flag",
+        exportedContent.contains("Sydney Conference") && exportedContent.contains("True"));
+
+    // Sydney 14:00 = 04:00 UTC
+    assertTrue("Export should contain private event with correct time and privacy",
+        exportedContent.contains("Sydney Private Session") &&
+            exportedContent.contains("04:00") &&
+            exportedContent.contains("True"));
+
+    tempFile.delete();
+  }
+
+  @Test
+  public void testImportAcrossDST_TimezoneConversion() throws IOException {
+    // Create a temporary CSV file with events during DST transition
+    File tempFile = File.createTempFile("import_dst_events", ".csv");
+
+    try (FileWriter writer = new FileWriter(tempFile)) {
+      writer.write(
+          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private\n" +
+              "\"Before DST\",10/01/2025,10:00,10/01/2025,11:00,False,\"Before DST change\",\"Room X\",False\n" +
+              "\"After DST\",11/05/2025,10:00,11/05/2025,11:00,False,\"After DST change\",\"Room Y\",False"
+      );
+    }
+
+    String[] commands = {
+        // London and New York have different DST transition dates
+        "create calendar --name DSTCal --timezone Europe/London",
+        "use calendar --name DSTCal",
+        "import cal " + tempFile.getAbsolutePath().replace("\\", "\\\\") +
+            " --timezone America/New_York",
+        "export cal " + OUTPUT_FILE,
+        "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    String exportedContent = readExportedFile();
+    String[] exportLines = exportedContent.split("\n");
+
+    // Header + 2 events = 3 lines
+    assertEquals("Both events should be imported with correct DST adjustments", 3, exportLines.length);
+
+    // Time difference changes between October and November due to DST changes
+    // Verify both events are present with correct time conversions
+    assertTrue("Export should contain both events with appropriate timezone conversions",
+        exportedContent.contains("Before DST") && exportedContent.contains("After DST"));
+
+    tempFile.delete();
+  }
+
+
+
+
+
+
+
 
 
 
