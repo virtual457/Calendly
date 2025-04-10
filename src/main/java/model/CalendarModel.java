@@ -602,34 +602,37 @@ class CalendarModel implements ICalendarModel {
 
 
   @Override
-  public boolean addEvents(String calendarName, List<ICalendarEventDTO> events) {
+  public boolean addEvents(String calendarName, List<ICalendarEventDTO> events,
+                           String sourceTimezone) {
     // First validate all events
     ICalendar targetCalendar = getCalendarByName(calendarName);
     List<String> errors = new ArrayList<>();
 
-    // Create a list to hold all new occurrences to check for conflicts among them
+    String targetTimezone = targetCalendar.getTimezone();
+
     List<CalendarEvent> allNewOccurrences = new ArrayList<>();
+
     // Keep track of which events have autoDecline enabled
     Map<CalendarEvent, Boolean> autoDeclineMap = new HashMap<>();
 
-    // First validation phase - basic properties + prepare occurrences
     for (ICalendarEventDTO eventDTO : events) {
       try {
-        // Basic validation
         validateBasicEvent(eventDTO);
 
-        boolean autoDecline = (eventDTO.isAutoDecline() != null) && eventDTO.isAutoDecline();
+        ICalendarEventDTO adjustedEvent = convertEventTimezone(eventDTO, sourceTimezone, targetTimezone);
 
-        if (Boolean.TRUE.equals(eventDTO.isRecurring())) {
-          validateRecurringEvent(eventDTO);
-          List<CalendarEvent> occurrences = generateRecurringOccurrences(eventDTO);
+        boolean autoDecline = (adjustedEvent.isAutoDecline() != null) && adjustedEvent.isAutoDecline();
+
+        if (Boolean.TRUE.equals(adjustedEvent.isRecurring())) {
+          validateRecurringEvent(adjustedEvent);
+          List<CalendarEvent> occurrences = generateRecurringOccurrences(adjustedEvent);
           for (CalendarEvent occurrence : occurrences) {
             allNewOccurrences.add(occurrence);
             autoDeclineMap.put(occurrence, autoDecline);
           }
         } else {
-          validateNonRecurringEvent(eventDTO);
-          CalendarEvent event = createSingleEvent(eventDTO);
+          validateNonRecurringEvent(adjustedEvent);
+          CalendarEvent event = createSingleEvent(adjustedEvent);
           allNewOccurrences.add(event);
           autoDeclineMap.put(event, autoDecline);
         }
@@ -638,17 +641,14 @@ class CalendarModel implements ICalendarModel {
       }
     }
 
-// If there are validation errors, stop here
     if (!errors.isEmpty()) {
       throw new IllegalStateException("Cannot add all events: " + String.join("; ", errors));
     }
 
-// Second phase - check for conflicts (both with existing events and among new events)
     List<ICalendarEvent> existingEvents = targetCalendar.getEvents();
     for (int i = 0; i < allNewOccurrences.size(); i++) {
       CalendarEvent event = allNewOccurrences.get(i);
 
-      // Only check conflicts if this event has autoDecline enabled
       if (autoDeclineMap.get(event)) {
         // Check against existing events
         for (ICalendarEvent existing : existingEvents) {
@@ -658,12 +658,10 @@ class CalendarModel implements ICalendarModel {
           }
         }
 
-        // Check against other new events with autoDecline enabled
         for (int j = 0; j < allNewOccurrences.size(); j++) {
           if (i == j) continue; // Skip comparing with itself
 
           CalendarEvent otherNew = allNewOccurrences.get(j);
-          // Only check if the other event also has autoDecline
           if (autoDeclineMap.get(otherNew) && event.doesEventConflict(otherNew)) {
             errors.add("New event " + event.getEventName() + " conflicts with another new event " + otherNew.getEventName());
             break;
@@ -672,23 +670,76 @@ class CalendarModel implements ICalendarModel {
       }
     }
 
-// If any conflicts were found, don't add any events
     if (!errors.isEmpty()) {
       throw new IllegalStateException("Cannot add all events: " + String.join("; ", errors));
     }
 
-// If all checks pass, add all the events
-    for (ICalendarEventDTO eventDTO : events) {
-      if (Boolean.TRUE.equals(eventDTO.isRecurring())) {
-        List<CalendarEvent> occurrences = generateRecurringOccurrences(eventDTO);
-        targetCalendar.addEvents(occurrences);
-      } else {
-        CalendarEvent event = createSingleEvent(eventDTO);
-        targetCalendar.addEvent(event);
-      }
+    for (CalendarEvent event : allNewOccurrences) {
+      targetCalendar.addEvent(event);
     }
 
     return true;
+  }
+
+  /**
+   * Converts an event's times from source timezone to target timezone.
+   *
+   * @param eventDTO The event to convert
+   * @param sourceTimezone The source timezone
+   * @param targetTimezone The target timezone
+   * @return A new event DTO with adjusted times
+   */
+  private ICalendarEventDTO convertEventTimezone(ICalendarEventDTO eventDTO,
+                                                 String sourceTimezone,
+                                                 String targetTimezone) {
+    // If timezones are the same, no conversion needed
+    if (sourceTimezone.equals(targetTimezone)) {
+      return eventDTO;
+    }
+
+    ZoneId sourceZone = ZoneId.of(sourceTimezone);
+    ZoneId targetZone = ZoneId.of(targetTimezone);
+
+    // Convert start time
+    ZonedDateTime sourceStartZoned = eventDTO.getStartDateTime().atZone(sourceZone);
+    ZonedDateTime targetStartZoned = sourceStartZoned.withZoneSameInstant(targetZone);
+    LocalDateTime newStartDateTime = targetStartZoned.toLocalDateTime();
+
+    // Convert end time
+    ZonedDateTime sourceEndZoned = eventDTO.getEndDateTime().atZone(sourceZone);
+    ZonedDateTime targetEndZoned = sourceEndZoned.withZoneSameInstant(targetZone);
+    LocalDateTime newEndDateTime = targetEndZoned.toLocalDateTime();
+
+    // Convert recurrence end date if present
+    LocalDateTime newRecurrenceEndDate = null;
+    if (eventDTO.getRecurrenceEndDate() != null) {
+      ZonedDateTime sourceRecEndZoned = eventDTO.getRecurrenceEndDate().atZone(sourceZone);
+      ZonedDateTime targetRecEndZoned = sourceRecEndZoned.withZoneSameInstant(targetZone);
+      newRecurrenceEndDate = targetRecEndZoned.toLocalDateTime();
+    }
+
+    // Build a new event DTO with the converted times
+    ICalendarEventDTOBuilder<?> builder = ICalendarEventDTO.builder()
+          .setEventName(eventDTO.getEventName())
+          .setStartDateTime(newStartDateTime)
+          .setEndDateTime(newEndDateTime)
+          .setEventDescription(eventDTO.getEventDescription())
+          .setEventLocation(eventDTO.getEventLocation())
+          .setPrivate(eventDTO.isPrivate())
+          .setAutoDecline(eventDTO.isAutoDecline())
+          .setRecurring(eventDTO.isRecurring());
+
+    // Set recurrence properties if this is a recurring event
+    if (Boolean.TRUE.equals(eventDTO.isRecurring())) {
+      builder.setRecurrenceDays(eventDTO.getRecurrenceDays())
+            .setRecurrenceCount(eventDTO.getRecurrenceCount());
+
+      if (newRecurrenceEndDate != null) {
+        builder.setRecurrenceEndDate(newRecurrenceEndDate);
+      }
+    }
+
+    return builder.build();
   }
 
   private ICalendar getCalendarByName(String calName) {

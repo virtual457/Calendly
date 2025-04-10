@@ -72,6 +72,6 @@ public interface ICalendarModel extends IReadOnlyCalendarModel {
    * @throws IllegalArgumentException if an event is invalid
    * @throws IllegalStateException if any event conflicts with existing events
    */
-  boolean addEvents(String calendarName, List<ICalendarEventDTO> events);
+  boolean addEvents(String calendarName, List<ICalendarEventDTO> events, String timezone);
 
 }

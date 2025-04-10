@@ -373,10 +373,10 @@ public class CommandExecutorAdaptorTest {
   public void testImportCalendar_GeneratesCorrectCommand() {
     
     String filePath = "calendar_import.csv";
-    String expectedCommand = "import cal \"calendar_import.csv\"";
+    String expectedCommand = "import cal \"calendar_import.csv\" --timezone \"UTC\"";
 
     
-    boolean result = adapter.importCalendar(filePath);
+    boolean result = adapter.importCalendar(filePath,"UTC");
 
     
     assertTrue("Method should return true", result);

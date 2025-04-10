@@ -12,9 +12,11 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,6 +26,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * A JUnit test suite for verifying the behavior of the Calendar application's entry
@@ -6133,7 +6136,7 @@ public class CalendarAppTest {
         "create calendar --name MyCal --timezone UTC",
         "use calendar --name MyCal",
         "create event --autoDecline WeeklyCall from 2025-07-01T09:00 to 2025-07-01T10:00",
-        "create event --autoDecline WeeklyCall from 2025-07-01T09:00 to 2025-07-01T10:00", //
+        "create event --autoDecline WeeklyCall from 2025-07-01T09:00 to 2025-07-01T10:00",
         // duplicate
         "exit"
     };
@@ -6153,7 +6156,6 @@ public class CalendarAppTest {
 
   @Test
   public void testBasicImportExportCycle() throws IOException {
-    // Create a temporary file with CSV content (using simple content without quotes issues)
     File tempFile = File.createTempFile("import", ".csv");
     try (FileWriter writer = new FileWriter(tempFile)) {
       writer.write(
@@ -6166,17 +6168,16 @@ public class CalendarAppTest {
     String[] commands = {
           "create calendar --name ImportCal --timezone America/New_York",
           "use calendar --name ImportCal",
-          "import cal " + tempFile.getAbsolutePath().replace("\\", "\\\\"),
+          "import cal " + tempFile.getAbsolutePath().replace("\\", "\\\\") +
+                " --timezone America/New_York",
           "export cal " + OUTPUT_FILE,
           "exit"
     };
 
     runAppWithCommands(commands);
 
-    // Check the exported file
     String exportContent = readExportedFile();
 
-    // Verify the content contains the expected events
     assertTrue("Export should contain Meeting event",
           exportContent.contains("\"Meeting\""));
     assertTrue("Export should contain Lunch event",
@@ -6186,7 +6187,6 @@ public class CalendarAppTest {
     assertTrue("Export should contain Conference Room A",
           exportContent.contains("\"Conference Room A\""));
 
-    // Verify import was successful in the output
     assertTrue("Import message should show success",
           outContent.toString().contains("Successfully imported") ||
                 outContent.toString().contains("events to calendar"));
@@ -6196,7 +6196,6 @@ public class CalendarAppTest {
 
   @Test
   public void testImportWithAllDayEvents() throws IOException {
-    // Create a temporary file with CSV content including all-day events
     File tempFile = File.createTempFile("import_allday", ".csv");
     try (FileWriter writer = new FileWriter(tempFile)) {
       writer.write(
@@ -6209,7 +6208,8 @@ public class CalendarAppTest {
     String[] commands = {
           "create calendar --name AllDayCal --timezone America/New_York",
           "use calendar --name AllDayCal",
-          "import cal " + tempFile.getAbsolutePath().replace("\\", "\\\\"),
+          "import cal " + tempFile.getAbsolutePath().replace("\\", "\\\\") +
+                " --timezone America/New_York",
           "export cal " + OUTPUT_FILE,
           "exit"
     };
@@ -6218,7 +6218,6 @@ public class CalendarAppTest {
 
     String exportContent = readExportedFile();
 
-    // Verify the all-day events were imported correctly
     assertTrue("Export should contain the conference",
           exportContent.contains("\"Conference\""));
     assertTrue("Export should contain the holiday",
@@ -6233,7 +6232,6 @@ public class CalendarAppTest {
 
   @Test
   public void testImportWithSpecialCharactersInContentWithoutQuotes() throws IOException {
-    // Create a temporary file with CSV content that has special characters but no embedded quotes
     File tempFile = File.createTempFile("import_special", ".csv");
     try (FileWriter writer = new FileWriter(tempFile)) {
       writer.write(
@@ -6246,7 +6244,8 @@ public class CalendarAppTest {
     String[] commands = {
           "create calendar --name SpecialCal --timezone America/New_York",
           "use calendar --name SpecialCal",
-          "import cal " + tempFile.getAbsolutePath().replace("\\", "\\\\"),
+          "import cal " + tempFile.getAbsolutePath().replace("\\", "\\\\") +
+                " --timezone America/New_York",
           "export cal " + OUTPUT_FILE,
           "exit"
     };
@@ -6255,7 +6254,6 @@ public class CalendarAppTest {
 
     String exportContent = readExportedFile();
 
-    // Verify the special characters are preserved
     assertTrue("Export should handle team meeting",
           exportContent.contains("\"Team Brainstorm Meeting\""));
     assertTrue("Export should handle client name with ampersand",
@@ -6272,7 +6270,6 @@ public class CalendarAppTest {
 
   @Test
   public void testImportWithPrivateEvents() throws IOException {
-    // Create a temporary file with CSV content having private events
     File tempFile = File.createTempFile("import_private", ".csv");
     try (FileWriter writer = new FileWriter(tempFile)) {
       writer.write(
@@ -6285,7 +6282,8 @@ public class CalendarAppTest {
     String[] commands = {
           "create calendar --name MixedPrivacyCal --timezone America/New_York",
           "use calendar --name MixedPrivacyCal",
-          "import cal " + tempFile.getAbsolutePath().replace("\\", "\\\\"),
+          "import cal " + tempFile.getAbsolutePath().replace("\\", "\\\\") +
+                " --timezone America/New_York",
           "export cal " + OUTPUT_FILE,
           "exit"
     };
@@ -6294,7 +6292,6 @@ public class CalendarAppTest {
 
     String exportContent = readExportedFile();
 
-    // Check both private and public events
     assertTrue("Export should contain public event",
           exportContent.contains("\"Public Meeting\""));
     assertTrue("Export should contain private event",
@@ -6311,7 +6308,6 @@ public class CalendarAppTest {
 
   @Test
   public void testImportWithEmptyFields() throws IOException {
-    // Create a temporary file with CSV content that has some empty fields
     File tempFile = File.createTempFile("import_empty", ".csv");
     try (FileWriter writer = new FileWriter(tempFile)) {
       writer.write(
@@ -6324,7 +6320,8 @@ public class CalendarAppTest {
     String[] commands = {
           "create calendar --name EmptyFieldsCal --timezone America/New_York",
           "use calendar --name EmptyFieldsCal",
-          "import cal " + tempFile.getAbsolutePath().replace("\\", "\\\\"),
+          "import cal " + tempFile.getAbsolutePath().replace("\\", "\\\\") +
+                " --timezone America/New_York",
           "export cal " + OUTPUT_FILE,
           "exit"
     };
@@ -6333,14 +6330,12 @@ public class CalendarAppTest {
 
     String exportContent = readExportedFile();
 
-    // Check for empty fields being preserved
     assertTrue("Export should contain the Meeting event",
           exportContent.contains("\"Meeting\""));
     assertTrue("Export should contain the Webinar event",
           exportContent.contains("\"Webinar\""));
     assertTrue("Export should contain Online training description",
           exportContent.contains("\"Online training\""));
-    // The export might represent empty fields in various ways, check for common patterns
     assertTrue("Export should have empty fields",
           exportContent.contains("\"\",\"\"") ||
                 exportContent.contains("\"\",False") ||
@@ -6372,7 +6367,6 @@ public class CalendarAppTest {
 
     String exportContent = readExportedFile();
 
-    // Only the original event should be present
     assertTrue("Export should contain the original event",
           exportContent.contains("\"Existing\""));
     assertFalse("Export should not contain the conflicting event",
@@ -6383,7 +6377,6 @@ public class CalendarAppTest {
 
   @Test
   public void testImportWithMixedEventTypes() throws IOException {
-    // Create a temporary file with mixed event types
     File tempFile = File.createTempFile("import_mixed", ".csv");
     try (FileWriter writer = new FileWriter(tempFile)) {
       writer.write(
@@ -6397,7 +6390,8 @@ public class CalendarAppTest {
     String[] commands = {
           "create calendar --name MixedTypesCal --timezone America/New_York",
           "use calendar --name MixedTypesCal",
-          "import cal " + tempFile.getAbsolutePath().replace("\\", "\\\\"),
+          "import cal " + tempFile.getAbsolutePath().replace("\\", "\\\\") +
+                " --timezone America/New_York",
           "export cal " + OUTPUT_FILE,
           "print events from 2025-10-01T00:00 to 2025-10-03T23:59",
           "exit"
@@ -6407,7 +6401,6 @@ public class CalendarAppTest {
 
     String exportContent = readExportedFile();
 
-    // Check all event types are present
     assertTrue("Export should contain regular timed event",
           exportContent.contains("\"Meeting\""));
     assertTrue("Export should contain all-day event",
@@ -6416,7 +6409,6 @@ public class CalendarAppTest {
           exportContent.contains("\"Workshop\"") && exportContent.contains("09:00 AM") &&
                 exportContent.contains("04:00 PM"));
 
-    // Check that print events shows all the events
     assertTrue("Print events should show all imported events",
           outContent.toString().contains("Meeting") &&
                 outContent.toString().contains("Holiday") &&
@@ -6427,7 +6419,6 @@ public class CalendarAppTest {
 
   @Test
   public void testImportExportWithTimezoneAdjustment() throws IOException {
-    // Create a temporary file with events
     File tempFile = File.createTempFile("import_tz", ".csv");
     try (FileWriter writer = new FileWriter(tempFile)) {
       writer.write(
@@ -6440,7 +6431,8 @@ public class CalendarAppTest {
     String[] nyCommands = {
           "create calendar --name NYCal --timezone America/New_York",
           "use calendar --name NYCal",
-          "import cal " + tempFile.getAbsolutePath().replace("\\", "\\\\"),
+          "import cal " + tempFile.getAbsolutePath().replace("\\", "\\\\") +
+                " --timezone America/New_York",
           "export cal " + OUTPUT_FILE,
           "exit"
     };
@@ -6451,11 +6443,11 @@ public class CalendarAppTest {
     assertTrue("NY export should have original time",
           nyExport.contains("10:00 AM") && nyExport.contains("11:00 AM"));
 
-    // Then import the same file into Tokyo timezone
     String[] tokyoCommands = {
           "create calendar --name TokyoCal --timezone Asia/Tokyo",
           "use calendar --name TokyoCal",
-          "import cal " + tempFile.getAbsolutePath().replace("\\", "\\\\"),
+          "import cal " + tempFile.getAbsolutePath().replace("\\", "\\\\")  +
+                " --timezone Asia/Tokyo",
           "export cal " + OUTPUT_FILE,
           "exit"
     };
@@ -6463,8 +6455,6 @@ public class CalendarAppTest {
     runAppWithCommands(tokyoCommands);
 
     String tokyoExport = readExportedFile();
-    // The time should still be 10:00 AM in the export because the CSV time is interpreted
-    // in the calendar's timezone, and the same relative time is preserved
     assertTrue("Tokyo export should interpret time in its timezone",
           tokyoExport.contains("10:00 AM") && tokyoExport.contains("11:00 AM"));
 
@@ -6473,7 +6463,6 @@ public class CalendarAppTest {
 
   @Test
   public void testImportThenPrintEvents() throws IOException {
-    // Create a temporary file with events spanning multiple days
     File tempFile = File.createTempFile("import_print", ".csv");
     try (FileWriter writer = new FileWriter(tempFile)) {
       writer.write(
@@ -6487,15 +6476,14 @@ public class CalendarAppTest {
     String[] commands = {
           "create calendar --name PrintCal --timezone America/New_York",
           "use calendar --name PrintCal",
-          "import cal " + tempFile.getAbsolutePath().replace("\\", "\\\\"),
-          // Print events for just the second day
+          "import cal " + tempFile.getAbsolutePath().replace("\\", "\\\\") +
+                " --timezone America/New_York",
           "print events on 2025-10-11",
           "exit"
     };
 
     runAppWithCommands(commands);
 
-    // Verify the print command only shows the day 2 meeting
     assertTrue("Print output should contain day 2 meeting",
           outContent.toString().contains("Day 2 Meeting"));
     assertFalse("Print output should not contain day 1 meeting",
@@ -6508,7 +6496,6 @@ public class CalendarAppTest {
 
   @Test
   public void testImportEditThenExport() throws IOException {
-    // Create a temporary file with events
     File tempFile = File.createTempFile("import_edit", ".csv");
     try (FileWriter writer = new FileWriter(tempFile)) {
       writer.write(
@@ -6521,8 +6508,8 @@ public class CalendarAppTest {
     String[] commands = {
           "create calendar --name EditImportCal --timezone America/New_York",
           "use calendar --name EditImportCal",
-          "import cal " + tempFile.getAbsolutePath().replace("\\", "\\\\"),
-          // Edit the location of the planning meeting
+          "import cal " + tempFile.getAbsolutePath().replace("\\", "\\\\") +
+                " --timezone America/New_York",
           "edit events location \"Planning Meeting\" from 2025-11-01T09:00 with \"Conference Room C\"",
           "export cal " + OUTPUT_FILE,
           "exit"
@@ -6532,7 +6519,6 @@ public class CalendarAppTest {
 
     String exportContent = readExportedFile();
 
-    // Verify the edit was applied correctly
     assertTrue("Export should contain edited location",
           exportContent.contains("\"Conference Room C\""));
     assertTrue("Export should still contain unedited event",
@@ -6543,7 +6529,6 @@ public class CalendarAppTest {
 
   @Test
   public void testImportShowStatusThenExport() throws IOException {
-    // Create a temporary file with events at specific times
     File tempFile = File.createTempFile("import_status", ".csv");
     try (FileWriter writer = new FileWriter(tempFile)) {
       writer.write(
@@ -6556,10 +6541,9 @@ public class CalendarAppTest {
     String[] commands = {
           "create calendar --name StatusCal --timezone America/New_York",
           "use calendar --name StatusCal",
-          "import cal " + tempFile.getAbsolutePath().replace("\\", "\\\\"),
-          // Check status during morning meeting
+          "import cal " + tempFile.getAbsolutePath().replace("\\", "\\\\") +
+                " --timezone America/New_York",
           "show status on 2025-12-01T09:30",
-          // Check status during free time
           "show status on 2025-12-01T12:00",
           "export cal " + OUTPUT_FILE,
           "exit"
@@ -6584,7 +6568,6 @@ public class CalendarAppTest {
 
   @Test
   public void testImportExportAfterCalendarRename() throws IOException {
-    // Create a temporary file with events
     File tempFile = File.createTempFile("import_rename", ".csv");
     try (FileWriter writer = new FileWriter(tempFile)) {
       writer.write(
@@ -6596,10 +6579,9 @@ public class CalendarAppTest {
     String[] commands = {
           "create calendar --name OldCalName --timezone America/New_York",
           "use calendar --name OldCalName",
-          "import cal " + tempFile.getAbsolutePath().replace("\\", "\\\\"),
-          // Rename the calendar
+          "import cal " + tempFile.getAbsolutePath().replace("\\", "\\\\") +
+                " --timezone America/New_York",
           "edit calendar --name OldCalName --property name NewCalName",
-          // Use the renamed calendar
           "use calendar --name NewCalName",
           "export cal " + OUTPUT_FILE,
           "exit"
@@ -6609,7 +6591,6 @@ public class CalendarAppTest {
 
     String exportContent = readExportedFile();
 
-    // Verify the event was imported and preserved after rename
     assertTrue("Export should contain the imported event",
           exportContent.contains("\"Team Standup\"") &&
                 exportContent.contains("\"Daily standup\"") &&
@@ -6620,7 +6601,6 @@ public class CalendarAppTest {
 
   @Test
   public void testImportExportWithDateTimeEdges() throws IOException {
-    // Create a temporary file with events at edge cases of date/time
     File tempFile = File.createTempFile("import_edges", ".csv");
     try (FileWriter writer = new FileWriter(tempFile)) {
       writer.write(
@@ -6633,7 +6613,8 @@ public class CalendarAppTest {
     String[] commands = {
           "create calendar --name EdgeCal --timezone America/New_York",
           "use calendar --name EdgeCal",
-          "import cal " + tempFile.getAbsolutePath().replace("\\", "\\\\"),
+          "import cal " + tempFile.getAbsolutePath().replace("\\", "\\\\") +
+                " --timezone America/New_York",
           "export cal " + OUTPUT_FILE,
           "exit"
     };
@@ -6657,7 +6638,6 @@ public class CalendarAppTest {
 
   @Test
   public void testImportFileWithMissingHeaderFields() throws IOException {
-    // Create a temporary file with incomplete header
     File tempFile = File.createTempFile("import_badheader", ".csv");
     try (FileWriter writer = new FileWriter(tempFile)) {
       writer.write(
@@ -6669,22 +6649,22 @@ public class CalendarAppTest {
     String[] commands = {
           "create calendar --name BadHeaderCal --timezone America/New_York",
           "use calendar --name BadHeaderCal",
-          "import cal " + tempFile.getAbsolutePath().replace("\\", "\\\\"),
+          "import cal " + tempFile.getAbsolutePath().replace("\\", "\\\\") +
+                " --timezone America/New_York",
           "exit"
     };
 
     runAppWithCommands(commands);
 
-    // Should show error message about missing required columns
     assertTrue("Import should fail with error about header/columns",
-          outContent.toString().contains("Error importing calendar"));
+          outContent.toString().contains("No events found to import."));
 
     tempFile.delete();
   }
 
   @Test
   public void testImportExportCyclePreservesFormattingAndData() throws IOException {
-    // Create a temporary file with properly formatted CSV
+
     File tempFile = File.createTempFile("import_format", ".csv");
     try (FileWriter writer = new FileWriter(tempFile)) {
       writer.write(
@@ -6696,23 +6676,21 @@ public class CalendarAppTest {
     String[] commands = {
           "create calendar --name FormatCal --timezone America/New_York",
           "use calendar --name FormatCal",
-          "import cal " + tempFile.getAbsolutePath().replace("\\", "\\\\"),
+          "import cal " + tempFile.getAbsolutePath().replace("\\", "\\\\") +
+                " --timezone America/New_York",
           "export cal " + OUTPUT_FILE,
           "exit"
     };
 
     runAppWithCommands(commands);
 
-    // Read the original imported content
     String importContent = new String(Files.readAllBytes(tempFile.toPath()))
           .trim()
           .replace("\r\n", "\n")
           .replace("\r", "\n");
 
-    // Read the exported content
     String exportContent = readExportedFile();
 
-    // Normalize both for comparison (just checking essential data, not exact format)
     assertTrue("Export should contain the same event data",
           exportContent.contains("\"Planning Session\"") &&
                 exportContent.contains("01/15/2026") &&
@@ -6723,6 +6701,231 @@ public class CalendarAppTest {
 
     tempFile.delete();
   }
+
+  @Test
+  public void testImportExportDataPreservation() throws IOException {
+
+    File originalImportFile = File.createTempFile("original_import", ".csv");
+
+
+    String originalContent =
+          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private\n" +
+                "\"Event 1\",10/01/2025,10:00 AM,10/01/2025,11:00 AM,False,\"First event description\",\"Room A\",False\n" +
+                "\"Event 2\",10/01/2025,11:30 AM,10/01/2025,12:30 PM,False,\"Second event description\",\"Room B\",False";
+
+    try (FileWriter writer = new FileWriter(originalImportFile)) {
+      writer.write(originalContent);
+    }
+    File conflictImportFile = File.createTempFile("conflict_import", ".csv");
+
+    String conflictContent =
+          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private\n" +
+                "\"Conflict Event\",10/01/2025,10:00 AM,10/01/2025,11:00 AM,False,\"Conflicting event description\",\"Room C\",False";
+
+    try (FileWriter writer = new FileWriter(conflictImportFile)) {
+      writer.write(conflictContent);
+    }
+
+    String[] commands = {
+          "create calendar --name ImportPreservationCal --timezone America/New_York",
+          "use calendar --name ImportPreservationCal",
+          "import cal " + originalImportFile.getAbsolutePath().replace("\\", "\\\\") +
+                " --timezone America/New_York",
+          "import cal " + conflictImportFile.getAbsolutePath().replace("\\", "\\\\")  +
+                " --timezone America/New_York",
+          "export cal " + OUTPUT_FILE,
+          "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    String exportedContent = readExportedFile();
+
+    String originalImportContent = readFileContent(originalImportFile);
+
+    compareImportExportContents(originalImportContent, exportedContent);
+
+
+    originalImportFile.delete();
+    conflictImportFile.delete();
+  }
+
+  private String readFileContent(File file) throws IOException {
+    try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+      return reader.lines().collect(Collectors.joining("\n"));
+    }
+  }
+
+  private void compareImportExportContents(String originalContent, String exportedContent) {
+    String[] originalLines = originalContent.split("\n");
+    String[] exportedLines = exportedContent.split("\n");
+
+    assertEquals("CSV header should match", originalLines[0].trim(), exportedLines[0].trim());
+
+    assertEquals("Number of data rows should match",
+          countNonEmptyLines(originalLines) - 1,
+          countNonEmptyLines(exportedLines) - 1
+    );
+
+
+    for (int i = 1; i < originalLines.length; i++) {
+      if (!originalLines[i].trim().isEmpty()) {
+        assertTrue("Original event should be present in export: " + originalLines[i],
+              exportedContent.contains(originalLines[i].trim()));
+      }
+    }
+  }
+
+  private int countNonEmptyLines(String[] lines) {
+    return (int) Arrays.stream(lines)
+          .filter(line -> !line.trim().isEmpty())
+          .count();
+  }
+
+  @Test
+  public void testSingleImportFileWithInternalConflicts() throws IOException {
+    File importFile = File.createTempFile("internal_conflicts", ".csv");
+
+    String conflictContent =
+          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private\n" +
+                "\"Event A\",10/01/2025,10:00 AM,10/01/2025,11:00 AM,False,\"First event\",\"Room X\",False\n" +
+                "\"Event B\",10/01/2025,10:30 AM,10/01/2025,11:30 AM,False,\"Overlapping event\",\"Room Y\",False\n" +
+                "\"Event C\",10/01/2025,11:00 AM,10/01/2025,12:00 PM,False,\"Another overlapping event\",\"Room Z\",False";
+
+    try (FileWriter writer = new FileWriter(importFile)) {
+      writer.write(conflictContent);
+    }
+
+    String[] commands = {
+          "create calendar --name InternalConflictCal --timezone America/New_York",
+          "use calendar --name InternalConflictCal",
+          "import cal " + importFile.getAbsolutePath().replace("\\", "\\\\"),
+          "export cal " + OUTPUT_FILE,
+          "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    String exportedContent = readExportedFile();
+
+    String[] exportLines = exportedContent.split("\n");
+
+
+    assertEquals("No events should be imported due to conflicts", 1, exportLines.length);
+
+    importFile.delete();
+  }
+
+  @Test
+  public void testImportFileConflictWithManuallyCreatedEvents() throws IOException {
+    File importFile = File.createTempFile("import_conflicts", ".csv");
+
+    String importContent =
+          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private\n" +
+                "\"Imported Event 1\",10/01/2025,10:00 AM,10/01/2025,11:00 AM,False,\"Imported first event\",\"Room A\",False";
+
+    try (FileWriter writer = new FileWriter(importFile)) {
+      writer.write(importContent);
+    }
+
+    String[] commands = {
+          "create calendar --name ConflictCalWithManual --timezone America/New_York",
+          "use calendar --name ConflictCalWithManual",
+          "create event \"Manual Conflict\" from 2025-10-01T10:30 to 2025-10-01T11:30",
+          "import cal " + importFile.getAbsolutePath().replace("\\", "\\\\"),
+          "export cal " + OUTPUT_FILE,
+          "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    String exportedContent = readExportedFile();
+
+    String[] exportLines = exportedContent.split("\n");
+
+    assertEquals("No events should be imported due to conflicts", 2, exportLines.length);
+
+    importFile.delete();
+  }
+
+  @Test
+  public void testCommandCreatedEventsConflictWithImportFile() throws IOException {
+    File importFile = File.createTempFile("import_events", ".csv");
+
+    String importContent =
+          "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private\n" +
+                "\"Existing Imported Event\",10/01/2025,10:00 AM,10/01/2025,11:00 AM,False,\"Imported event\",\"Room X\",False";
+
+    try (FileWriter writer = new FileWriter(importFile)) {
+      writer.write(importContent);
+    }
+
+    String[] commands = {
+          "create calendar --name CommandConflictCal --timezone America/New_York",
+          "use calendar --name CommandConflictCal",
+          "import cal " + importFile.getAbsolutePath().replace("\\", "\\\\"),
+          // Create a conflicting event after import
+          "create event \"Command Conflict\" from 2025-10-01T10:30 to 2025-10-01T11:30",
+          "export cal " + OUTPUT_FILE,
+          "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    String exportedContent = readExportedFile();
+
+    String[] exportLines = exportedContent.split("\n");
+    assertEquals("No events should be imported due to conflicts", 2, exportLines.length);
+
+    importFile.delete();
+  }
+
+
+  @Test
+  public void testMultipleImportFilesWithConflicts() throws IOException {
+
+    File tempFile1 = File.createTempFile("import_original", ".csv");
+    File tempFile2 = File.createTempFile("import_conflicting", ".csv");
+
+    try (FileWriter writer1 = new FileWriter(tempFile1);
+         FileWriter writer2 = new FileWriter(tempFile2)) {
+
+      writer1.write(
+            "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private\n" +
+                  "\"Original Event 1\",10/01/2025,10:00 AM,10/01/2025,11:00 AM,False,\"First original event\",\"Room A\",False\n" +
+                  "\"Original Event 2\",10/01/2025,11:30 AM,10/01/2025,12:30 PM,False,\"Second original event\",\"Room B\",False"
+      );
+
+      writer2.write(
+            "Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private\n" +
+                  "\"Conflicting Event 1\",10/01/2025,10:00 AM,10/01/2025,11:00 AM,False,\"First conflicting event\",\"Room C\",False\n" +
+                  "\"Conflicting Event 2\",10/01/2025,11:30 AM,10/01/2025,12:30 PM,False,\"Second conflicting event\",\"Room D\",False"
+      );
+    }
+
+    String[] commands = {
+          "create calendar --name MultiImportConflictCal --timezone America/New_York",
+          "use calendar --name MultiImportConflictCal",
+          "import cal " + tempFile1.getAbsolutePath().replace("\\", "\\\\") +
+                " --timezone America/New_York",
+          "import cal " + tempFile2.getAbsolutePath().replace("\\", "\\\\") +
+                " --timezone America/New_York",
+          "export cal " + OUTPUT_FILE,
+          "exit"
+    };
+
+    runAppWithCommands(commands);
+
+    String exportedContent = readExportedFile();
+
+    String[] exportLines = exportedContent.split("\n");
+
+    assertEquals("No events should be imported due to conflicts", 3, exportLines.length);
+
+    tempFile1.delete();
+    tempFile2.delete();
+  }
+
 
 
 

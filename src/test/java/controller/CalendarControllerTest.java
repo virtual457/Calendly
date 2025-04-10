@@ -2598,7 +2598,7 @@ public class CalendarControllerTest {
     }
 
     @Override
-    public boolean addEvents(String calendarName, List<ICalendarEventDTO> events) {
+    public boolean addEvents(String calendarName, List<ICalendarEventDTO> events, String timezone) {
       return false;
     }
   }

@@ -76,7 +76,7 @@ public class CommandExecutorAdaptionTests {
     }
 
     @Override
-    public boolean importCalendar(String filePath) {
+    public boolean importCalendar(String filePath,String timezone) {
       return true;
     }
   }

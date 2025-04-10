@@ -5,6 +5,7 @@ import java.awt.FlowLayout;
 import java.io.File;
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -12,11 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import controller.ICalendarCommandAdapter;
@@ -405,6 +402,8 @@ public class GuiView extends JFrame implements IView {
     }
   }
 
+  // Modify the importCalendar() method in GuiView.java
+
   /**
    * Imports calendar data from a file.
    */
@@ -417,34 +416,86 @@ public class GuiView extends JFrame implements IView {
     if (result == JFileChooser.APPROVE_OPTION) {
       File file = fileChooser.getSelectedFile();
 
-      try {
-        boolean success = commandAdapter.importCalendar(file.getAbsolutePath().replace("\\", "\\\\"));
-        if (success) {
-          refreshCalendarView();
+      // Create a dialog for timezone selection
+      JDialog timezoneDialog = new JDialog(this, "Select Timezone", true);
+      timezoneDialog.setLayout(new BorderLayout());
+      timezoneDialog.setSize(400, 200);
+      timezoneDialog.setLocationRelativeTo(this);
+
+      JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
+      mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+      JLabel label = new JLabel("Please select a timezone for the imported events:");
+      mainPanel.add(label, BorderLayout.NORTH);
+
+      // Get available timezone IDs
+      String[] availableZones = getAvailableTimezones();
+      JComboBox<String> timezoneCombo = new JComboBox<>(availableZones);
+      timezoneCombo.setSelectedItem(ZoneId.systemDefault().getId());
+      mainPanel.add(timezoneCombo, BorderLayout.CENTER);
+
+      JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+      JButton cancelButton = new JButton("Cancel");
+      JButton importButton = new JButton("Import");
+
+      buttonPanel.add(cancelButton);
+      buttonPanel.add(importButton);
+      mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+      // Store the selected timezone
+      final String[] selectedTimezone = {null};
+
+      // Add action listeners
+      cancelButton.addActionListener(e -> {
+        timezoneDialog.dispose();
+      });
+
+      importButton.addActionListener(e -> {
+        selectedTimezone[0] = (String) timezoneCombo.getSelectedItem();
+        timezoneDialog.dispose();
+      });
+
+      timezoneDialog.add(mainPanel);
+      timezoneDialog.setVisible(true);
+
+      // Process only if a timezone was selected (Import button was clicked)
+      if (selectedTimezone[0] != null) {
+        try {
+          // Add the timezone parameter to the import command
+          boolean success = commandAdapter.importCalendar(
+                file.getAbsolutePath().replace("\\", "\\\\"),
+                selectedTimezone[0]);
+
+          if (success) {
+            refreshCalendarView();
+            JOptionPane.showMessageDialog(
+                  this,
+                  "Calendar imported successfully",
+                  "Import Complete",
+                  JOptionPane.INFORMATION_MESSAGE
+            );
+          } else {
+            JOptionPane.showMessageDialog(
+                  this,
+                  "Failed to import calendar",
+                  "Import Error",
+                  JOptionPane.ERROR_MESSAGE
+            );
+          }
+        } catch (Exception ex) {
           JOptionPane.showMessageDialog(
                 this,
-                "Calendar imported successfully",
-                "Import Complete",
-                JOptionPane.INFORMATION_MESSAGE
-          );
-        } else {
-          JOptionPane.showMessageDialog(
-                this,
-                "Failed to import calendar",
+                "Error importing calendar: " + ex.getMessage(),
                 "Import Error",
                 JOptionPane.ERROR_MESSAGE
           );
         }
-      } catch (Exception ex) {
-        JOptionPane.showMessageDialog(
-              this,
-              "Error importing calendar: " + ex.getMessage(),
-              "Import Error",
-              JOptionPane.ERROR_MESSAGE
-        );
       }
     }
   }
+
+
+
 
   /**
    * Gets available timezone IDs.

@@ -209,9 +209,9 @@ public class ObjectToCommandAdapter implements ICalendarCommandAdapter {
   /**
    * Imports events from a file.
    */
-  public boolean importCalendar(String filePath) {
+  public boolean importCalendar(String filePath,String timezone) {
     try {
-      String command = "import cal \"" + filePath + "\"";
+      String command = "import cal \"" + filePath + "\"" + " --timezone \"" + timezone + "\"";
       executor.executeCommand(command);
       return true;
     } catch (Exception e) {

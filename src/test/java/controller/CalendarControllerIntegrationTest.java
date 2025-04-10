@@ -120,7 +120,7 @@ public class CalendarControllerIntegrationTest {
     }
 
     @Override
-    public boolean addEvents(String calendarName, List<ICalendarEventDTO> events) {
+    public boolean addEvents(String calendarName, List<ICalendarEventDTO> events, String timezone) {
       methodCalls.add("addEvents:" + calendarName);
       return operationSucceeds;
     }

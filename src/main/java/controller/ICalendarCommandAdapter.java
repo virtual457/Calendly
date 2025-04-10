@@ -62,6 +62,6 @@ public interface ICalendarCommandAdapter {
    * @param filePath The path to the CSV file to import
    * @return true if all events were successfully imported, false otherwise
    */
-  boolean importCalendar(String filePath);
+  boolean importCalendar(String filePath,String timezone);
 
 }

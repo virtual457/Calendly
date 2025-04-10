@@ -132,8 +132,9 @@ public class AbstractControllerTest {
     }
 
     @Override
-    public boolean addEvents(String calendarName, List<ICalendarEventDTO> events) {
-      commandsExecuted.add("addEvents:" + calendarName);
+    public boolean addEvents(String calendarName, List<ICalendarEventDTO> events,
+                             String timezone) {
+      commandsExecuted.add("addEvents:" + calendarName + " " + timezone);
       return true;
     }
 

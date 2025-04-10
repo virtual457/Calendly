@@ -423,13 +423,13 @@ public class ObjectToCommandAdapterTest {
     // Import calendar from CSV
     String filePath = "import_data.csv";
 
-    boolean result = adapter.importCalendar(filePath);
+    boolean result = adapter.importCalendar(filePath,"UTC");
 
     assertTrue("Import calendar should succeed", result);
     assertEquals(1, mockExecutor.getExecutedCommands().size());
     String command = mockExecutor.getExecutedCommands().get(0);
 
-    assertEquals("import cal \"import_data.csv\"", command);
+    assertEquals("import cal \"import_data.csv\" --timezone \"UTC\"", command);
   }
 
   @Test
@@ -657,7 +657,7 @@ public class ObjectToCommandAdapterTest {
     String filePath = "import.csv";
 
     // Test that false is returned when executor throws an exception
-    boolean result = errorAdapter.importCalendar(filePath);
+    boolean result = errorAdapter.importCalendar(filePath,"UTC");
     assertFalse("Should return false when executor throws", result);
   }
 

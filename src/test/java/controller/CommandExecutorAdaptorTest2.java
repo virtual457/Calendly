@@ -94,7 +94,7 @@ public class CommandExecutorAdaptorTest2 {
     }
 
     @Override
-    public boolean importCalendar(String filePath) {
+    public boolean importCalendar(String filePath,String timezone) {
       methodCalled = true;
       lastCalledMethod = "importCalendar";
       return true;

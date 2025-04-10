@@ -167,7 +167,7 @@ public class CalendarModelTest {
         .build());
 
     // Add all events
-    boolean success = model.addEvents("BatchCal", events);
+    boolean success = model.addEvents("BatchCal", events,"UTC");
     assertTrue(success);
 
     // Verify both events were added
@@ -214,7 +214,7 @@ public class CalendarModelTest {
         .build());
 
     // Add all events
-    boolean success = model.addEvents("MixedCal", events);
+    boolean success = model.addEvents("MixedCal", events,"UTC");
     assertTrue(success);
 
     // Verify non-recurring event was added
@@ -243,7 +243,7 @@ public class CalendarModelTest {
   @Test
   public void testAddEvents_WithEndDate_ShouldCreateCorrectOccurrences() {
     model = new CalendarModel();
-    model.createCalendar("RecurringEndCal", "America/New_York");
+    model.createCalendar("RecurringEndCal", "UTC");
 
     List<ICalendarEventDTO> events = new ArrayList<>();
 
@@ -261,7 +261,7 @@ public class CalendarModelTest {
         .setPrivate(false)
         .build());
 
-    boolean success = model.addEvents("RecurringEndCal", events);
+    boolean success = model.addEvents("RecurringEndCal", events,"UTC");
     assertTrue(success);
 
     // Verify recurring event with end date was expanded correctly
@@ -315,7 +315,7 @@ public class CalendarModelTest {
         .build());
 
     // Should throw IllegalStateException
-    model.addEvents("RejectCal", events);
+    model.addEvents("RejectCal", events,"UTC");
   }
 
   @Test
@@ -350,7 +350,7 @@ public class CalendarModelTest {
         .build());
 
     try {
-      model.addEvents("ConflictCal", events);
+      model.addEvents("ConflictCal", events,"UTC");
       fail("Expected IllegalStateException not thrown");
     } catch (IllegalStateException e) {
       // Test passes if this exception is caught
@@ -399,7 +399,7 @@ public class CalendarModelTest {
         .build());
 
     // Should succeed because auto-decline is disabled
-    boolean success = model.addEvents("ConflictAllowedCal", events);
+    boolean success = model.addEvents("ConflictAllowedCal", events,"UTC");
     assertTrue(success);
 
     // Verify that both events were added despite the conflict
@@ -415,7 +415,7 @@ public class CalendarModelTest {
   @Test(expected = IllegalStateException.class)
   public void testAddEvents_ConflictWithExistingEvent_ShouldRejectAll() {
     model = new CalendarModel();
-    model.createCalendar("ExistingCal", "America/New_York");
+    model.createCalendar("ExistingCal", "UTC");
 
     // Add an existing event
     ICalendarEventDTO existingEvent = ICalendarEventDTO.builder()
@@ -459,7 +459,7 @@ public class CalendarModelTest {
         .build());
 
     // Should throw IllegalStateException due to conflict
-    model.addEvents("ExistingCal", newEvents);
+    model.addEvents("ExistingCal", newEvents,"UTC");
   }
 
   @Test
@@ -494,7 +494,7 @@ public class CalendarModelTest {
         .build());
 
     // This should succeed despite the conflict because autoDecline is false
-    boolean success = model.addEvents("ConflictsAllowedCal", events);
+    boolean success = model.addEvents("ConflictsAllowedCal", events,"UTC");
     assertTrue(success);
 
     // Verify both events were added
@@ -528,7 +528,7 @@ public class CalendarModelTest {
         .setPrivate(false)
         .build());
 
-    boolean success = model.addEvents("RecurringCountCal", events);
+    boolean success = model.addEvents("RecurringCountCal", events,"UTC");
     assertTrue(success);
 
     // Verify all occurrences were created
@@ -570,7 +570,7 @@ public class CalendarModelTest {
         .setPrivate(false)
         .build());
 
-    boolean success = model.addEvents("RecurringEndDateCal", events);
+    boolean success = model.addEvents("RecurringEndDateCal", events,"UTC");
     assertTrue(success);
 
     // Verify all occurrences were created (should be 4 Fridays: May 2, 9, 16, 23)
@@ -592,7 +592,7 @@ public class CalendarModelTest {
   @Test
   public void testAddEvents_SingleEventWithRecurringEvent_NoConflict() {
     model = new CalendarModel();
-    model.createCalendar("MixedEventsCal", "America/New_York");
+    model.createCalendar("MixedEventsCal", "UTC");
 
     List<ICalendarEventDTO> events = new ArrayList<>();
 
@@ -635,7 +635,7 @@ public class CalendarModelTest {
         .build());
 
     // This should succeed since there are no conflicts
-    boolean success = model.addEvents("MixedEventsCal", events);
+    boolean success = model.addEvents("MixedEventsCal", events,"UTC");
     assertTrue(success);
 
     // Verify all events were added
@@ -688,7 +688,7 @@ public class CalendarModelTest {
   @Test
   public void testAddEvents_MixedSingleAndRecurring() {
     model = new CalendarModel();
-    model.createCalendar("MixedCal", "America/New_York");
+    model.createCalendar("MixedCal", "UTC");
 
     List<ICalendarEventDTO> events = new ArrayList<>();
 
@@ -731,7 +731,7 @@ public class CalendarModelTest {
         .build());
 
     // Add the events to the calendar
-    boolean success = model.addEvents("MixedCal", events);
+    boolean success = model.addEvents("MixedCal", events,"UTC");
     assertTrue(success);
 
     // Verify all events were added correctly
@@ -793,7 +793,7 @@ public class CalendarModelTest {
   @Test
   public void testAddEvents_MultipleRecurringPatterns() {
     model = new CalendarModel();
-    model.createCalendar("MultiRecurringCal", "America/New_York");
+    model.createCalendar("MultiRecurringCal", "UTC");
 
     List<ICalendarEventDTO> events = new ArrayList<>();
 
@@ -825,7 +825,7 @@ public class CalendarModelTest {
           .setPrivate(false)
           .build());
 
-    boolean success = model.addEvents("MultiRecurringCal", events);
+    boolean success = model.addEvents("MultiRecurringCal", events,"UTC");
     assertTrue(success);
 
     // Verify Team Standup occurrences (2 total, not per day)
@@ -902,7 +902,7 @@ public class CalendarModelTest {
         .build());
 
     // Add this first batch of events
-    assertTrue(model.addEvents("ConflictTestCal", events));
+    assertTrue(model.addEvents("ConflictTestCal", events,"UTC"));
 
     // Now try to add conflicting events
     List<ICalendarEventDTO> conflictingEvents = new ArrayList<>();
@@ -932,7 +932,7 @@ public class CalendarModelTest {
         .build());
 
     try {
-      model.addEvents("ConflictTestCal", conflictingEvents);
+      model.addEvents("ConflictTestCal", conflictingEvents,"UTC");
       fail("Expected IllegalStateException for conflict not thrown");
     } catch (IllegalStateException e) {
       // Expected exception for conflict
@@ -965,7 +965,7 @@ public class CalendarModelTest {
         .build());
 
     // This should succeed since autoDecline is false
-    assertTrue(model.addEvents("ConflictTestCal", nonAutoDeclineEvents));
+    assertTrue(model.addEvents("ConflictTestCal", nonAutoDeclineEvents,"UTC"));
 
     // Verify both events now exist
     List<ICalendarEventDTO> finalEvents = model.getEventsInRange(
@@ -1021,7 +1021,7 @@ public class CalendarModelTest {
           .build());
 
     // Add all events to source calendar
-    assertTrue(model.addEvents("SourceCal", events));
+    assertTrue(model.addEvents("SourceCal", events, "America/New_York"));
 
     // Edit the location of all standup meetings
     boolean edited = model.editEvents("SourceCal", "location", "Daily Standup",
@@ -1182,7 +1182,7 @@ public class CalendarModelTest {
         .build());
 
     // Add all events
-    boolean success = model.addEvents("WeekCal", events);
+    boolean success = model.addEvents("WeekCal", events,"UTC");
     assertTrue(success);
 
     // Verify all events were added
@@ -1257,7 +1257,7 @@ public class CalendarModelTest {
         .build());
 
     // Should throw exception since calendar doesn't exist
-    model.addEvents("NonExistentCalendar", events);
+    model.addEvents("NonExistentCalendar", events, "UTC");
   }
 
   @Test
@@ -1266,7 +1266,7 @@ public class CalendarModelTest {
     model.createCalendar("EmptyCal", "America/New_York");
 
     // Add an empty list of events - should succeed
-    boolean success = model.addEvents("EmptyCal", Collections.emptyList());
+    boolean success = model.addEvents("EmptyCal", Collections.emptyList(),"UTC");
     assertTrue(success);
   }
 
@@ -1306,7 +1306,7 @@ public class CalendarModelTest {
         .build());
 
     // Should succeed since events don't conflict
-    boolean success = model.addEvents("SameDayCal", events);
+    boolean success = model.addEvents("SameDayCal", events,"UTC");
     assertTrue(success);
 
     // Verify all occurrences were created
