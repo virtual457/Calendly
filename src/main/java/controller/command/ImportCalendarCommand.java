@@ -89,7 +89,7 @@ public class ImportCalendarCommand implements ICommand {
         }
 
         String[] fields = parseCSVLine(line);
-        if (fields.length < 8) {
+        if (fields.length < 9) {
           throw new IllegalArgumentException("Invalid CSV line: " + line);
         }
 
