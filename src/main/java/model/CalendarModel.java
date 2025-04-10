@@ -349,6 +349,15 @@ class CalendarModel implements ICalendarModel {
     return calendars.stream().map(ICalendar::getCalendarName).collect(Collectors.toList());
   }
 
+  @Override
+  public String getCalendarTimeZone(String calendarName) {
+    return calendars.stream()
+          .filter(calendar -> calendar.getCalendarName().equals(calendarName))
+          .findFirst()
+          .map(ICalendar::getTimezone)
+          .orElseThrow(() -> new IllegalArgumentException("Calendar not found: " + calendarName));
+  }
+
   public boolean deleteCalendar(String calName) {
     for (Iterator<ICalendar> iterator = calendars.iterator(); iterator.hasNext(); ) {
       ICalendar cal = iterator.next();

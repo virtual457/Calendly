@@ -47,5 +47,10 @@ public class ReadOnlyCalendarModel implements IReadOnlyCalendarModel {
     return model.getCalendarNames();
   }
 
+  @Override
+  public String getCalendarTimeZone(String calendarName) {
+    return model.getCalendarTimeZone(calendarName);
+  }
+
 
 }

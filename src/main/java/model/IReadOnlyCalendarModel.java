@@ -39,4 +39,6 @@ public interface IReadOnlyCalendarModel {
   boolean isCalendarAvailable(String calName, LocalDate date);
 
   List<String> getCalendarNames();
+
+  String getCalendarTimeZone(String calendarName);
 }
