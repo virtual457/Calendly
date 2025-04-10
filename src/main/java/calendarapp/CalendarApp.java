@@ -30,9 +30,9 @@ public class CalendarApp {
 
     try {
       ICalendarModel model = createModel();
-      IReadOnlyCalendarModel ROModel = new ReadOnlyCalendarModel(model);
+      IReadOnlyCalendarModel RoModel = new ReadOnlyCalendarModel(model);
       String mode = parseViewType(args);
-      IView view = createView(mode,args,ROModel);
+      IView view = createView(mode,args,RoModel);
       ICalendarController controller = createController(model, view);
       controller.start();
     } catch (Exception e) {

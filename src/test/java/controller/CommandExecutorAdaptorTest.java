@@ -286,7 +286,7 @@ public class CommandExecutorAdaptorTest {
 
     // The pattern should include MWF for Monday, Wednesday, Friday
     String expectedCommand = "create event \"Recurring Meeting\" from 2025-06-10T10:00 to 2025-06-10T11:00" +
-          " repeats MWF until 2025-08-10";
+          " repeats MWF until 2025-08-10T00:00";
 
     
     boolean result = adapter.createEvent(event);

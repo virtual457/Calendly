@@ -88,7 +88,7 @@ public class ObjectToCommandAdapter implements ICalendarCommandAdapter {
           command.append(" for ").append(event.getRecurrenceCount()).append(" times");
         } else if (event.getRecurrenceEndDate() != null) {
           DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-          command.append(" until ").append(event.getRecurrenceEndDate().format(dateFormatter));
+          command.append(" until ").append(event.getRecurrenceEndDate().format(formatter));
         }
       }
 
