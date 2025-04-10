@@ -6863,7 +6863,8 @@ public class CalendarAppTest {
     String[] commands = {
           "create calendar --name CommandConflictCal --timezone America/New_York",
           "use calendar --name CommandConflictCal",
-          "import cal " + importFile.getAbsolutePath().replace("\\", "\\\\"),
+          "import cal " + importFile.getAbsolutePath().replace("\\", "\\\\")
+          + " --timezone America/New_York",
           // Create a conflicting event after import
           "create event \"Command Conflict\" from 2025-10-01T10:30 to 2025-10-01T11:30",
           "export cal " + OUTPUT_FILE,
