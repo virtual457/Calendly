@@ -1,7 +1,6 @@
 package view;
 
-import java.awt.BorderLayout;
-import java.awt.FlowLayout;
+import java.awt.*;
 import java.io.File;
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -43,6 +42,7 @@ public class GuiView extends JFrame implements IView {
   private CalendarGridPanel calendarGrid;
   private CalendarSelectorPanel calendarSelector;
   private SidebarPanel sidebar;
+  private JLabel timezoneLabel;
 
   // State
   private String selectedCalendar;
@@ -115,14 +115,23 @@ public class GuiView extends JFrame implements IView {
     calendarSelector.setSelectionListener(calendar -> {
       selectedCalendar = calendar;
       commandAdapter.useCalendar(calendar);
+      timezoneLabel.setText(model.getCalendarTimeZone(selectedCalendar));
       refreshCalendarView();
     });
 
     calendarSelector.setCreateCalendarListener(this::createNewCalendar);
 
+
+    String timezone = "UTC";
+    timezoneLabel = new JLabel("Timezone: " + timezone);
+    timezoneLabel.setFont(new Font("SansSerif", Font.BOLD, 12));
+    JPanel timezonePanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+    timezonePanel.add(timezoneLabel);
+
     // Add panels to top panel in the desired order: navigation FIRST, then selector
     topPanel.add(navigationPanel.getPanel());
     topPanel.add(calendarSelector.getPanel());
+    topPanel.add(timezonePanel);
 
     // Add completed panel to frame
     add(topPanel, BorderLayout.NORTH);
@@ -201,6 +210,7 @@ public class GuiView extends JFrame implements IView {
     );
 
     // Update grid
+    timezoneLabel.setText("Timezone: " + model.getCalendarTimeZone(selectedCalendar));
     calendarGrid.updateEvents(events);
   }
 
