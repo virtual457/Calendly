@@ -72,6 +72,11 @@ public class EditEventsCalendarCommandTest {
     }
 
     @Override
+    public String getCalendarTimeZone(String calendarName) {
+      return "";
+    }
+
+    @Override
     public boolean deleteCalendar(String calName) {
       return false;
     }
@@ -186,6 +191,11 @@ public class EditEventsCalendarCommandTest {
       @Override
       public List<String> getCalendarNames() {
         return List.of();
+      }
+
+      @Override
+      public String getCalendarTimeZone(String calendarName) {
+        return "";
       }
 
       @Override

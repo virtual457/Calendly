@@ -67,6 +67,11 @@ public class CommandInvokerTest {
     }
 
     @Override
+    public String getCalendarTimeZone(String calendarName) {
+      return "";
+    }
+
+    @Override
     public boolean deleteCalendar(String calName) {
       lastExecutedCommand = "deleteCalendar:" + calName;
       return shouldSucceed;

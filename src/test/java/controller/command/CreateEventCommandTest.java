@@ -65,6 +65,11 @@ public class CreateEventCommandTest {
     }
 
     @Override
+    public String getCalendarTimeZone(String calendarName) {
+      return "";
+    }
+
+    @Override
     public boolean deleteCalendar(String calName) {
       return false;
     }

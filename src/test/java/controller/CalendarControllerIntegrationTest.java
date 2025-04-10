@@ -73,6 +73,11 @@ public class CalendarControllerIntegrationTest {
     }
 
     @Override
+    public String getCalendarTimeZone(String calendarName) {
+      return "";
+    }
+
+    @Override
     public boolean deleteCalendar(String calName) {
       methodCalls.add("deleteCalendar:" + calName);
       calendars.remove(calName);

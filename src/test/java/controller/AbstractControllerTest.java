@@ -87,6 +87,11 @@ public class AbstractControllerTest {
     }
 
     @Override
+    public String getCalendarTimeZone(String calendarName) {
+      return "";
+    }
+
+    @Override
     public boolean deleteCalendar(String calName) {
       commandsExecuted.add("deleteCalendar:" + calName);
       return true;

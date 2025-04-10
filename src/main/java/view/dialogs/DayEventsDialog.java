@@ -118,7 +118,7 @@ public class DayEventsDialog extends JDialog {
     detailsPanel.add(nameLabel);
 
     // Time
-    DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+    DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
     JLabel timeLabel = new JLabel(
           event.getStartDateTime().format(timeFormatter) + " - " +
                 event.getEndDateTime().format(timeFormatter)
