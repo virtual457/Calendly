@@ -23,21 +23,20 @@ public class CopyEventCommand implements ICommand {
 
     validateCommandArguments(args);
 
-    // Parse the validated arguments
+
     int index = 0;
     this.eventName = args.get(index++);
 
-    // Skip "on" keyword
+
     index++;
 
     this.sourceDateTime = LocalDateTime.parse(args.get(index++));
 
-    // Skip "--target" keyword
     index++;
 
     this.targetCalendar = args.get(index++);
 
-    // Skip "to" keyword
+
     index++;
 
     this.targetDateTime = LocalDateTime.parse(args.get(index));

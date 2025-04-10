@@ -492,8 +492,8 @@ public class GuiView extends JFrame implements IView {
             refreshCalendarView();
             JOptionPane.showMessageDialog(
                   this,
-                  "Calendar imported successfully",
-                  "Import Complete",
+                  "Started Importing Calendar",
+                  "Import Started",
                   JOptionPane.INFORMATION_MESSAGE
             );
           } else {

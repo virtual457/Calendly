@@ -50,6 +50,10 @@ public class ImportCalendarCommand implements ICommand {
   @Override
   public String execute() {
     try {
+      if (!filePath.toLowerCase().endsWith(".csv")) {
+        return "Error: File must have a .csv extension";
+      }
+
       List<ICalendarEventDTO> eventsToImport = importFromCSV();
 
       if (eventsToImport.isEmpty()) {
@@ -89,6 +93,9 @@ public class ImportCalendarCommand implements ICommand {
             throw new Exception("Invalid Header line: " + line);
           }
           continue; // Skip header row
+        }
+        if(line.isEmpty()){
+          continue;
         }
 
         try {

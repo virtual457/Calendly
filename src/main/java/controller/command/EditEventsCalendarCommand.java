@@ -46,7 +46,6 @@ public class EditEventsCalendarCommand implements ICommand {
       this.hasFromDateTime = true;
     }
     else {
-      // Format without from clause: edit events property eventName newValue
       this.newValue = CommandParser.getRequiredArg(parts, index, "Missing new property value");
       this.fromDateTime = null;
       this.hasFromDateTime = false;

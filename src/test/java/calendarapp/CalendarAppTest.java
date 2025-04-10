@@ -3071,8 +3071,6 @@ public class CalendarAppTest {
   // Test: Edit events with null "fromDateTime" should fail.
   @Test
   public void testEditEvents_NullFromDateTime_ShouldFail() throws IOException {
-    // In our command-driven parser, a null value would likely be represented as the
-    // literal "null".
     String[] commands = {
         "create calendar --name NullFromCal --timezone America/New_York",
         "use calendar --name NullFromCal",
