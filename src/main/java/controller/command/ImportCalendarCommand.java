@@ -81,12 +81,16 @@ public class ImportCalendarCommand implements ICommand {
       while ((line = reader.readLine()) != null) {
         if (isHeader) {
           isHeader = false;
+          if(!line.trim().equals("Subject,Start Date,Start Time,End Date,End Time,All Day " +
+                "Event,Description,Location,Private")){
+            throw new Exception("Invalid Header line: " + line);
+          }
           continue; // Skip header row
         }
 
         String[] fields = parseCSVLine(line);
         if (fields.length < 8) {
-          continue; // Skip malformed lines
+          throw new IllegalArgumentException("Invalid CSV line: " + line);
         }
 
         // Parse event fields

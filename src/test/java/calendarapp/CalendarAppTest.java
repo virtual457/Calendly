@@ -6657,7 +6657,7 @@ public class CalendarAppTest {
     runAppWithCommands(commands);
 
     assertTrue("Import should fail with error about header/columns",
-          outContent.toString().contains("No events found to import."));
+          outContent.toString().contains("Error importing calendar: Invalid Header line: Subject,Start Date,Start Time,End Date,End Time,Description,Location"));
 
     tempFile.delete();
   }
